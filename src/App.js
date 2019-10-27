@@ -247,7 +247,22 @@ function RegisterForm(props) {
     const [fields, setFields] = React.useState({ username: "", password: "", pass2: "", email: "" });
     function handleRegister() {
         // Handles starting the registration process
-        console.log("This part needs to be written. Reference RegisterForm->handleRegister");
+        //console.log("This part needs to be written. Reference RegisterForm->handleRegister");
+
+        // Start by checking that pass 1 & 2 match
+        if(fields.password!==fields.pass2) {
+            console.log('Your passwords don\'t match. We need a better error message than something going to console.log');
+            return;
+        }
+
+        // Now, send data to the server.
+        fetch(serverURL, DAX.serverMessage("signup", {name: fields.username, password: fields.password, email: fields.email}, false))
+            .then(res => DAX.manageResponseConversion(res))
+            .catch(err => console.log(err))
+            .then(data => {
+                // Send the server's response to the parent component. This will be the same content as if they had only logged in.
+                props.onLogin(data);
+            });
     }
     function inputUpdate(field, value) {
         // This is called whenever an input field gets updated. Handles storing the input's content within this component

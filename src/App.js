@@ -256,7 +256,8 @@ function RegisterForm(props) {
         }
 
         // Now, send data to the server.
-        fetch(serverURL, DAX.serverMessage("signup", {name: fields.username, password: fields.password, email: fields.email}, false))
+        //console.log(fields);
+        fetch(serverURL, DAX.serverMessage("signup", {username: fields.username, password: fields.password, email: fields.email}, false))
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {

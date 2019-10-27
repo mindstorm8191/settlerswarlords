@@ -140,7 +140,8 @@
                 return $ele==$value['name'];
             })) {
                 reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. $value['name'] .' missing.');
-                ajaxreject('missingfields', 'Input error: missing parameter '. $value['name']);
+                ajaxreject('missingfields', 'Input error: missing parameter {'. $value['name'] .'} All fields received = '.
+                                            json_encode(array_keys($content)));
             }
         }
 

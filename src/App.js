@@ -24,7 +24,7 @@ import {danCommon} from './danCommon.js';
 
 export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
 
-export const serverURL = "http://localhost:80/settlerswarlordsCRA/ajax.php";
+export const serverURL = "http://bookalong.x10host.com/settlerswarlords/ajax.php";
 export const imageURL = "http://bookalong.x10host.com/settlerswarlords/img/";
 
 function App() {

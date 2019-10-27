@@ -24,8 +24,8 @@ import {danCommon} from './danCommon.js';
 
 export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
 
-export const serverURL = "http://bookalong.x10host.com/settlerswarlords/ajax.php";
-export const imageURL = "http://bookalong.x10host.com/settlerswarlords/img/";
+export const serverURL = "https://bookalong.x10host.com/settlerswarlords/ajax.php";
+export const imageURL = "https://bookalong.x10host.com/settlerswarlords/img/";
 
 function App() {
 // This is the root of the page. Everything connects to this component.

@@ -7,16 +7,19 @@ import {DAX} from './DanAjax.jsx';
 import {danCommon} from './danCommon.js';
 
 /* Task List
-    1) Get this project onto Github
-    2) Try to get the React portion of this project onto Netlify, connecting to my personal website as an API to provide data
-    3) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
+    1) Create a routine on the server to show where players are being placed. We are unable to verify that the new-player placement code is
+        working correctly.
+    1) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
         resource types, along with costs, and a second to group these items together.  It would be beneficial to have PHP functions
         to manage these
-    4) Update the building structure to have a table to describe various processes single buildings can complete. These will be
+    2) Update the building structure to have a table to describe various processes single buildings can complete. These will be
         sent alongside the building data from the server
-    5) Allow players to have the forage post start collecting resources. Let players decide if it should operate indefinitely or
+    3) Step up the protections on the server. Validate that input is valid, including the provided IP address. Check user input on
+        client side before sending to server.
+    3) Allow players to have the forage post start collecting resources. Let players decide if it should operate indefinitely or
         to a certain resource count (this will be a standard practice for all block types)
-    6) Allow players to build a lean-to. This will be a first structure for players to house their colonists
+    4) Allow players to build a lean-to. This will be a first structure for players to house their colonists. Continue with
+        the process of climbing a tech tree, opening access to tools and increasingly better equipment
 
     Later plans
     1) Figure out a way to accommodate more than just humans as being part of a block's population
@@ -24,17 +27,18 @@ import {danCommon} from './danCommon.js';
 
 export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
 
-export const serverURL = "https://bookalong.x10host.com/settlerswarlords/ajax.php";
-export const imageURL = "https://bookalong.x10host.com/settlerswarlords/img/";
+export const serverURL = (process.env.NODE_ENV==="production")? "https://bookalong.x10host.com/settlerswarlords/ajax.php" : "http://localhost:80/settlerswarlordsCRA/ajax.php";
+export const imageURL = (process.env.NODE_ENV==="production")? "https://bookalong.x10host.com/settlerswarlords/img/" : "http://localhost:80/settlerswarlordsCRA/img/";
 
 function App() {
 // This is the root of the page. Everything connects to this component.
 
-    const [localMap, setLocalMap] = React.useState({});
     const [userData, setUserData] = React.useState({ id: 0, access: 0});
     const [curPage, setPage] = React.useState("home");
-    const [worldMap, setWorldMap] = React.useState([]);
     const [worldCoords, setWorldCoords] = React.useState({ x: 0, y: 0 });
+    const [localMap, setLocalMap] = React.useState({});
+    const [localMapBuildOptions, setLocalMapBuildOptions] = React.useState({});
+    const [worldMap, setWorldMap] = React.useState([]);
     // I think some part of this will be used for auto-login, once we can save data to localStorage
 
     function loadGame(data) {
@@ -51,6 +55,7 @@ function App() {
         data.mapcontent.updateflag = 0;
 
         setLocalMap(data.mapcontent);
+        setLocalMapBuildOptions(data.buildoptions);
         setPage("localmap");
     }
 
@@ -169,6 +174,7 @@ function App() {
                 onLogin={loadGame} /* used only for HomePage  */
                 userData={userData}
                 localMap={localMap}
+                localMapBuildOptions={localMapBuildOptions}
                 onChangeLocalTiles={onChangeLocalTiles}
                 onPagePick={onPagePick}
                 worldMap={worldMap}
@@ -198,6 +204,7 @@ function PagePicker(props) {
             return (
                 <LocalMap
                     localMap={props.localMap}
+                    localMapBuildOptions={props.localMapBuildOptions}
                     onChangeLocalTiles={props.onChangeLocalTiles}
                     onChangePage={props.onPagePick}
                 />

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 26, 2019 at 11:37 PM
+-- Generation Time: Oct 31, 2019 at 11:11 PM
 -- Server version: 5.7.21
 -- PHP Version: 7.2.4
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `happens` datetime NOT NULL,
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -50,8 +50,9 @@ CREATE TABLE IF NOT EXISTS `sw_event` (
   `task` varchar(30) NOT NULL,
   `detail` text,
   `starttime` datetime DEFAULT NULL COMMENT 'used for continuous processes',
-  `endtime` datetime DEFAULT NULL,
+  `endtime` datetime DEFAULT NULL COMMENT 'if continuous, when the next process completes',
   `continuous` int(11) NOT NULL DEFAULT '0' COMMENT '1 if continuous, 0 if not',
+  `criticalprocess` int(11) NOT NULL COMMENT '1 if this needs to be processed in order, 0 if not',
   UNIQUE KEY `id_3` (`id`),
   KEY `id` (`id`),
   KEY `id_2` (`id`)
@@ -86,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `sw_inventory` (
   `particleweight` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=ascii COMMENT='individual inventory sets';
+) ENGINE=InnoDB DEFAULT CHARSET=ascii COMMENT='total inventory space for individual land blocks';
 
 -- --------------------------------------------------------
 
@@ -96,17 +97,25 @@ CREATE TABLE IF NOT EXISTS `sw_inventory` (
 
 DROP TABLE IF EXISTS `sw_item`;
 CREATE TABLE IF NOT EXISTS `sw_item` (
-  `mapid` int(11) NOT NULL COMMENT 'which map this is for',
-  `name` varchar(50) NOT NULL,
+  `name` varchar(50) NOT NULL COMMENT 'name of this item',
+  `groupID` int(11) NOT NULL COMMENT 'ID associated with this item group',
   `amount` int(11) NOT NULL,
   `grouping` int(11) NOT NULL COMMENT '0-3 if solid, particle, liquid or gas',
   `weight` int(11) NOT NULL COMMENT 'per single unit',
   `size` int(11) NOT NULL COMMENT 'per single unit',
   `temp` int(11) NOT NULL COMMENT '-300 to +30000',
-  `priority` int(11) NOT NULL COMMENT 'used for ordering, like with food',
-  PRIMARY KEY (`mapid`,`name`),
-  UNIQUE KEY `inventory` (`mapid`,`name`)
+  `priority` int(11) NOT NULL COMMENT 'used for ordering, like with food'
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
+
+--
+-- Dumping data for table `sw_item`
+--
+
+INSERT INTO `sw_item` (`name`, `groupID`, `amount`, `grouping`, `weight`, `size`, `temp`, `priority`) VALUES
+('Apple', 1, 1, 0, 0, 0, 0, 0),
+('Berries', 1, 1, 1, 0, 0, 0, 0),
+('Tree Nuts', 1, 1, 1, 0, 0, 0, 0),
+('Mushrooms', 1, 1, 1, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -183,6 +192,41 @@ CREATE TABLE IF NOT EXISTS `sw_player` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sw_process`
+--
+
+DROP TABLE IF EXISTS `sw_process`;
+CREATE TABLE IF NOT EXISTS `sw_process` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `mapid` int(11) NOT NULL,
+  `buildingid` int(11) NOT NULL,
+  `actionid` int(11) NOT NULL COMMENT 'relates to the available action of the building',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='similar to events, but handles continuous processes';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sw_resourcegroup`
+--
+
+DROP TABLE IF EXISTS `sw_resourcegroup`;
+CREATE TABLE IF NOT EXISTS `sw_resourcegroup` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `forStructures` int(11) NOT NULL COMMENT 'set to 1 if this group is part of fixed data for the game',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `sw_resourcegroup`
+--
+
+INSERT INTO `sw_resourcegroup` (`id`, `forStructures`) VALUES
+(1, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sw_structure`
 --
 
@@ -201,6 +245,34 @@ CREATE TABLE IF NOT EXISTS `sw_structure` (
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=ascii COMMENT='stats about each structure. coords & owner will be handled by minimap';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sw_structureaction`
+--
+
+DROP TABLE IF EXISTS `sw_structureaction`;
+CREATE TABLE IF NOT EXISTS `sw_structureaction` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `buildType` int(11) NOT NULL COMMENT 'which building can do this action',
+  `minLevel` int(11) NOT NULL COMMENT 'minimum building level needed to complete this option',
+  `name` varchar(50) NOT NULL COMMENT 'action name as described to user',
+  `minWorkers` int(11) NOT NULL COMMENT 'minimum workers needed to do work',
+  `maxWorkers` int(11) NOT NULL COMMENT 'max workers that can perform this task',
+  `workerBonus` float NOT NULL COMMENT 'output rate increase by including more workers',
+  `cycleTime` int(11) NOT NULL COMMENT 'number of seconds to output 1 item',
+  `inputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. Items needed to produce 1 product item, or 0 if none',
+  `outputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. All items output by this action, or 0 if none',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='each action a building can complete';
+
+--
+-- Dumping data for table `sw_structureaction`
+--
+
+INSERT INTO `sw_structureaction` (`id`, `buildType`, `minLevel`, `name`, `minWorkers`, `maxWorkers`, `workerBonus`, `cycleTime`, `inputGroup`, `outputGroup`) VALUES
+(1, 1, 1, 'Forage for food', 1, 1, 0, 60, 0, 1);
 
 -- --------------------------------------------------------
 
@@ -225,14 +297,15 @@ CREATE TABLE IF NOT EXISTS `sw_structuretype` (
   `description` text NOT NULL COMMENT 'text shown to the user to describe the building',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=ascii;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=ascii;
 
 --
 -- Dumping data for table `sw_structuretype`
 --
 
 INSERT INTO `sw_structuretype` (`id`, `name`, `level`, `image`, `buildtime`, `resources`, `landtype`, `minworkers`, `maxworkers`, `workerbonus`, `resourcesUsed`, `output`, `description`) VALUES
-(1, 'Forage Post', 1, 'foragepost.png', 0, NULL, '0', 1, 1, 0, '', '', 'Locates edible food sources in the area, gathering them for use. The local land can only support one worker finding food. The rate of resources collected reduces as the area land becomes more developed.');
+(1, 'Forage Post', 1, 'foragepost.png', 0, '', '0', 1, 1, 0, '', '', 'Locates edible food sources in the area, gathering them for use. The local land can only support one worker finding food. The rate of resources collected reduces as the area land becomes more developed.'),
+(2, 'Lean To', 1, 'leanto.png', 120, '', '1', 0, 0, 0, '', '', 'Before food, even before water, one must find shelter from the elements. It is the first requirement for survival; for the elements, at their worst, can defeat you faster than anything else.');
 
 -- --------------------------------------------------------
 

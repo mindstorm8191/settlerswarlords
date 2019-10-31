@@ -86,7 +86,7 @@
             $playerlevel = 0;
             $playermode = 0;
             $playercount = 0;
-            if(sizeof(danqueryajax("SELECT * FROM map LIMIT 1;", 'ajax.php->case signup->check for working map'))==0) {
+            if(sizeof(danqueryajax("SELECT * FROM sw_map LIMIT 1;", 'ajax.php->case signup->check for working map'))==0) {
                 // We don't have any map as of yet. We need to generate one now.
                 generatemap();
                 // We would set up our global variables here, but with setGlobal(), it will generate when needed. We can use the starting values
@@ -112,18 +112,8 @@
             updateknownmap($uid, $out['x'], $out['y']);
 
             // Now, ensure that the minimap for this location exists. We have a function to check if it exists, and generate it if it doesn't
+            // No need to check things here!
             ensureMinimapXY($out['x'], $out['y']);
-/*
-            // Now, with the player generated, we also need to determine if there's any minimap content here. If not, we will need to
-            // generate it as well.
-            // Determine if we have any minimap tiles for this world map location
-            $worldmap = danget("SELECT * FROM map WHERE x=". $out['x'] ." AND y=". $out['y'] .";",
-                               'ajax.php->case signup->get map id');
-            $checkmap = danget("SELECT x FROM minimap WHERE mapid=". $worldmap['id'] .";",
-                              'ajax.php->case signup->check for existing minimap', true);
-            if(!$checkmap) {
-                generateminimap($worldmap);
-            }*/
 
             // Now that the minimap has been created, we need to create a data feed, to show all the tiles here
             // This should be all the common content we need. Now reply to the user, feeding them the minimap data
@@ -131,7 +121,8 @@
                 "result"=>"success",
                 "userid"=>$uid,
                 "access"=>$accesscode,
-                "mapcontent"=>loadLocalMapXY($out['x'], $out['y'])
+                "mapcontent"=>loadLocalMapXY($out['x'], $out['y']),
+                "buildoptions"=>loadBuildOptions(0)
             ]));
         break;
 
@@ -160,11 +151,8 @@
                 "result"=>"success",
                 "userid"=>$player['id'],
                 "access"=>$accesscode, // this is the updated code, not the old one
-                "mapcontent"=>loadLocalMapXY($player['currentx'], $player['currenty'])
-                //"biome"=>$WorldBiomes[$worldmap['biome']],
-                //"population"=>$worldmap['population'],
-                //"minimap"=>danqueryajax("SELECT * FROM minimap WHERE mapid=". $worldmap['id'] ." ORDER BY y,x;",
-                //                        'ajax.php->signup->get minimap during output')
+                "mapcontent"=>loadLocalMapXY($player['currentx'], $player['currenty']),
+                "buildoptions"=>loadBuildOptions(0)
             ]));
         break;
 
@@ -332,6 +320,13 @@
                     ]
                 ]));
             }
+        break;
+
+        case 'startAction':
+            // This allows the user to have a specific building start an action.
+
+            // We don't currently have this working yet, but should probably send a response
+            ajaxreject('othererror', 'You have reached the end of the current development. Try again later');
         break;
 
         case 'reporterror':

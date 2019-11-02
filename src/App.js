@@ -23,6 +23,13 @@ import {danCommon} from './danCommon.js';
 
     Later plans
     1) Figure out a way to accommodate more than just humans as being part of a block's population
+
+    Code Lines count
+    App.js       danCommon.js   common.php    localMap.php
+        App.css     LocalMap.jsx    jsarray.php   processEvents.php
+           MyInput.jsx  WorldMap.jsx   globals.php
+              DanAjax.jsx   ajax.php      mapbuilder.php
+    356+31+40+45+49+319+234+449+264+64+26+359+101+33 = 2370 lines (11/2/19)
 */
 
 export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];

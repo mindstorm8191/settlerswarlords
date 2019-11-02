@@ -181,12 +181,20 @@ function LocalTileBuildingDetail(props) {
     function startAction(actionName) {
         // Starts an action process.  The actionName will determine which fields of the page to pull from.
 
-        // We need to pass enough data so the server knows where to update
-        fetch(serverURL, DAX.serverMessage("startAction", {buildid: props.tile.buildid, process:actionName, workers:actionWorkers.find(ele => {
+        // We need to pass enough data so the server knows where to update. Start by grabbing the correct fields from input.
+        let w = actionWorkers.find(ele => {
             return ele.n===actionName;
-        }).v, amount:actionAmount.find(ele => {
+        });
+        let a = actionAmount.find(ele => {
             return ele.n===actionName;
-        }).v}, true))
+        });
+        console.log(w);
+        fetch(serverURL, DAX.serverMessage("startAction", {
+            buildid: props.tile.buildid,
+            process:actionName,
+            workers:w.v,
+            amount:(a.v==='')?0:a.v
+        }, true))
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {

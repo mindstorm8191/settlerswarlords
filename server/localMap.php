@@ -32,6 +32,8 @@
 
         global $WorldBiomes;
 
+        advanceProcesses($worldData['id'], 'NOW()');
+
         // There are a few localMap-related fields that are needed here, that are not part of the minimap structure
         //$localMap = danget("SELECT * FROM map WHERE id=". worldId .";",
                            //'server/localMap.php->loadLocalMap()->get remaining map data');
@@ -41,6 +43,7 @@
             "ugresource"=>$worldData['ugresource'],
             "ugamount"=>$worldData['ugamount'],
             "owner"=>$worldData['owner'],
+            "id"=>$worldData['id'],
             "population"=>$worldData['population'],
             "minimap"=>array_map(function($ele) {
                     if($ele['buildid']==0) return $ele;
@@ -60,16 +63,23 @@
                                             "sw_structureaction WHERE buildType=". $building['buildtype'] ." AND minLevel<=".
                                             $building['devlevel'] .";",
                                             'server/localMap.php->loadLocalMap()->get building actions');
+                    $current = null;
                     if(sizeof($actions)>0) {
+                        // Now get the currently active action, if any. This is done here so that we can still get null if there are none
+                        $current = danget("SELECT sw_structureaction.name FROM sw_process INNER JOIN sw_structureaction ON ".
+                                          "sw_process.buildingid = sw_structureaction.id WHERE buildingid=". $ele['buildid'] .";",
+                                          'server/localMap.php->loadLocalMap()->get active processes', true);
                         $actions = array_map(function($single) {
                             // for each inputGroup and outputGroup in the individual actions, we need to query & store the inner items listed for those
                             if($single['inputGroup']!=0) {
-                                $single['inputGroup'] = danqueryajax("SELECT * FROM sw_item WHERE groupID=". $single['inputGroup'] .";",
-                                                                    'server/localMap.php->loadLocalMap()->get inputGroup of actions');
+                                $single['inputGroup'] = danqueryajax("SELECT * FROM sw_structureitem WHERE resourceGroup=".
+                                                                     $single['inputGroup'] .";",
+                                                                     'server/localMap.php->loadLocalMap()->get inputGroup of actions');
                             }
                             if($single['outputGroup']!=0) {
-                                $single['outputGroup'] = danqueryajax("SELECT * FROM sw_item WHERE groupID=". $single['outputGroup'] .";",
-                                                                    'server/localMap.php->loadLocalMap()->get outputGroup of actions');
+                                $single['outputGroup'] = danqueryajax("SELECT * FROM sw_structureitem WHERE resourceGroup=".
+                                                                      $single['outputGroup'] .";",
+                                                                      'server/localMap.php->loadLocalMap()->get outputGroup of actions');
                             }
                             return $single;
                         }, $actions);
@@ -79,21 +89,10 @@
                     $ele['building'] = $building;
                     $ele['buildType'] = $buildType;
                     $ele['actions'] = $actions;
+                    $ele['process'] = $current;
                     return $ele;
-                    /*
-                    return array_merge(
-                        $ele, danget(
-                            "SELECT sw_structure.buildtype AS buildtype, sw_structure.devlevel AS devlevel, sw_structure.fortlevel AS fortlevel, ".
-                            "sw_structure.detail AS detail, sw_structure.workersassigned AS workersassigned, sw_structure.assigned AS assigned, ".
-                            "sw_structuretype.name AS name, sw_structuretype.image AS image, sw_structuretype.minworkers AS minworkers, ".
-                            "sw_structuretype.maxworkers AS maxworkers, sw_structuretype.workerbonus AS workerbonus, ".
-                            "sw_structuretype.resourcesUsed AS resourcesUsed, sw_structuretype.output AS output, ".
-                            "sw_structuretype.description AS description FROM sw_structure INNER JOIN sw_structuretype ON ".
-                            "sw_structure.buildtype=sw_structuretype.id WHERE sw_structure.id=". $ele['buildid'] .";",
-                            'server/localMap.php->loadLocalMap()->get building data'));
-                    */
                 },
-                danqueryajax("SELECT * FROM sw_minimap WHERE mapid=". $worldData['id'] ." ORDER BY y,x;",
+                danqueryajax("SELECT x,y,landtype,buildid FROM sw_minimap WHERE mapid=". $worldData['id'] ." ORDER BY y,x;",
                              'server/localMap.php->loadLocalMap()->get bulk minimap data')
                 )
             ];

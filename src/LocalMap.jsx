@@ -208,8 +208,15 @@ function LocalTileBuildingDetail(props) {
             <p className="singleline">Dev level {props.tile.building.devlevel}</p>
             <p className="singleline">Fort level {props.tile.building.fortlevel}</p>
             <p>{props.tile.buildType.description}</p>
-            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>Actions</p>
+            {/* Let's show the currently working action, if there is any */}
+            {props.tile.process===null?'':(
+                <div>
+                    <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>In Progress</p>
+                    <p className="singleline">{JSON.stringify(props.tile.process)}</p>
+                </div>
+            )}
             {/* Now, let's list some options from the available actions */}
+            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>Actions</p>
             {props.tile.actions.map((ele, key) => {
                 return (
                     <div key={key} style={{margin:4, border:"1px solid orange", padding:8}}>
@@ -223,8 +230,8 @@ function LocalTileBuildingDetail(props) {
                             />
                             Range: {ele.minWorkers} to {ele.maxWorkers}
                         </p>
-                        <p className="singleline">Resources Needed: none </p> {/*we're currently not filling this out, for our current
-                                test object. We willneed to determine this later*/}
+                        <p className="singleline">Resources Needed: none </p>
+                        {/*we're currently not filling this out, for our current test object. We will need to determine this later*/}
                         <p className="singleline">
                             Resources Output:
                             {ele.outputGroup.map(item => {

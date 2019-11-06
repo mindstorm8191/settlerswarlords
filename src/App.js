@@ -9,11 +9,13 @@ import {danCommon} from './danCommon.js';
 /* Task List
     1) Create a routine on the server to show where players are being placed. We are unable to verify that the new-player placement code is
         working correctly.
-    1) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
+    2) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
         resource types, along with costs, and a second to group these items together.  It would be beneficial to have PHP functions
         to manage these
-    2) Update the building structure to have a table to describe various processes single buildings can complete. These will be
-        sent alongside the building data from the server
+    3) Set up the login code to check for active processes for specific buildings, and send stats on that.
+    5) Allow the user
+    4) Set up something to check for active processes and update them before sending info to the client.
+    5) Send additional information to the user, such as food stores and other resources that have been produced
     3) Step up the protections on the server. Validate that input is valid, including the provided IP address. Check user input on
         client side before sending to server.
     3) Allow players to have the forage post start collecting resources. Let players decide if it should operate indefinitely or

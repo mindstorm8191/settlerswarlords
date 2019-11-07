@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Oct 31, 2019 at 11:11 PM
+-- Generation Time: Nov 07, 2019 at 12:57 AM
 -- Server version: 5.7.21
 -- PHP Version: 7.2.4
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `happens` datetime NOT NULL,
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `sw_inventory` (
 DROP TABLE IF EXISTS `sw_item`;
 CREATE TABLE IF NOT EXISTS `sw_item` (
   `name` varchar(50) NOT NULL COMMENT 'name of this item',
-  `groupID` int(11) NOT NULL COMMENT 'ID associated with this item group',
+  `mapID` int(11) NOT NULL COMMENT 'ID associated with the map tile this is on',
   `amount` int(11) NOT NULL,
   `grouping` int(11) NOT NULL COMMENT '0-3 if solid, particle, liquid or gas',
   `weight` int(11) NOT NULL COMMENT 'per single unit',
@@ -106,16 +106,6 @@ CREATE TABLE IF NOT EXISTS `sw_item` (
   `temp` int(11) NOT NULL COMMENT '-300 to +30000',
   `priority` int(11) NOT NULL COMMENT 'used for ordering, like with food'
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
-
---
--- Dumping data for table `sw_item`
---
-
-INSERT INTO `sw_item` (`name`, `groupID`, `amount`, `grouping`, `weight`, `size`, `temp`, `priority`) VALUES
-('Apple', 1, 1, 0, 0, 0, 0, 0),
-('Berries', 1, 1, 1, 0, 0, 0, 0),
-('Tree Nuts', 1, 1, 1, 0, 0, 0, 0),
-('Mushrooms', 1, 1, 1, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -201,8 +191,10 @@ CREATE TABLE IF NOT EXISTS `sw_process` (
   `mapid` int(11) NOT NULL,
   `buildingid` int(11) NOT NULL,
   `actionid` int(11) NOT NULL COMMENT 'relates to the available action of the building',
+  `timeBalance` datetime NOT NULL COMMENT 'time point the related game state is at',
+  `globalEffect` int(11) NOT NULL COMMENT 'set to 1 if this affects blocks other than its own',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='similar to events, but handles continuous processes';
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='for all events that have iterations';
 
 -- --------------------------------------------------------
 
@@ -214,15 +206,17 @@ DROP TABLE IF EXISTS `sw_resourcegroup`;
 CREATE TABLE IF NOT EXISTS `sw_resourcegroup` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `forStructures` int(11) NOT NULL COMMENT 'set to 1 if this group is part of fixed data for the game',
+  `picksRandom` int(11) NOT NULL COMMENT 'Set to 1 if one of the items are selected at random, or 0 if all are output',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `sw_resourcegroup`
 --
 
-INSERT INTO `sw_resourcegroup` (`id`, `forStructures`) VALUES
-(1, 1);
+INSERT INTO `sw_resourcegroup` (`id`, `forStructures`, `picksRandom`) VALUES
+(1, 1, 1),
+(2, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -265,14 +259,45 @@ CREATE TABLE IF NOT EXISTS `sw_structureaction` (
   `inputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. Items needed to produce 1 product item, or 0 if none',
   `outputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. All items output by this action, or 0 if none',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='each action a building can complete';
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1 COMMENT='each action a building can complete';
 
 --
 -- Dumping data for table `sw_structureaction`
 --
 
 INSERT INTO `sw_structureaction` (`id`, `buildType`, `minLevel`, `name`, `minWorkers`, `maxWorkers`, `workerBonus`, `cycleTime`, `inputGroup`, `outputGroup`) VALUES
-(1, 1, 1, 'Forage for food', 1, 1, 0, 60, 0, 1);
+(1, 1, 1, 'Forage for Food', 1, 1, 0, 60, 0, 1),
+(2, 1, 1, 'Forage for Seeds', 1, 1, 0, 60, 0, 2);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sw_structureitem`
+--
+
+DROP TABLE IF EXISTS `sw_structureitem`;
+CREATE TABLE IF NOT EXISTS `sw_structureitem` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `resourceGroup` int(11) NOT NULL COMMENT 'ID of the resource group for this set',
+  `name` varchar(50) NOT NULL,
+  `storeType` int(11) NOT NULL COMMENT 'Type of storage needed. 1=solid, 2=particle/dust, 3=liquid, 4=gas',
+  `weight` float NOT NULL,
+  `volume` float NOT NULL COMMENT 'how much space this requires',
+  UNIQUE KEY `id` (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COMMENT='all items and their names, produced by the buildings';
+
+--
+-- Dumping data for table `sw_structureitem`
+--
+
+INSERT INTO `sw_structureitem` (`id`, `resourceGroup`, `name`, `storeType`, `weight`, `volume`) VALUES
+(1, 1, 'Apple', 0, 1, 1),
+(2, 1, 'Berries', 1, 0.1, 0.1),
+(3, 1, 'Tree Nuts', 1, 0.1, 0.1),
+(4, 1, 'Mushrooms', 0, 0.05, 0.5),
+(5, 2, 'Wheat Seeds', 1, 0.5, 0.5),
+(6, 2, 'Carrot Seeds', 1, 0.1, 0.1),
+(7, 2, 'Potato Seeds', 1, 0.1, 0.1);
 
 -- --------------------------------------------------------
 

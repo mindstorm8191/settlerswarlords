@@ -84,8 +84,8 @@
                             $itemList[rand(0,3)]['count']++;
                         }
 
-                        reporterror("Debug in processEvents.php->advanceProcesses(): resulting structure: ". json_encode($itemList) .
-                                    ". Loop Counter=". $loopCounter .", numadded=". $numadded);
+                        //reporterror("Debug in processEvents.php->advanceProcesses(): resulting structure: ". json_encode($itemList) .
+                        //            ". Loop Counter=". $loopCounter .", numadded=". $numadded);
 
 
                         // Now we are ready to insert the updated data into the database

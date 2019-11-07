@@ -8,6 +8,7 @@ import React from 'react';
 export function MyInput(props) {
     // Handles all things needed for a generic input box
     // prop values:
+    //    default - what value this field should start with
     //    placeholder - Optional. What value to place in the input box before the user adds content. This is an HTML trick
     //    onUpdate - what function to call when the content of the input box changes
     //    fieldName - Optional. Name of this input box, for the parent component. onUpdate() will be called with parameters

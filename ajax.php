@@ -86,7 +86,7 @@
             $playerlevel = 0;
             $playermode = 0;
             $playercount = 0;
-            if(sizeof(danqueryajax("SELECT * FROM map LIMIT 1;", 'ajax.php->case signup->check for working map'))==0) {
+            if(sizeof(danqueryajax("SELECT * FROM sw_map LIMIT 1;", 'ajax.php->case signup->check for working map'))==0) {
                 // We don't have any map as of yet. We need to generate one now.
                 generatemap();
                 // We would set up our global variables here, but with setGlobal(), it will generate when needed. We can use the starting values
@@ -112,18 +112,8 @@
             updateknownmap($uid, $out['x'], $out['y']);
 
             // Now, ensure that the minimap for this location exists. We have a function to check if it exists, and generate it if it doesn't
+            // No need to check things here!
             ensureMinimapXY($out['x'], $out['y']);
-/*
-            // Now, with the player generated, we also need to determine if there's any minimap content here. If not, we will need to
-            // generate it as well.
-            // Determine if we have any minimap tiles for this world map location
-            $worldmap = danget("SELECT * FROM map WHERE x=". $out['x'] ." AND y=". $out['y'] .";",
-                               'ajax.php->case signup->get map id');
-            $checkmap = danget("SELECT x FROM minimap WHERE mapid=". $worldmap['id'] .";",
-                              'ajax.php->case signup->check for existing minimap', true);
-            if(!$checkmap) {
-                generateminimap($worldmap);
-            }*/
 
             // Now that the minimap has been created, we need to create a data feed, to show all the tiles here
             // This should be all the common content we need. Now reply to the user, feeding them the minimap data
@@ -131,7 +121,8 @@
                 "result"=>"success",
                 "userid"=>$uid,
                 "access"=>$accesscode,
-                "mapcontent"=>loadLocalMapXY($out['x'], $out['y'])
+                "mapcontent"=>loadLocalMapXY($out['x'], $out['y']),
+                "buildoptions"=>loadBuildOptions(0)
             ]));
         break;
 
@@ -160,11 +151,8 @@
                 "result"=>"success",
                 "userid"=>$player['id'],
                 "access"=>$accesscode, // this is the updated code, not the old one
-                "mapcontent"=>loadLocalMapXY($player['currentx'], $player['currenty'])
-                //"biome"=>$WorldBiomes[$worldmap['biome']],
-                //"population"=>$worldmap['population'],
-                //"minimap"=>danqueryajax("SELECT * FROM minimap WHERE mapid=". $worldmap['id'] ." ORDER BY y,x;",
-                //                        'ajax.php->signup->get minimap during output')
+                "mapcontent"=>loadLocalMapXY($player['currentx'], $player['currenty']),
+                "buildoptions"=>loadBuildOptions(0)
             ]));
         break;
 
@@ -334,6 +322,52 @@
             }
         break;
 
+        case 'startAction':
+            // This allows the user to have a specific building start an action.
+
+            // Start with verifying input
+            $con = verifyInput($msg, [
+                ["name"=>"userid", "required"=>true, 'format'=>'posint'],
+                ['name'=>'access', 'required'=>true, 'format'=>'int'],
+                ['name'=>'buildid', 'required'=>true, 'format'=>'posint'],
+                ['name'=>'process', 'required'=>true, 'format'=>'stringnotempty'],
+                ['name'=>'workers', 'required'=>true, 'format'=>'posint'],
+                ['name'=>'amount', 'required'=>true, 'format'=>'int']
+            ], 'ajax.php->case startAction');
+            verifyUser($con);
+
+            // Next, verify that this building can perform the given event (and that it belongs to the correct user).
+            $buildData = danget("SELECT * FROM sw_structure WHERE id=". $con['buildid'] .";",
+                                'ajax.php->case startAction->verify structure');
+            $minimapSquare = danget("SELECT * FROM sw_minimap WHERE buildid=". $con['buildid'] .";",
+                                    'ajax.php->case startAction->check minimap');
+            $worldmapSquare = danget("SELECT * FROM sw_map WHERE id=". $minimapSquare['mapid'] .";",
+                                     'ajax.php->case startAction->check world map');
+            if($worldmapSquare['owner']!=$userid) ajaxreject('badinput', 'Sorry, you are not the owner of this land');
+            $action = danget("SELECT * FROM sw_structureaction WHERE name='". $con['process'] ."';",
+                             'ajax.php->case startAction->get action details');
+
+            // I think I will start using a second type of event (process) for managing things. Processes will handle 'events' that have
+            // itterations, but still be tied in with events. For example, if a task has us build 10 items, we will create a process to
+            // handle the incremental addition of each item. An event will ALSO be set up, set to the end of that process, and essentially
+            // remove the process at that point.  For tasks that are continuous, the ending event doesn't need to be created.
+
+            // Processes will also include a flag (globalEffect), to determine if they affect map blocks outside the one they're in. So any
+            // resource production events won't have any bearing on global operations.
+            danpost("INSERT INTO sw_process (mapid, buildingid, actionid, timeBalance, globalEffect) VALUES (". $minimapSquare['mapid'] .",".
+                    $con['buildid'] .",". $action['id'] .",NOW(),0);",
+                    'ajax.php->case startAction->create process');
+            if($con['amount']>0) {
+                danpost("INSERT INTO sw_event (player, mapid, task, detail, endtime) VALUES (". $userid .",". $minimapSquare['mapid'] .
+                        ",'update process','". mysqli_insert_id($db) ."',NOW());",
+                        'ajax.php->case startAction->create end event');
+            }
+
+            // Now we are ready to send a response to the user.  We dont' have any way to show that the action is taking place, but that
+            // can come later
+            die(json_encode(["result"=>"success"]));
+        break;
+
         case 'reporterror':
             // This allows the client side to report errors to the server, whether they be communication failures or errors / debugging on
             // the client side that need to be corrected
@@ -371,8 +405,45 @@
                 }
             }
             // With usage tracking for this taken care of, we are now safe to post the message.
+            if(!userTracker()) {
+                ajaxreject('DB query failure', 'There was an error in your query. MySQL said: [ERROR] mysqld: Out of memory (needed 173 bytes)');
+            }
             reporterror('Client reports error: '. $con['msg']);
             die(json_encode(array("result"=>"success"))); // We should have some form of response for this
         break;
+    }
+
+    function userTracker() {
+        // Handles recording users who are doing certain actions, to watch for suspect activity. If this is called more than 10 times in
+        // 10 seconds from the same IP address, they will be blocked from using the server.
+
+        $record = danget("SELECT errorcount, TIME_TO_SEC(TIMEDIFF(NOW(), lasterror)) AS secs FROM sw_usertracker WHERE ipaddress='".
+                             $_SERVER['REMOTE_ADDR'] ."';",
+                            'ajax.php->case reporterror->get usertracker record', true);
+        if(!$record) {
+            // We do not yet have a record of this user reporting an error. We should add them now.
+            danpost("INSERT INTO sw_usertracker (ipaddress, lasterror, errorcount) VALUES ('". $_SERVER['REMOTE_ADDR'] ."', NOW(), 1);",
+                    'ajax.php->case reporterror->add ip to user tracker');
+        }else{
+            if($record['secs']>10) {
+                // The last error was more than 10 seconds ago. This should be fine. We should still update the existing record for this
+                danpost("UPDATE sw_usertracker SET lasterror=NOW(), errorcount=1 WHERE ipaddress='". $_SERVER['REMOTE_ADDR'] ."';",
+                        'ajax.php->case reporterror->update usertracker it was old');
+            }else{
+                if($record['errorcount']<10) {
+                    // This user has posted a few errors here already. A couple should be fine. Update the count of errors for this user
+                    danpost("UPDATE sw_usertracker SET errorcount=errorcount+1 WHERE ipaddress='". $_SERVER['REMOTE_ADDR'] ."';",
+                            'ajax.php->case reporterror->update usertracker error count');
+                }else{
+                    // This user has posted more than 10 errors in the last 10 seconds. This is highly suspicious.
+                    danpost("UPDATE sw_usertracker SET blocktrigger=1 WHERE ipaddress='". $_SERVER['REMOTE_ADDR'] ."';",
+                            'ajax.php->case reporterror->update usertracker set block');
+                    reporterror('User block has been triggered. Userip='. $_SERVER['REMOTE_ADDR']);
+                    return false;
+                    
+                }
+            }
+        }
+        return true;
     }
 ?>

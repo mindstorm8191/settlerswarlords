@@ -61,4 +61,10 @@
         }
         return $outp;
     }
+
+    function getRandomFrom($list) {
+        // Accepts an array of elements, and returns one of the items in the array, selected at random.
+        // $list - array of items (of any type) to select from. This function assumes element keys are 0 to (n-1)
+        return $list[rand(0, sizeof($list))];
+    }
 ?>

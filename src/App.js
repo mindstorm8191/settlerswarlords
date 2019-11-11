@@ -7,6 +7,7 @@ import {DAX} from './DanAjax.jsx';
 import {danCommon} from './danCommon.js';
 
 /* Task List
+    1) Set up actual error handling on the client side
     1) Create a routine on the server to show where players are being placed. We are unable to verify that the new-player placement code is
         working correctly.
     2) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
@@ -31,7 +32,7 @@ import {danCommon} from './danCommon.js';
         App.css     LocalMap.jsx    jsarray.php   processEvents.php
            MyInput.jsx  WorldMap.jsx   globals.php
               DanAjax.jsx   ajax.php      mapbuilder.php
-    356+31+40+45+49+319+234+449+264+64+26+359+101+33 = 2370 lines (11/2/19)
+    358+31+40+45+49+326+234+448+264+70+26+359+100+119 = 2469 lines (11/6/19)
 */
 
 export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
@@ -219,7 +220,6 @@ function PagePicker(props) {
                 />
             );
         case "worldmap":
-            console.log("at PagePicker, userid=" + props.userData.id);
             return (
                 <WorldMap
                     worldMap={props.worldMap}
@@ -250,6 +250,60 @@ function HomePage(props) {
                 enemies. Outfit your armies with your best tech to wage war and capture enemy lands.
             </p>
             <RegisterForm onLogin={props.onLogin} />
+            <p>
+                Welcome to my latest project! This is mostly a hobby project, but I am still using it to practice my programming skills
+                and learn new tools. This game is hardly playable, there is so much left to add. The more features I add, the more there
+                is that needs to be added. But that's just how project development goes, sometimes.
+            </p>
+            <div style={{textAlign:'center'}}>
+                <p className="singleline">Feel free to check out my other projects:</p>
+                <p className="singleline"><a href="http://bookalong.x10host.com">BookAlong</a>, a site for book readers</p>
+                <p className="singleline"><a href="https://danidle.netlify.com">DanIdle</a>, an idle game climbing a tech tree</p>
+                <p className="singleline"><a href="http://bookalong.x10host.com/matrix">Matrix</a> - it's 3D Minesweeper!</p>
+            </div>
+        </div>
+    );
+}
+
+function ErrorBox(props) {
+    // Displays a full-page error box to the user. Useful for displaying complex errors. Will provide an accept button to 
+    // Prop fields:
+    //      content - Text to display to the user
+    //      onContinue - callback function called when the error has been received, to allow the calling component to remove the box
+
+    return (
+        <div style={{ /* This is the container */
+            position:'fixed',
+            top: 0, left: 0,
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            /*margin:'auto',*/
+            zIndex: 1,
+            justifyContent: 'center',
+            alignItems: 'center'
+        }}>
+            <div style={{       /* This is the overlay, to set the background grey */
+              position:'fixed',
+              top: 0, left: 0,
+              width: '100vw',
+              height: '100vh',
+              background:'gray',
+              opacity: 0.7,
+            }}></div>
+            <div style={{
+                position:'absolute',
+                margin:'auto', zIndex:2,
+                border:'4px solid red',
+                background:'white',
+                padding:5,
+                opacity: 1.0
+            }}>
+                <p>
+                    {props.content}
+                </p>
+                <button onClick={props.onContinue}>Okay</button>
+            </div>
         </div>
     );
 }
@@ -261,26 +315,65 @@ function RegisterForm(props) {
     //          is handled by this function; this component will pass the response data to onLogin.
 
     const [fields, setFields] = React.useState({ username: "", password: "", pass2: "", email: "" });
+    const [userError, setError] = React.useState('');
+    const [serverError, setServerError] = React.useState('');
+
     function handleRegister() {
         // Handles starting the registration process
         //console.log("This part needs to be written. Reference RegisterForm->handleRegister");
 
         // Start by checking that pass 1 & 2 match
         if(fields.password!==fields.pass2) {
-            console.log('Your passwords don\'t match. We need a better error message than something going to console.log');
+            setError('Your passwords don\'t match. We need a better error message than something going to console.log');
+            return;
+        }
+
+        // Check that the username doesn't contain any weird characters
+        if(danCommon.hasAny(fields.username, '.,~`!#$%^&*()+=[]{};:"<>?/|\'\\')) {
+            setError('You cannot use special characters for your username');
+            return;
+        }
+        if(danCommon.hasAny(fields.email, ' ~`!#$%^&*()+=[]{};:",<>?/|\'\\')) {
+            setError('You cannot use special characters for your email');
+            return;
+        }
+        if(fields.username.length<3) {
+            setError('Please provide a good username, to set you apart from others');
+            return;
+        }
+        if(fields.email.length<5) {
+            setError('Please provide a valid email address');
+            return;
+        }
+
+        // Also ensure the email address has a valid format
+        if(fields.email.indexOf('.')===-1 ||                                // email has a dot
+           fields.email.indexOf('.')===fields.email.length - 1 ||           // dot is not last character
+           fields.email.indexOf('.')===0 ||                                 // dot is not first character
+           fields.email.indexOf('@')===-1 ||                                // email has a @
+           fields.email.indexOf('@')===0 ||                                 // @ is not first character
+           fields.email.indexOf('@')===fields.email.length - 1 ||           // @ is not last character
+           fields.email.indexOf('@', fields.email.indexOf('@')) !==-1 ||    // email does not have two @
+           fields.email.indexOf('@.')!==-1                                  // domain does not start with .
+        ) {
+            setError('Please provide a valid email address');
             return;
         }
 
         // Now, send data to the server.
-        //console.log(fields);
         fetch(serverURL, DAX.serverMessage("signup", {username: fields.username, password: fields.password, email: fields.email}, false))
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {
+                if(data.result!=='success') {
+                    setServerError(data.message);
+                    return;
+                }
                 // Send the server's response to the parent component. This will be the same content as if they had only logged in.
                 props.onLogin(data);
             });
     }
+
     function inputUpdate(field, value) {
         // This is called whenever an input field gets updated. Handles storing the input's content within this component
         // (since it seems that accessing it on demand isn't an option)
@@ -308,6 +401,12 @@ function RegisterForm(props) {
             <p className="singleline">
                 <input type="button" value="Sign Up" onClick={handleRegister} />
             </p>
+            {userError===''?'': (
+                <p className="singleline" style={{color:'red'}}>{userError}</p>
+            )}
+            {serverError===''?'': (
+                <ErrorBox content={serverError} onContinue={()=>{setServerError('')}} />
+            )}
         </div>
     );
 }
@@ -320,12 +419,29 @@ function LoginForm(props) {
     //          already handled by this function; this component will pass the response data to onLogin.
 
     const [fields, setFields] = React.useState({ username: "", password: "" });
+    const [userError, setError] = React.useState('');
+    const [serverError, setServerError] = React.useState('');
+
     function handleLogin() {
+        // Make sure the user has filled out some data, before sending it to the server
+        if(fields.username==='') {
+            setError('Please provide a user name & password');
+            return;
+        }
+        if(fields.password==='') {
+            setError('Please provide your password');
+            return;
+        }
         fetch(serverURL, DAX.serverMessage("login", fields, false))
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {
                 // Send the server's response to the parent component
+                if(data.result!=='success') {
+                    setServerError(data.message);
+                    return;
+                }
+                
                 props.onLogin(data);
             });
     }
@@ -348,6 +464,12 @@ function LoginForm(props) {
                 <p className="singleline">
                     <input type="button" value="Login" onClick={handleLogin} />
                 </p>
+                {userError===''?'': (
+                    <p className="singleline" style={{color:'red'}}>{userError}</p>
+                )}
+                {serverError===''?'': (
+                    <ErrorBox content={serverError} onContinue={()=>{setServerError('')}} />
+                )}
             </form>
         </div>
     );

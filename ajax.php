@@ -50,6 +50,9 @@
     // Now would be a good time to process any pending events we have
     processEvents();
 
+    // We put this here to test error response on the client end.
+    //ajaxreject('badinput', "Jason's mad because Becky stole his chips. But Becky insists that they were her chips, and won't give them back. And now she won't get down from the tree. I don't know what to do.");
+
     $WorldBiomes = ['grassland', 'forest', 'desert', 'swamp', 'water'];
 
     switch($msg['action']) {
@@ -280,46 +283,35 @@
             // We may also need to determine how much time the construction fo this building will take.
             // However, we don't have any buildings needing either of those things yet.
 
-            if($buildType['buildtime']==0) {
-                // We can go ahead and have this building added now.  Check for resource needs.
-                // We don't (yet) have a way to verify resource needs, or where to find resources
+            // Go ahead and add the building to the database, and update the tile it should be on.
+            danpost("INSERT INTO sw_structure (buildtype, devlevel, fortlevel, worldmapid, localx, localy, detail) VALUES (".
+                    $buildType['id'] .",1,1,". $worldmapsquare['id'] .",". $localmapsquare['x'] .",". $localmapsquare['y'] .",'');",
+                    'ajax.php->case addbuilding->create structure with no buildtime or needs');
+            $structureId = mysqli_insert_id($db);
+            danpost("UPDATE sw_minimap SET buildid=". $structureId ." WHERE mapid=". $worldmapsquare['id'] ." AND x=".
+                    $localmapsquare['x'] ." AND y=". $localmapsquare['y'] .";",
+                    'ajax.php->case addbuilding->add building to local map');
 
-                // We are set to build this building.
-                danpost("INSERT INTO sw_structure (buildtype, devlevel, fortlevel, worldmapid, localx, localy, detail) VALUES (".
-                        $buildType['id'] .",1,1,". $worldmapsquare['id'] .",". $localmapsquare['x'] .",". $localmapsquare['y'] .",'');",
-                        'ajax.php->case addbuilding->create structure with no buildtime or needs');
-                $structureId = mysqli_insert_id($db);
-                danpost("UPDATE sw_minimap SET buildid=". $structureId ." WHERE mapid=". $worldmapsquare['id'] ." AND x=".
-                        $localmapsquare['x'] ." AND y=". $localmapsquare['y'] .";",
-                        'ajax.php->case addbuilding->add building to local map');
-                
-                // We are ready to send a response to the user. We want to allow the given block to be updated with information about the ne
-                // building, as though it was provided when initially loading the page
-                die(json_encode([
-                    "result"=>"success",
-                    "newmaptile"=>[
-                        "mapid"=>$localmapsquare['mapid'],
-                        "x"=>$localmapsquare['x'],
-                        "y"=>$localmapsquare['y'],
-                        "landtype"=>$localmapsquare['landtype'],
-                        "buildid"=>$structureId,
-                        "buildtype"=>$buildType['id'],
-                        "devlevel"=>1,
-                        "fortlevel"=>1,
-                        "detail"=>'',
-                        "workersassigned"=>0,
-                        "assigned"=>'',
-                        "name"=>$buildType['name'],
-                        "image"=>$buildType['image'],
-                        "minworkers"=>$buildType['minworkers'],
-                        "maxworkers"=>$buildType['maxworkers'],
-                        "workerbonus"=>$buildType['workerbonus'],
-                        "resourcesUsed"=>$buildType['resourcesUsed'],
-                        "output"=>$buildType['output'],
-                        "description"=>$buildType['description']
-                    ]
-                ]));
+            if($buildType['buildtime']!=0) {
+                // The only difference between buildings that have construction time and those that don't, is the creation of a
+                // construction event. The code that sends building information to the user will include the construction event
+                danpost("INSERT INTO sw_event (player,mapid,task,detail,endtime) VALUES (". $userid .",". $worldmapsquare['id'] .
+                        ",'newbuild','". $localmapsquare['x'] .",". $localmapsquare['y'] ."', ".
+                        "DATE_ADD(NOW(), INTERVAL ". $buildType['buildtime'] ." SECOND));",
+                        'ajax.php->case addbuilding->add event for building construction');
             }
+
+            // To send data back, we now have a function getSquareInfo, which does the same work for single tiles as we use when
+            // logging in. All we need to do is update the local map with the new building id.
+            $localmapsquare['buildid']=$structureId;
+                
+            // We are ready to send a response to the user. We want to allow the given block to be updated with information about the ne
+            // building, as though it was provided when initially loading the page
+            die(json_encode([
+                "result"=>"success",
+                "newmaptile"=>getSquareInfo($localmapsquare)
+            ]));
+
         break;
 
         case 'startAction':

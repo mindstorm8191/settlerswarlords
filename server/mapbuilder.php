@@ -321,7 +321,7 @@
             if($count>$limit) {
                 $count=0;
                 $mode++;
-                if($mode<4) {
+                if($mode>4) {
                     $mode = 0;
                     $level++;
                 }

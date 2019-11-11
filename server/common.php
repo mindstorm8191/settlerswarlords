@@ -189,7 +189,7 @@
                                     $_SERVER['REMOTE_ADDR']);
                         ajaxreject('badinput', 'Input error: parameter '. $key .' must be an int');
                     }
-                    if($ele<=0) {
+                    if($ele<0) {
                         reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .' must be >0. IP='.
                                     $_SERVER['REMOTE_ADDR']);
                         ajaxreject('badinput', 'Input error: parameter '. $key .' must be positive');
@@ -221,20 +221,38 @@
                         ajaxreject('badinput', 'Input error: parameter '. $key .' cannot be empty');
                     }
                     return array(danescape($key), danescape($ele));
-                case 'email': // For all email instances. This only checks for the existence of an @ symbol, and a dot somewhere.
-                    if(danescape($ele)!=danescape($ele)) {
-                        reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .
-                                    ' is not equal after conversion. IP='. $_SERVER['REMOTE_ADDR']);
-                        ajaxreject('badinput', 'Input error: parameter '. $key .' is not valid');
-                    }
+                case 'email': // For all email instances.  Email addresses have a lot of characters that aren't allowed, but must have
+                              // an '@' and a '.'
                     if($ele=='') {
                         reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .
                                     ' cannot be empty. IP='. $_SERVER['REMOTE_ADDR']);
                         ajaxreject('badinput', 'Input error: parameter '. $key .' cannot be empty');
                     }
-                    $hold = $ele;
+                    if(danescape($ele)!=$ele) {
+                        reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .
+                                    ' is not equal after conversion. IP='. $_SERVER['REMOTE_ADDR']);
+                        ajaxreject('badinput', 'Input error: parameter '. $key .' is not valid');
+                    }
+                    // Now, check for invalid characters.
+                    if(JSSome(str_split(' ~`!#$%^&*()+=[]{};:",<>?/|\'\\'), function($char) use ($ele) {
+                        return (strpos($ele, $char)!==false);
+                    })) {
+                        reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .
+                                    ' is not a valid email address. IP='. $_SERVER['REMOTE_ADDR']);
+                        ajaxreject('badinput', 'Input error: parameter '. $key .' must be an email');
+                    }
+                    
                     // We would check for an empty string, but checking for an @ or . will yield the same results
-                    if((strpos($hold, '@') == false) || (strpos($hold, '.') == false)) {
+                    if( strpos($ele, '.')===false ||                    // email has a dot
+                        strpos($ele, '.')===strlen($ele)-1 ||           // dot is not last character
+                        strpos($ele, '.')===0 ||                        // dot is not first character
+                        strpos($ele, '@')===false ||                    // email has an @
+                        strpos($ele, '@')===strlen($ele)-1 ||           // @ is not last character
+                        strpos($ele, '@')===0 ||                        // @ is not first character
+                        strpos($ele, '@', strpos($ele, '@'))!=false ||  // email does not have two @
+                        strpos($ele, '@.')!=false                       // domain of email does not start with .
+                    ) {
+                    //if((strpos($ele, '@') === false) || (strpos($ele, '.') === false)) {
                         reporterror('Input error in '. $callfrom .'->verifyInput(): parameter '. danescape($key) .
                                     ' is not a valid email address. IP='. $_SERVER['REMOTE_ADDR']);
                         ajaxreject('badinput', 'Input error: parameter '. $key .' must be an email');

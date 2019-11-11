@@ -41,6 +41,12 @@ export function LocalMap(props) {
     //      onChangePage - a callback function to call whenever the selected page has changed
 
     const [selected, pickSelected] = React.useState(null);
+
+    function handleTileUpdate(tiles) {
+        props.onChangeLocalTiles(tiles);
+        pickSelected(tiles[0]);
+    }
+    
     return (
         <div>
             <span style={{ margin: 10 }}>Biome: {props.localMap.biome}</span>
@@ -56,6 +62,23 @@ export function LocalMap(props) {
             </span>
             <div style={{ width: "100%", position: "relative" }}>
                 {props.localMap.minimap.map((square, key) => {
+                    /* Before trying to generate output, determine if there is active construction going on here */
+                    let hasConstruction = 0;
+                    if(parseInt(square.buildid)!=0) {
+                        if(square.events!==undefined) {
+                            /* Find an event that is a construction event for this */
+                            console.log('Events is not undefined');
+                            if(square.events.find(eve => {
+                                if(eve.task==='newbuild') {
+                                    console.log('We need the hard hat');
+                                    return true;
+                                }
+                                return false;
+                            })) {
+                                hasConstruction = 1;
+                            }
+                        }
+                    }
                     return (
                         <div
                             style={{
@@ -70,15 +93,20 @@ export function LocalMap(props) {
                             key={key}
                             onClick={()=>pickSelected(square)}
                         >
-                            {parseInt(square.buildid)===0?'':
-                                (<img src={imageURL + square.buildType.image} alt={'building'} style={{pointerEvents: "none"}} />)
-                            }
+                            {parseInt(square.buildid)===0?'':(
+                                <div>
+                                    <img src={imageURL + square.buildType.image} alt={'building'} style={{pointerEvents: "none"}} />
+                                    {hasConstruction===0?'':(
+                                        <img src={imageURL +'construction.png'} style={{pointerEvents:'none', position:'absolute', top:0, left:0}} />
+                                    )}
+                                </div>
+                            )}
                         </div>
                     );
                 })}
                 <LocalTileDetail
                     tile={selected}
-                    onChangeLocalTiles={props.onChangeLocalTiles}
+                    onChangeLocalTiles={handleTileUpdate}
                     localMapBuildOptions={props.localMapBuildOptions}
                 />
             </div>
@@ -88,6 +116,8 @@ export function LocalMap(props) {
 
 function LocalTileDetail(props) {
     // Shows content on the right of the displayed map.
+    // Components that use this component:
+    //      LocalMap
     // prop fields:
     //      tile - object containing data about the selected tile. Can be null
     //      onChangeLocalTiles - a callback function to update any tiles that have changed
@@ -201,61 +231,78 @@ function LocalTileBuildingDetail(props) {
                 console.log(data);
             });
     }
+
+    // Before diplaying all the options for this, we first need to determine if this building is under construction. If it is, we
+    // can only show that, and none of the options
+    let hasConstruction = 0;
+    if(props.tile.events!=undefined) {
+        console.log('This building has an event');
+        if(props.tile.events.find(ele => {
+            return ele.task==='newbuild';
+        })) {
+            hasConstruction = 1;
+        }
+    }
+
     
     return (
         <div>
             <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>{props.tile.buildType.name}</p>
-            <p className="singleline">Dev level {props.tile.building.devlevel}</p>
-            <p className="singleline">Fort level {props.tile.building.fortlevel}</p>
-            <p>{props.tile.buildType.description}</p>
-            {/* Let's show the currently working action, if there is any */}
-            {props.tile.process===null?'':(
+            {(hasConstruction===1)?(
+                <p className="singleline">This building is still under construction</p>
+            ):(
                 <div>
-                    <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>In Progress</p>
-                    <p className="singleline">{JSON.stringify(props.tile.process)}</p>
+                    <p className="singleline">Dev level {props.tile.building.devlevel}</p>
+                    <p className="singleline">Fort level {props.tile.building.fortlevel}</p>
+                    <p>{props.tile.buildType.description}</p>
+                    {/* Let's show the currently working action, if there is any */}
+                    {props.tile.process===null?'':(
+                        <div>
+                            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>In Progress</p>
+                            <p className="singleline">{JSON.stringify(props.tile.process)}</p>
+                        </div>
+                    )}
+                    {/* Now, let's list some options from the available actions */}
+                    <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>Actions</p>
+                    {props.tile.actions.map((ele, key) => {
+                        return (
+                            <div key={key} style={{margin:4, border:"1px solid orange", padding:8}}>
+                                <p className="singleline" style={{textAlign:'center'}}>{ele.name}</p>
+                                <p className="singleline">
+                                    Number of workers:
+                                    <MyInput
+                                        onUpdate={updateActionWorkers}
+                                        fieldName={actionWorkers[key].n}
+                                        default={actionWorkers[key].v}
+                                    />
+                                    Range: {ele.minWorkers} to {ele.maxWorkers}
+                                </p>
+                                <p className="singleline">Resources Needed: none </p>
+                                {/*we're currently not filling this out, for our current test object. We will need to determine this later*/}
+                                <p className="singleline">
+                                    Resources Output:
+                                    {ele.outputGroup.map(item => {
+                                        return item.name +' x'+ item.amount;
+                                    }).join(', ')}
+                                </p>
+                                <p className="singleline">
+                                    Amount to produce:
+                                    <MyInput onUpdate={updateActionAmount} fieldName={actionWorkers[key].n} placeholder="Leave blank for continuous"/>
+                                </p>
+                                <span className="fakelink" onClick={()=>startAction(ele.name)}>Start work</span>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
-            {/* Now, let's list some options from the available actions */}
-            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>Actions</p>
-            {props.tile.actions.map((ele, key) => {
-                return (
-                    <div key={key} style={{margin:4, border:"1px solid orange", padding:8}}>
-                        <p className="singleline" style={{textAlign:'center'}}>{ele.name}</p>
-                        <p className="singleline">
-                            Number of workers:
-                            <MyInput
-                                onUpdate={updateActionWorkers}
-                                fieldName={actionWorkers[key].n}
-                                default={actionWorkers[key].v}
-                            />
-                            Range: {ele.minWorkers} to {ele.maxWorkers}
-                        </p>
-                        <p className="singleline">Resources Needed: none </p>
-                        {/*we're currently not filling this out, for our current test object. We will need to determine this later*/}
-                        <p className="singleline">
-                            Resources Output:
-                            {ele.outputGroup.map(item => {
-                                return item.name +' x'+ item.amount;
-                            }).join(', ')}
-                        </p>
-                        <p className="singleline">
-                            Amount to produce:
-                            <MyInput onUpdate={updateActionAmount} fieldName={actionWorkers[key].n} placeholder="Leave blank for continuous"/>
-                        </p>
-                        <span className="fakelink" onClick={()=>startAction(ele.name)}>Start work</span>
-                    </div>
-                );
-            })}
-            {/*At the end of this, check that the actionWorkers field is filled out correctly. This is only for testing
-            {actionWorkers.map(ele => {
-                return ele.n +'='+ ele.v;
-            }).join(', ')}*/}
         </div>
     );
 }
 
 function LocalTileNewBuilding(props) {
     // Shows a list of building options for a given tile, based on which land type was selected
+    // Components that use this component:
+    //      LocalTileDetail
     // prop fields:
     //      tile - object containing data about the selected tile.
     //      onChangeLocalTiles - a callback function to update any tiles that have changed content.

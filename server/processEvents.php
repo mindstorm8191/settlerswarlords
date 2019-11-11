@@ -24,6 +24,14 @@
                     // Now we can drop the currently event. It will be deleted when all events have been processed
                     array_shift($events);
                 break;
+                case 'newbuild':    // Handles all buildings that are newly completed.
+                    // Currently the only building that has construction time is the lean-to. I don't know if any of the buildings
+                    // will have after-construction actions. This one doesn't.
+                    array_shift($events);
+                break;
+                default:
+                    reporterror('Error in processEvents(): event type of '. $events[0]['task'] .' not yet handled');
+                    ajaxreject('internal', 'Events processing ran into an event type that is not handled yet. This needs to be corrected');
             }
         }
         // With all events processed, we should go ahead and delete them from the database

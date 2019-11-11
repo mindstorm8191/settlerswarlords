@@ -45,5 +45,12 @@ export const danCommon = {
         if (value < target - threshhold) return false;
         if (value > target + threshhold) return false;
         return true;
+    },
+
+    hasAny(searchable, options) {
+        // Returns true if any character in the options list is found in the searchable string
+        return !options.split('').every(ele => {
+            return searchable.indexOf(ele)===-1;
+        });
     }
 };

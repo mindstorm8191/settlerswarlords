@@ -249,7 +249,7 @@
                         strpos($ele, '@')===false ||                    // email has an @
                         strpos($ele, '@')===strlen($ele)-1 ||           // @ is not last character
                         strpos($ele, '@')===0 ||                        // @ is not first character
-                        strpos($ele, '@', strpos($ele, '@'))!=false ||  // email does not have two @
+                        strpos($ele, '@', strpos($ele, '@')+1)!=false ||  // email does not have two @
                         strpos($ele, '@.')!=false                       // domain of email does not start with .
                     ) {
                     //if((strpos($ele, '@') === false) || (strpos($ele, '.') === false)) {

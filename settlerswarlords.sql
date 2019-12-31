@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Nov 07, 2019 at 12:57 AM
+-- Generation Time: Dec 31, 2019 at 01:40 AM
 -- Server version: 5.7.21
 -- PHP Version: 7.2.4
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `happens` datetime NOT NULL,
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=231 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -48,11 +48,11 @@ CREATE TABLE IF NOT EXISTS `sw_event` (
   `player` int(11) DEFAULT NULL,
   `mapid` int(11) DEFAULT NULL,
   `task` varchar(30) NOT NULL,
-  `detail` text,
+  `detail` text COMMENT 'specific info we need for this task',
   `starttime` datetime DEFAULT NULL COMMENT 'used for continuous processes',
   `endtime` datetime DEFAULT NULL COMMENT 'if continuous, when the next process completes',
   `continuous` int(11) NOT NULL DEFAULT '0' COMMENT '1 if continuous, 0 if not',
-  `criticalprocess` int(11) NOT NULL COMMENT '1 if this needs to be processed in order, 0 if not',
+  `criticalprocess` int(11) NOT NULL DEFAULT '0' COMMENT '1 if this needs to be processed in order, 0 if not',
   UNIQUE KEY `id_3` (`id`),
   KEY `id` (`id`),
   KEY `id_2` (`id`)
@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS `sw_item` (
   `weight` int(11) NOT NULL COMMENT 'per single unit',
   `size` int(11) NOT NULL COMMENT 'per single unit',
   `temp` int(11) NOT NULL COMMENT '-300 to +30000',
+  `isFood` int(11) NOT NULL COMMENT 'set to 1 if this can be consumed',
   `priority` int(11) NOT NULL COMMENT 'used for ordering, like with food'
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
@@ -140,7 +141,8 @@ CREATE TABLE IF NOT EXISTS `sw_map` (
   `ugamount` float NOT NULL COMMENT 'how much ore is here. between 0.5 and 2.0',
   `owner` int(11) DEFAULT '0' COMMENT 'which player inhabits this land',
   `population` int(11) NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `coords` (`x`,`y`)
 ) ENGINE=MyISAM AUTO_INCREMENT=10202 DEFAULT CHARSET=latin1 COMMENT='world map';
 
 -- --------------------------------------------------------
@@ -177,7 +179,7 @@ CREATE TABLE IF NOT EXISTS `sw_player` (
   `currenty` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=ascii COMMENT='all users';
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=ascii COMMENT='all users';
 
 -- --------------------------------------------------------
 
@@ -194,7 +196,7 @@ CREATE TABLE IF NOT EXISTS `sw_process` (
   `timeBalance` datetime NOT NULL COMMENT 'time point the related game state is at',
   `globalEffect` int(11) NOT NULL COMMENT 'set to 1 if this affects blocks other than its own',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=latin1 COMMENT='for all events that have iterations';
+) ENGINE=MyISAM AUTO_INCREMENT=13 DEFAULT CHARSET=latin1 COMMENT='for all events that have iterations';
 
 -- --------------------------------------------------------
 
@@ -208,7 +210,7 @@ CREATE TABLE IF NOT EXISTS `sw_resourcegroup` (
   `forStructures` int(11) NOT NULL COMMENT 'set to 1 if this group is part of fixed data for the game',
   `picksRandom` int(11) NOT NULL COMMENT 'Set to 1 if one of the items are selected at random, or 0 if all are output',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `sw_resourcegroup`
@@ -216,7 +218,12 @@ CREATE TABLE IF NOT EXISTS `sw_resourcegroup` (
 
 INSERT INTO `sw_resourcegroup` (`id`, `forStructures`, `picksRandom`) VALUES
 (1, 1, 1),
-(2, 1, 0);
+(2, 1, 1),
+(3, 1, 0),
+(4, 1, 0),
+(5, 1, 0),
+(6, 1, 0),
+(7, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -238,7 +245,7 @@ CREATE TABLE IF NOT EXISTS `sw_structure` (
   `assigned` text COMMENT 'what this building is working on, with details',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=ascii COMMENT='stats about each structure. coords & owner will be handled by minimap';
+) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=ascii COMMENT='stats about each structure. coords & owner will be handled by minimap';
 
 -- --------------------------------------------------------
 
@@ -259,15 +266,20 @@ CREATE TABLE IF NOT EXISTS `sw_structureaction` (
   `inputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. Items needed to produce 1 product item, or 0 if none',
   `outputGroup` int(11) NOT NULL DEFAULT '0' COMMENT 'ID of a resource group. All items output by this action, or 0 if none',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=latin1 COMMENT='each action a building can complete';
+) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COMMENT='each action a building can complete';
 
 --
 -- Dumping data for table `sw_structureaction`
 --
 
 INSERT INTO `sw_structureaction` (`id`, `buildType`, `minLevel`, `name`, `minWorkers`, `maxWorkers`, `workerBonus`, `cycleTime`, `inputGroup`, `outputGroup`) VALUES
-(1, 1, 1, 'Forage for Food', 1, 1, 0, 60, 0, 1),
-(2, 1, 1, 'Forage for Seeds', 1, 1, 0, 60, 0, 2);
+(1, 1, 1, 'Forage for Food', 1, 1, 0, 75, 0, 1),
+(2, 1, 1, 'Forage for Seeds', 1, 1, 0, 75, 0, 2),
+(3, 4, 1, 'Collect Flint', 1, 1, 0, 50, 0, 3),
+(4, 5, 1, 'Collect Sticks', 1, 1, 0, 60, 0, 4),
+(5, 5, 1, 'Collect Twine', 1, 1, 0, 60, 0, 5),
+(6, 3, 1, 'Craft Flint Spear', 1, 1, 0, 100, 7, 6),
+(7, 0, 0, 'Consume Food', 0, 0, 0, 300, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -280,24 +292,33 @@ CREATE TABLE IF NOT EXISTS `sw_structureitem` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `resourceGroup` int(11) NOT NULL COMMENT 'ID of the resource group for this set',
   `name` varchar(50) NOT NULL,
+  `amount` float NOT NULL DEFAULT '1' COMMENT 'how much is needed or produced by this, per action cycle',
   `storeType` int(11) NOT NULL COMMENT 'Type of storage needed. 1=solid, 2=particle/dust, 3=liquid, 4=gas',
   `weight` float NOT NULL,
   `volume` float NOT NULL COMMENT 'how much space this requires',
+  `isFood` int(11) NOT NULL COMMENT 'Set to 1 if this type of item can be consumed',
   UNIQUE KEY `id` (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 COMMENT='all items and their names, produced by the buildings';
+) ENGINE=MyISAM AUTO_INCREMENT=20 DEFAULT CHARSET=latin1 COMMENT='all items and their names, produced by the buildings';
 
 --
 -- Dumping data for table `sw_structureitem`
 --
 
-INSERT INTO `sw_structureitem` (`id`, `resourceGroup`, `name`, `storeType`, `weight`, `volume`) VALUES
-(1, 1, 'Apple', 0, 1, 1),
-(2, 1, 'Berries', 1, 0.1, 0.1),
-(3, 1, 'Tree Nuts', 1, 0.1, 0.1),
-(4, 1, 'Mushrooms', 0, 0.05, 0.5),
-(5, 2, 'Wheat Seeds', 1, 0.5, 0.5),
-(6, 2, 'Carrot Seeds', 1, 0.1, 0.1),
-(7, 2, 'Potato Seeds', 1, 0.1, 0.1);
+INSERT INTO `sw_structureitem` (`id`, `resourceGroup`, `name`, `amount`, `storeType`, `weight`, `volume`, `isFood`) VALUES
+(1, 1, 'Apple', 1, 0, 1, 1, 1),
+(2, 1, 'Berries', 1, 1, 0.1, 0.1, 1),
+(3, 1, 'Tree Nuts', 1, 1, 0.1, 0.1, 1),
+(4, 1, 'Mushrooms', 1, 0, 0.05, 0.5, 1),
+(5, 2, 'Wheat Seeds', 1, 1, 0.5, 0.5, 0),
+(6, 2, 'Carrot Seeds', 1, 1, 0.1, 0.1, 0),
+(7, 2, 'Potato Seeds', 1, 1, 0.1, 0.1, 0),
+(8, 3, 'Flint', 1, 0, 3, 1, 0),
+(9, 4, 'Stick', 1, 0, 3, 3, 0),
+(10, 5, 'Twine', 1, 0, 0.5, 2, 0),
+(11, 6, 'Flint Spear', 1, 0, 5, 4, 0),
+(12, 7, 'Flint', 1, 0, 0, 0, 0),
+(13, 7, 'Twine', 1, 0, 0, 0, 0),
+(14, 7, 'Stick', 1, 0, 0, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -312,7 +333,7 @@ CREATE TABLE IF NOT EXISTS `sw_structuretype` (
   `level` int(11) NOT NULL COMMENT 'what level to get this to',
   `image` varchar(50) NOT NULL COMMENT 'path to the image needed for this',
   `buildtime` int(11) NOT NULL COMMENT 'number of seconds to build',
-  `resources` text COMMENT 'list of items needed to build this',
+  `resources` text NOT NULL COMMENT 'list of items needed to build this',
   `landtype` text NOT NULL COMMENT 'comma-separated list of what type of land this needs',
   `minworkers` int(11) NOT NULL COMMENT 'minimum users needed to allow this to run',
   `maxworkers` int(11) NOT NULL COMMENT 'maximum users this structure can handle',
@@ -322,7 +343,7 @@ CREATE TABLE IF NOT EXISTS `sw_structuretype` (
   `description` text NOT NULL COMMENT 'text shown to the user to describe the building',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=ascii;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=ascii;
 
 --
 -- Dumping data for table `sw_structuretype`
@@ -330,7 +351,10 @@ CREATE TABLE IF NOT EXISTS `sw_structuretype` (
 
 INSERT INTO `sw_structuretype` (`id`, `name`, `level`, `image`, `buildtime`, `resources`, `landtype`, `minworkers`, `maxworkers`, `workerbonus`, `resourcesUsed`, `output`, `description`) VALUES
 (1, 'Forage Post', 1, 'foragepost.png', 0, '', '0', 1, 1, 0, '', '', 'Locates edible food sources in the area, gathering them for use. The local land can only support one worker finding food. The rate of resources collected reduces as the area land becomes more developed.'),
-(2, 'Lean To', 1, 'leanto.png', 120, '', '1', 0, 0, 0, '', '', 'Before food, even before water, one must find shelter from the elements. It is the first requirement for survival; for the elements, at their worst, can defeat you faster than anything else.');
+(2, 'Lean To', 1, 'leanto.png', 120, '', '1', 0, 0, 0, '', '', 'Before food, even before water, one must find shelter from the elements. It is the first requirement for survival; for the elements, at their worst, can defeat you faster than anything else.'),
+(3, 'Tool Shop', 1, 'toolshop.png', 0, '', '0,1,3,5', 1, 1, 0, '', '', 'Tools are critical to the survival of your colony. This creates tools of all shapes and sizes - so long as you have the materials to do so. Start with sticks and flint.'),
+(4, 'Rock Collector', 1, 'stonemaker.png', 0, '', '5', 1, 1, 0, '', '', 'Rocks are an important component for early tools. There are no ways to break rocks yet, but pebbles and stones are still available for your tools.'),
+(5, 'Stick Collector', 1, 'stickmaker.png', 0, '', '1', 1, 1, 0, '', '', 'The forests are host to a wealth of useful resources. The first of those is loose sticks and twine. It might not be much, but it\'s enough to build your first tools');
 
 -- --------------------------------------------------------
 

@@ -64,10 +64,6 @@
                 ["name"=>"email", "required"=>true, "format"=>"email"]
             ], 'ajax.php->case signup');
 
-            // Make sure the user's two passwords match
-            //if($con['password']!=$con['pass2']) ajaxreject('badinput', 'The passwords do not match');
-            
-
             // Verify that the username or email does not exist already
             $existing = danqueryajax("SELECT * FROM sw_player WHERE name='". $con['username'] ."' OR email='". $con['email'] ."';",
                                      'ajax.php->case signup->check for existing name or email');
@@ -92,8 +88,8 @@
             if(sizeof(danqueryajax("SELECT * FROM sw_map LIMIT 1;", 'ajax.php->case signup->check for working map'))==0) {
                 // We don't have any map as of yet. We need to generate one now.
                 generatemap();
-                // We would set up our global variables here, but with setGlobal(), it will generate when needed. We can use the starting values
-                // above
+                // We would set up our global variables here, but with setGlobal(), it will generate when needed. We can
+                // use the starting values above
             }else{
                 $playerlevel = getGlobal("newplayerlevel");
                 $playermode = getGlobal("newplayermode");
@@ -111,12 +107,26 @@
             // We also need to update the map location to show that the user has this land
             danpost("UPDATE sw_map SET owner=". $uid .", population=4 WHERE x=". $out['x'] ." AND y=". $out['y'] .";",
                     'ajax.php->case signup->update map');
-            // We should go ahead and update this user's known map now
+            // We should go ahead and update this user's known map now, to show that they're aware of
+            // their own starting land
             updateknownmap($uid, $out['x'], $out['y']);
 
-            // Now, ensure that the minimap for this location exists. We have a function to check if it exists, and generate it if it doesn't
-            // No need to check things here!
+            // Now, ensure that the minimap for this location exists. We have a function to check if 
+            // it exists, and generate it if it doesn't. No need to check things here!
             ensureMinimapXY($out['x'], $out['y']);
+
+            // Next, since the player is starting with 4 colonists, we will need to generate a food
+            // consumption process, as well as some starting food. We will provide them with 10 units
+            // of bread.
+            $mapId = getMapID($out['x'], $out['y']);
+            $actionid = danget("SELECT id FROM sw_structureaction WHERE name='Consume Food';",
+                               'ajax.php->case signup->get Consume Food id')['id'];
+            danpost("INSERT INTO sw_process (mapid, actionid, buildingid, actionid, timeBalance, globalEffect) VALUES (".
+                    $mapId .",". $actionid .",0,0,NOW(),0);",
+                    'ajax.php->case signup->add food consuming process');
+            danpost("INSERT INTO sw_item (name, mapid,amount,`grouping`,weight,size,temp,isFood,priority) VALUES (".
+                    "'Bread',". $mapId .",10,1,1,1,1,1,1);",
+                    'ajax.php->case signup->add beginner food');
 
             // Now that the minimap has been created, we need to create a data feed, to show all the tiles here
             // This should be all the common content we need. Now reply to the user, feeding them the minimap data

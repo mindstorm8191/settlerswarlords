@@ -49,8 +49,8 @@ export const danCommon = {
 
     hasAny(searchable, options) {
         // Returns true if any character in the options list is found in the searchable string
-        return !options.split('').every(ele => {
-            return searchable.indexOf(ele)===-1;
+        return !options.split("").every(ele => {
+            return searchable.indexOf(ele) === -1;
         });
     }
 };

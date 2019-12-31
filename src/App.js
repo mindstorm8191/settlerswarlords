@@ -1,21 +1,13 @@
-import React from 'react';
-import './App.css';
-import {MyInput} from './MyInput.jsx';
-import {WorldMap, getWorldTileCount} from './WorldMap.jsx';
-import {LocalMap} from './LocalMap.jsx';
-import {DAX} from './DanAjax.jsx';
-import {danCommon} from './danCommon.js';
+import React from "react";
+import "./App.css";
+import { MyInput } from "./MyInput.jsx";
+import { WorldMap, getWorldTileCount } from "./WorldMap.jsx";
+import { LocalMap } from "./LocalMap.jsx";
+import { DAX } from "./DanAjax.jsx";
+import { danCommon } from "./danCommon.js";
 
 /* Task List
-    1) Set up actual error handling on the client side
-    1) Create a routine on the server to show where players are being placed. We are unable to verify that the new-player placement code is
-        working correctly.
-    2) Update the database to have declared data sets for building costs. This will probably be two tables, one providing individual
-        resource types, along with costs, and a second to group these items together.  It would be beneficial to have PHP functions
-        to manage these
-    3) Set up the login code to check for active processes for specific buildings, and send stats on that.
-    5) Allow the user
-    4) Set up something to check for active processes and update them before sending info to the client.
+    1) Set up processes to negate any deficits in foods
     5) Send additional information to the user, such as food stores and other resources that have been produced
     3) Step up the protections on the server. Validate that input is valid, including the provided IP address. Check user input on
         client side before sending to server.
@@ -32,18 +24,35 @@ import {danCommon} from './danCommon.js';
         App.css     LocalMap.jsx    jsarray.php   processEvents.php
            MyInput.jsx  WorldMap.jsx   globals.php
               DanAjax.jsx   ajax.php      mapbuilder.php
-    358+31+40+45+49+326+234+448+264+70+26+359+100+119 = 2469 lines (11/6/19)
+    539+31+40+45+56+428+234+441+282+70+26+359+111+261 = 2923 lines
+    11/6/19 - 2469 lines
+    12/22/19 - 2923 lines
+
+    What to include when exporting the database
+    * All table structures
+    * Data for sw_resourceGroup, sw_structureAction, sw_structureItem, sw_structureType... that should be it!
 */
 
-export const cardinalDirections = [{ x: 0, y: -1 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: -1, y: 0 }];
+export const cardinalDirections = [
+    { x: 0, y: -1 },
+    { x: 1, y: 0 },
+    { x: 0, y: 1 },
+    { x: -1, y: 0 }
+];
 
-export const serverURL = (process.env.NODE_ENV==="production")? "https://bookalong.x10host.com/settlerswarlords/ajax.php" : "http://localhost:80/settlerswarlordsCRA/ajax.php";
-export const imageURL = (process.env.NODE_ENV==="production")? "https://bookalong.x10host.com/settlerswarlords/img/" : "http://localhost:80/settlerswarlordsCRA/img/";
+export const serverURL =
+    process.env.NODE_ENV === "production"
+        ? "https://bookalong.x10host.com/settlerswarlords/ajax.php"
+        : "http://localhost:80/settlerswarlordsCRA/ajax.php";
+export const imageURL =
+    process.env.NODE_ENV === "production"
+        ? "https://bookalong.x10host.com/settlerswarlords/img/"
+        : "http://localhost:80/settlerswarlordsCRA/img/";
 
 function App() {
-// This is the root of the page. Everything connects to this component.
+    // This is the root of the page. Everything connects to this component.
 
-    const [userData, setUserData] = React.useState({ id: 0, access: 0});
+    const [userData, setUserData] = React.useState({ id: 0, access: 0 });
     const [curPage, setPage] = React.useState("home");
     const [worldCoords, setWorldCoords] = React.useState({ x: 0, y: 0 });
     const [localMap, setLocalMap] = React.useState({});
@@ -57,7 +66,7 @@ function App() {
         console.log("Game loaded. Userid=" + data.userid);
         setUserData({
             id: data.userid,
-            access: data.access,
+            access: data.access
         });
         localStorage.setItem("userid", data.userid);
         localStorage.setItem("access", data.access);
@@ -80,13 +89,13 @@ function App() {
         //setLocalMap(localMap.minimap.map(ele => {
         const newmap = localMap.minimap.map(ele => {
             let match = tileList.find(mel => {
-                return (ele.x===mel.x && ele.y===mel.y);
+                return ele.x === mel.x && ele.y === mel.y;
             });
-            if(match===undefined) return ele;
+            if (match === undefined) return ele;
             return match;
         });
         //setLocalMap(localMap);
-        setLocalMap({...localMap, minimap:newmap});
+        setLocalMap({ ...localMap, minimap: newmap });
     }
 
     function onPagePick(newpage) {
@@ -94,7 +103,7 @@ function App() {
         switch (newpage) {
             case "localmap":
                 setPage("localmap");
-            break;
+                break;
             case "worldmap":
                 // Before we can display this, we need to first fetch the data from the server.
                 fetch(serverURL, DAX.serverMessage("getworldmap", [], true))
@@ -131,7 +140,7 @@ function App() {
                                     return {
                                         x: parseInt(ele.x) + adjust.x,
                                         y: parseInt(ele.y) + adjust.y,
-                                        biome: getWorldTileCount()-1
+                                        biome: getWorldTileCount() - 1
                                     };
                                 })
                                 .filter(check => {
@@ -165,14 +174,14 @@ function App() {
                     });
                 break;
             default:
-                console.log('Error in App.onPagePick: new page of '+ newpage +' not handled');
+                console.log("Error in App.onPagePick: new page of " + newpage + " not handled");
         }
     }
 
     // Instead of having everything determined here, we will use a pagepicker component to decide which page should be displayed
     return (
-        <div style={{ backgroundImage: "url("+ imageURL +"banner.png)", backgroundRepeat: "repeat-x", margin:5 }}>
-            <div style={{ width: "100%", minHeight: 150, margin:15 }}>
+        <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x", margin: 5 }}>
+            <div style={{ width: "100%", minHeight: 150, margin: 15 }}>
                 <LoginForm onLogin={loadGame} />
                 <div style={{ fontSize: "40px" }}>
                     Settlers & <br />
@@ -251,57 +260,73 @@ function HomePage(props) {
             </p>
             <RegisterForm onLogin={props.onLogin} />
             <p>
-                Welcome to my latest project! This is mostly a hobby project, but I am still using it to practice my programming skills
-                and learn new tools. This game is hardly playable, there is so much left to add. The more features I add, the more there
-                is that needs to be added. But that's just how project development goes, sometimes.
+                Welcome to my latest project! This is mostly a hobby project, but I am still using it to practice my
+                programming skills and learn new tools. This game is hardly playable, there is so much left to add. The
+                more features I add, the more there is that needs to be added. But that's just how project development
+                goes, sometimes.
             </p>
-            <div style={{textAlign:'center'}}>
+            <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>
-                <p className="singleline"><a href="http://bookalong.x10host.com">BookAlong</a>, a site for book readers</p>
-                <p className="singleline"><a href="https://danidle.netlify.com">DanIdle</a>, an idle game climbing a tech tree</p>
-                <p className="singleline"><a href="http://bookalong.x10host.com/matrix">Matrix</a> - it's 3D Minesweeper!</p>
+                <p className="singleline">
+                    <a href="http://bookalong.x10host.com">BookAlong</a>, a site for book readers
+                </p>
+                <p className="singleline">
+                    <a href="https://danidle.netlify.com">DanIdle</a>, an idle game climbing a tech tree
+                </p>
+                <p className="singleline">
+                    <a href="http://bookalong.x10host.com/matrix">Matrix</a> - it's 3D Minesweeper!
+                </p>
             </div>
         </div>
     );
 }
 
 function ErrorBox(props) {
-    // Displays a full-page error box to the user. Useful for displaying complex errors. Will provide an accept button to 
+    // Displays a full-page error box to the user. Useful for displaying complex errors. Will provide an accept button to
     // Prop fields:
     //      content - Text to display to the user
     //      onContinue - callback function called when the error has been received, to allow the calling component to remove the box
 
     return (
-        <div style={{ /* This is the container */
-            position:'fixed',
-            top: 0, left: 0,
-            width: '100vw',
-            height: '100vh',
-            display: 'flex',
-            /*margin:'auto',*/
-            zIndex: 1,
-            justifyContent: 'center',
-            alignItems: 'center'
-        }}>
-            <div style={{       /* This is the overlay, to set the background grey */
-              position:'fixed',
-              top: 0, left: 0,
-              width: '100vw',
-              height: '100vh',
-              background:'gray',
-              opacity: 0.7,
-            }}></div>
-            <div style={{
-                position:'absolute',
-                margin:'auto', zIndex:2,
-                border:'4px solid red',
-                background:'white',
-                padding:5,
-                opacity: 1.0
-            }}>
-                <p>
-                    {props.content}
-                </p>
+        <div
+            style={{
+                /* This is the container */
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                display: "flex",
+                /*margin:'auto',*/
+                zIndex: 1,
+                justifyContent: "center",
+                alignItems: "center"
+            }}
+        >
+            <div
+                style={{
+                    /* This is the overlay, to set the background grey */
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    width: "100vw",
+                    height: "100vh",
+                    background: "gray",
+                    opacity: 0.7
+                }}
+            ></div>
+            <div
+                style={{
+                    position: "absolute",
+                    margin: "auto",
+                    zIndex: 2,
+                    border: "4px solid red",
+                    background: "white",
+                    padding: 5,
+                    opacity: 1.0
+                }}
+            >
+                <p>{props.content}</p>
                 <button onClick={props.onContinue}>Okay</button>
             </div>
         </div>
@@ -315,57 +340,65 @@ function RegisterForm(props) {
     //          is handled by this function; this component will pass the response data to onLogin.
 
     const [fields, setFields] = React.useState({ username: "", password: "", pass2: "", email: "" });
-    const [userError, setError] = React.useState('');
-    const [serverError, setServerError] = React.useState('');
+    const [userError, setError] = React.useState("");
+    const [serverError, setServerError] = React.useState("");
 
     function handleRegister() {
         // Handles starting the registration process
         //console.log("This part needs to be written. Reference RegisterForm->handleRegister");
 
         // Start by checking that pass 1 & 2 match
-        if(fields.password!==fields.pass2) {
-            setError('Your passwords don\'t match. We need a better error message than something going to console.log');
+        if (fields.password !== fields.pass2) {
+            setError("Your passwords don't match. We need a better error message than something going to console.log");
             return;
         }
 
         // Check that the username doesn't contain any weird characters
-        if(danCommon.hasAny(fields.username, '.,~`!#$%^&*()+=[]{};:"<>?/|\'\\')) {
-            setError('You cannot use special characters for your username');
+        if (danCommon.hasAny(fields.username, ".,~`!#$%^&*()+=[]{};:\"<>?/|'\\")) {
+            setError("You cannot use special characters for your username");
             return;
         }
-        if(danCommon.hasAny(fields.email, ' ~`!#$%^&*()+=[]{};:",<>?/|\'\\')) {
-            setError('You cannot use special characters for your email');
+        if (danCommon.hasAny(fields.email, " ~`!#$%^&*()+=[]{};:\",<>?/|'\\")) {
+            setError("You cannot use special characters for your email");
             return;
         }
-        if(fields.username.length<3) {
-            setError('Please provide a good username, to set you apart from others');
+        if (fields.username.length < 3) {
+            setError("Please provide a good username, to set you apart from others");
             return;
         }
-        if(fields.email.length<5) {
-            setError('Please provide a valid email address');
+        if (fields.email.length < 5) {
+            setError("Please provide a valid email address.");
             return;
         }
 
         // Also ensure the email address has a valid format
-        if(fields.email.indexOf('.')===-1 ||                                // email has a dot
-           fields.email.indexOf('.')===fields.email.length - 1 ||           // dot is not last character
-           fields.email.indexOf('.')===0 ||                                 // dot is not first character
-           fields.email.indexOf('@')===-1 ||                                // email has a @
-           fields.email.indexOf('@')===0 ||                                 // @ is not first character
-           fields.email.indexOf('@')===fields.email.length - 1 ||           // @ is not last character
-           fields.email.indexOf('@', fields.email.indexOf('@')) !==-1 ||    // email does not have two @
-           fields.email.indexOf('@.')!==-1                                  // domain does not start with .
+        if (
+            fields.email.indexOf(".") === -1 || // email has a dot
+            fields.email.indexOf(".") === fields.email.length - 1 || // dot is not last character
+            fields.email.indexOf(".") === 0 || // dot is not first character
+            fields.email.indexOf("@") === -1 || // email has a @
+            fields.email.indexOf("@") === 0 || // @ is not first character
+            fields.email.indexOf("@") === fields.email.length - 1 || // @ is not last character
+            fields.email.indexOf("@", fields.email.indexOf("@") + 1) !== -1 || // email does not have two @'s
+            fields.email.indexOf("@.") !== -1 // domain does not start with .
         ) {
-            setError('Please provide a valid email address');
+            setError("Please provide a valid email address");
             return;
         }
 
         // Now, send data to the server.
-        fetch(serverURL, DAX.serverMessage("signup", {username: fields.username, password: fields.password, email: fields.email}, false))
+        fetch(
+            serverURL,
+            DAX.serverMessage(
+                "signup",
+                { username: fields.username, password: fields.password, email: fields.email },
+                false
+            )
+        )
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {
-                if(data.result!=='success') {
+                if (data.result !== "success") {
                     setServerError(data.message);
                     return;
                 }
@@ -401,11 +434,22 @@ function RegisterForm(props) {
             <p className="singleline">
                 <input type="button" value="Sign Up" onClick={handleRegister} />
             </p>
-            {userError===''?'': (
-                <p className="singleline" style={{color:'red'}}>{userError}</p>
+            {userError === "" ? (
+                ""
+            ) : (
+                <p className="singleline" style={{ color: "red" }}>
+                    {userError}
+                </p>
             )}
-            {serverError===''?'': (
-                <ErrorBox content={serverError} onContinue={()=>{setServerError('')}} />
+            {serverError === "" ? (
+                ""
+            ) : (
+                <ErrorBox
+                    content={serverError}
+                    onContinue={() => {
+                        setServerError("");
+                    }}
+                />
             )}
         </div>
     );
@@ -419,17 +463,17 @@ function LoginForm(props) {
     //          already handled by this function; this component will pass the response data to onLogin.
 
     const [fields, setFields] = React.useState({ username: "", password: "" });
-    const [userError, setError] = React.useState('');
-    const [serverError, setServerError] = React.useState('');
+    const [userError, setError] = React.useState("");
+    const [serverError, setServerError] = React.useState("");
 
     function handleLogin() {
         // Make sure the user has filled out some data, before sending it to the server
-        if(fields.username==='') {
-            setError('Please provide a user name & password');
+        if (fields.username === "") {
+            setError("Please provide a user name & password");
             return;
         }
-        if(fields.password==='') {
-            setError('Please provide your password');
+        if (fields.password === "") {
+            setError("Please provide your password");
             return;
         }
         fetch(serverURL, DAX.serverMessage("login", fields, false))
@@ -437,11 +481,11 @@ function LoginForm(props) {
             .catch(err => console.log(err))
             .then(data => {
                 // Send the server's response to the parent component
-                if(data.result!=='success') {
+                if (data.result !== "success") {
                     setServerError(data.message);
                     return;
                 }
-                
+
                 props.onLogin(data);
             });
     }
@@ -453,7 +497,7 @@ function LoginForm(props) {
     }
 
     return (
-        <div style={{ float:'right' }}>
+        <div style={{ float: "right" }}>
             <form id="loginform">
                 <p className="singleline">
                     <MyInput placeholder="Username" onUpdate={inputUpdate} fieldName="username" />
@@ -464,17 +508,26 @@ function LoginForm(props) {
                 <p className="singleline">
                     <input type="button" value="Login" onClick={handleLogin} />
                 </p>
-                {userError===''?'': (
-                    <p className="singleline" style={{color:'red'}}>{userError}</p>
+                {userError === "" ? (
+                    ""
+                ) : (
+                    <p className="singleline" style={{ color: "red" }}>
+                        {userError}
+                    </p>
                 )}
-                {serverError===''?'': (
-                    <ErrorBox content={serverError} onContinue={()=>{setServerError('')}} />
+                {serverError === "" ? (
+                    ""
+                ) : (
+                    <ErrorBox
+                        content={serverError}
+                        onContinue={() => {
+                            setServerError("");
+                        }}
+                    />
                 )}
             </form>
         </div>
     );
 }
-
-
 
 export default App;

@@ -15,6 +15,18 @@
         return mt_rand(0, PHP_INT_MAX)/PHP_INT_MAX;
     }
 
+    function getMapID($xpos, $ypos) {
+        // Returns the map's ID, when given the map's X & Y coordinates
+        return danget("SELECT id FROM sw_map WHERE x=". $xpos ." AND y=". $ypos .";",
+                      'server/mapbuilder.php->getMapID()')['id'];
+    }
+
+    function getMapXY($id) {
+        // Returns a map's X & Y coordinates, when given the map ID value.
+        // Note that this returns an array containing X & Y properties
+        return danget("SELECT x,y FROM sw_map WHERE id=". $id .";",
+                      'server/mapbuilder.php->getMapXY()');
+    }
 
     function generatemap() {
         // Our goal will be to create an area that spans from -50 to +50 in both x and y directions. At the same time, we will set global

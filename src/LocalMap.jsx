@@ -2,10 +2,10 @@
 // Provides content for the local map of the game
 // for the game Settlers&Warlords
 
-import React from 'react';
-import {DAX} from './DanAjax.jsx';
-import {serverURL, imageURL} from './App.js';
-import {MyInput} from './MyInput.jsx';
+import React from "react";
+import { DAX } from "./DanAjax.jsx";
+import { serverURL, imageURL } from "./App.js";
+import { MyInput } from "./MyInput.jsx";
 
 const minimapImages = [
     "emptygrass.jpg",
@@ -46,7 +46,7 @@ export function LocalMap(props) {
         props.onChangeLocalTiles(tiles);
         pickSelected(tiles[0]);
     }
-    
+
     return (
         <div>
             <span style={{ margin: 10 }}>Biome: {props.localMap.biome}</span>
@@ -64,17 +64,19 @@ export function LocalMap(props) {
                 {props.localMap.minimap.map((square, key) => {
                     /* Before trying to generate output, determine if there is active construction going on here */
                     let hasConstruction = 0;
-                    if(parseInt(square.buildid)!=0) {
-                        if(square.events!==undefined) {
+                    if (parseInt(square.buildid) != 0) {
+                        if (square.events !== undefined) {
                             /* Find an event that is a construction event for this */
-                            console.log('Events is not undefined');
-                            if(square.events.find(eve => {
-                                if(eve.task==='newbuild') {
-                                    console.log('We need the hard hat');
-                                    return true;
-                                }
-                                return false;
-                            })) {
+                            console.log("Events is not undefined");
+                            if (
+                                square.events.find(eve => {
+                                    if (eve.task === "newbuild") {
+                                        console.log("We need the hard hat");
+                                        return true;
+                                    }
+                                    return false;
+                                })
+                            ) {
                                 hasConstruction = 1;
                             }
                         }
@@ -88,16 +90,32 @@ export function LocalMap(props) {
                                 height: 55,
                                 top: square.y * 55,
                                 left: square.x * 55,
-                                backgroundImage: "url("+ imageURL + minimapImages[square.landtype] +')'
+                                backgroundImage: "url(" + imageURL + minimapImages[square.landtype] + ")"
                             }}
                             key={key}
-                            onClick={()=>pickSelected(square)}
+                            onClick={() => pickSelected(square)}
                         >
-                            {parseInt(square.buildid)===0?'':(
+                            {parseInt(square.buildid) === 0 ? (
+                                ""
+                            ) : (
                                 <div>
-                                    <img src={imageURL + square.buildType.image} alt={'building'} style={{pointerEvents: "none"}} />
-                                    {hasConstruction===0?'':(
-                                        <img src={imageURL +'construction.png'} style={{pointerEvents:'none', position:'absolute', top:0, left:0}} />
+                                    <img
+                                        src={imageURL + square.buildType.image}
+                                        alt={"building"}
+                                        style={{ pointerEvents: "none" }}
+                                    />
+                                    {hasConstruction === 0 ? (
+                                        ""
+                                    ) : (
+                                        <img
+                                            src={imageURL + "construction.png"}
+                                            style={{
+                                                pointerEvents: "none",
+                                                position: "absolute",
+                                                top: 0,
+                                                left: 0
+                                            }}
+                                        />
                                     )}
                                 </div>
                             )}
@@ -123,8 +141,7 @@ function LocalTileDetail(props) {
     //      onChangeLocalTiles - a callback function to update any tiles that have changed
     //      localMapBuildOptions - array of objects, each object being a building that can be built here
 
-    if (props.tile === null)
-        return <div style={{ position: "absolute", left: 440 }}>Select a tile to see options</div>;
+    if (props.tile === null) return <div style={{ position: "absolute", left: 440 }}>Select a tile to see options</div>;
 
     return (
         <div style={{ position: "absolute", left: 440 }}>
@@ -155,7 +172,8 @@ function LocalTileBuildingDetail(props) {
     //          building - object containing information about the building here
     //              buildtype - ID of the type of building this is
     //              devlevel - development level of this building. Determines how much it can do
-    //              fortlevel - fortification leve of this building. Determines how much 
+    //              fortlevel - fortification leve of this building. Determines how much damage this building can take
+    //                  before being destroyed
     //              detail - building-specific information this might need. Does not have a use yet
     //              workersassigned - number of workers currently assigned to work at this building.
     //              assigned - details of what this building is working on.  Does not have a use yet
@@ -174,13 +192,13 @@ function LocalTileBuildingDetail(props) {
 
     const [actionWorkers, setActionWorkers] = React.useState(
         props.tile.actions.map(ele => {
-            return {n: ele.name, v:ele.minWorkers};
+            return { n: ele.name, v: ele.minWorkers };
         })
     );
 
     const [actionAmount, setActionAmount] = React.useState(
         props.tile.actions.map(ele => {
-            return {n: ele.name, v:0};
+            return { n: ele.name, v: 0 };
         })
     );
 
@@ -189,9 +207,9 @@ function LocalTileBuildingDetail(props) {
         // the end, but we need to track them all
         //console.log('Set '+ fieldname +' = '+ value);
         const holder = actionWorkers.map(ele => {
-            if(ele.n===fieldname) {
+            if (ele.n === fieldname) {
                 //console.log('We have a hit!');
-                return {n:fieldname, v:value};
+                return { n: fieldname, v: value };
             }
             return ele;
             //return (ele.n===fieldname)?{n:fieldname, v:value}:ele;
@@ -203,7 +221,7 @@ function LocalTileBuildingDetail(props) {
         // Handles updating the values within actionAmounts, whenever the user changes the input. Only one of these will be used in
         // the end, but we need to track them all
         let holder = actionAmount.map(ele => {
-            return (ele.n===fieldname)?{n:fieldname, v:value}:ele;
+            return ele.n === fieldname ? { n: fieldname, v: value } : ele;
         });
         setActionAmount(holder);
     }
@@ -213,18 +231,25 @@ function LocalTileBuildingDetail(props) {
 
         // We need to pass enough data so the server knows where to update. Start by grabbing the correct fields from input.
         let w = actionWorkers.find(ele => {
-            return ele.n===actionName;
+            return ele.n === actionName;
         });
         let a = actionAmount.find(ele => {
-            return ele.n===actionName;
+            return ele.n === actionName;
         });
         console.log(w);
-        fetch(serverURL, DAX.serverMessage("startAction", {
-            buildid: props.tile.buildid,
-            process:actionName,
-            workers:w.v,
-            amount:(a.v==='')?0:a.v
-        }, true))
+        fetch(
+            serverURL,
+            DAX.serverMessage(
+                "startAction",
+                {
+                    buildid: props.tile.buildid,
+                    process: actionName,
+                    workers: w.v,
+                    amount: a.v === "" ? 0 : a.v
+                },
+                true
+            )
+        )
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {
@@ -235,39 +260,51 @@ function LocalTileBuildingDetail(props) {
     // Before diplaying all the options for this, we first need to determine if this building is under construction. If it is, we
     // can only show that, and none of the options
     let hasConstruction = 0;
-    if(props.tile.events!=undefined) {
-        console.log('This building has an event');
-        if(props.tile.events.find(ele => {
-            return ele.task==='newbuild';
-        })) {
+    if (props.tile.events != undefined) {
+        console.log("This building has an event");
+        if (
+            props.tile.events.find(ele => {
+                return ele.task === "newbuild";
+            })
+        ) {
             hasConstruction = 1;
         }
     }
 
-    
     return (
         <div>
-            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>{props.tile.buildType.name}</p>
-            {(hasConstruction===1)?(
+            <p className="singleline" style={{ textAlign: "center", fontWeight: "bold" }}>
+                {props.tile.buildType.name}
+            </p>
+            {hasConstruction === 1 ? (
                 <p className="singleline">This building is still under construction</p>
-            ):(
+            ) : (
                 <div>
                     <p className="singleline">Dev level {props.tile.building.devlevel}</p>
                     <p className="singleline">Fort level {props.tile.building.fortlevel}</p>
                     <p>{props.tile.buildType.description}</p>
                     {/* Let's show the currently working action, if there is any */}
-                    {props.tile.process===null?'':(
+                    {props.tile.process === null ? (
+                        ""
+                    ) : (
                         <div>
-                            <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>In Progress</p>
+                            <p className="singleline" style={{ textAlign: "center", fontWeight: "bold" }}>
+                                In Progress
+                            </p>
                             <p className="singleline">{JSON.stringify(props.tile.process)}</p>
                         </div>
                     )}
                     {/* Now, let's list some options from the available actions */}
-                    <p className="singleline" style={{textAlign:'center', fontWeight:'bold'}}>Actions</p>
+                    <p className="singleline" style={{ textAlign: "center", fontWeight: "bold" }}>
+                        Actions
+                    </p>
                     {props.tile.actions.map((ele, key) => {
+                        console.log("Workers array ={" + actionWorkers[key].n + "," + actionWorkers[key].v + "}");
                         return (
-                            <div key={key} style={{margin:4, border:"1px solid orange", padding:8}}>
-                                <p className="singleline" style={{textAlign:'center'}}>{ele.name}</p>
+                            <div key={key} style={{ margin: 4, border: "1px solid orange", padding: 8 }}>
+                                <p className="singleline" style={{ textAlign: "center" }}>
+                                    {ele.name}
+                                </p>
                                 <p className="singleline">
                                     Number of workers:
                                     <MyInput
@@ -281,15 +318,23 @@ function LocalTileBuildingDetail(props) {
                                 {/*we're currently not filling this out, for our current test object. We will need to determine this later*/}
                                 <p className="singleline">
                                     Resources Output:
-                                    {ele.outputGroup.map(item => {
-                                        return item.name +' x'+ item.amount;
-                                    }).join(', ')}
+                                    {ele.outputGroup
+                                        .map(item => {
+                                            return item.name + " x" + item.amount;
+                                        })
+                                        .join(", ")}
                                 </p>
                                 <p className="singleline">
                                     Amount to produce:
-                                    <MyInput onUpdate={updateActionAmount} fieldName={actionWorkers[key].n} placeholder="Leave blank for continuous"/>
+                                    <MyInput
+                                        onUpdate={updateActionAmount}
+                                        fieldName={actionWorkers[key].n}
+                                        placeholder="Leave blank for continuous"
+                                    />
                                 </p>
-                                <span className="fakelink" onClick={()=>startAction(ele.name)}>Start work</span>
+                                <span className="fakelink" onClick={() => startAction(ele.name)}>
+                                    Start work
+                                </span>
                             </div>
                         );
                     })}
@@ -316,7 +361,10 @@ function LocalTileNewBuilding(props) {
         // buildingName - name of the building to start building here
 
         // The bulk of this will be a fetch command, and processing the response
-        fetch(serverURL, DAX.serverMessage("addbuilding", { name: buildingName, localx: props.tile.x, localy: props.tile.y }, true))
+        fetch(
+            serverURL,
+            DAX.serverMessage("addbuilding", { name: buildingName, localx: props.tile.x, localy: props.tile.y }, true)
+        )
             .then(res => DAX.manageResponseConversion(res))
             .catch(err => console.log(err))
             .then(data => {
@@ -338,32 +386,39 @@ function LocalTileNewBuilding(props) {
     console.log(props.tile.landtype);
     let available = props.localMapBuildOptions.filter(ele => {
         // Before being able to check this, convert the building's land types list into an array, split by commas
-        return ele.landtype.split(',').map(Number).includes(parseInt(props.tile.landtype));
+        return ele.landtype
+            .split(",")
+            .map(Number)
+            .includes(parseInt(props.tile.landtype));
     });
 
-    if(available.length===0) {
-        return (
-            <div>There is nothing to build here at this time.</div>
-        );
+    if (available.length === 0) {
+        return <div>There is nothing to build here at this time.</div>;
     }
 
     return (
         <div>
             {available.map((ele, key) => {
                 return (
-                    <div key={key} style={{border:'1px solid green', margin:4, padding:2}}>
+                    <div key={key} style={{ border: "1px solid green", margin: 4, padding: 2 }}>
                         <p className="singleline" style={{ textAlign: "center", fontWeight: "bold" }}>
                             {ele.name} - Level 1
                         </p>
                         <p>{ele.description}</p>
                         <p className="singleline">Build Time: {ele.buildtime} seconds</p>
                         <p className="singleline">Equipment needed: none</p>
-                        <p className="singleline" style={{fontWeight:'bold', textAlign:'center'}}>Operating Costs</p>
-                        <p className="singleline">Workers needed: {ele.minworkers} to {ele.maxworkers}</p>
+                        <p className="singleline" style={{ fontWeight: "bold", textAlign: "center" }}>
+                            Operating Costs
+                        </p>
+                        <p className="singleline">
+                            Workers needed: {ele.minworkers} to {ele.maxworkers}
+                        </p>
                         <p className="singleline">Worker bonus: none</p>
                         <p className="singleline">Tools & Equipment: none</p>
-                        <p className="singleline" style={{textAlign:'center'}}>
-                            <span className="fakelink" onClick={() => buildStructure(ele.name)}>Build</span>
+                        <p className="singleline" style={{ textAlign: "center" }}>
+                            <span className="fakelink" onClick={() => buildStructure(ele.name)}>
+                                Build
+                            </span>
                         </p>
                     </div>
                 );

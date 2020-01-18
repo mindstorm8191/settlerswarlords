@@ -254,7 +254,7 @@
             $landtype = $conversion[$mapdata['biome']][$ele];
             // Next, convert this from our land names, to land types. Note that the needle parameter comes first, then the haystack parameter
             $landid = array_search($landtype, $names);
-            reporterror('Debug in server/mapbuilder.php->generateminimap(): From '. $ele .' to '. $landtype .' to '. $landid);
+            //reporterror('Debug in server/mapbuilder.php->generateminimap(): From '. $ele .' to '. $landtype .' to '. $landid);
             return '('. $mapdata['id'] .','. ($slot%8) .','. (floor($slot/8.0)) .','. $landid .')';
         }, $source));
         //$send = implode(',', $list);

@@ -7,7 +7,7 @@ import { DAX } from "./DanAjax.jsx";
 import { danCommon } from "./danCommon.js";
 
 /* Task List
-    1) Set up processes to negate any deficits in foods
+    1) Test out the code that checks building prerequisites
     5) Send additional information to the user, such as food stores and other resources that have been produced
     3) Step up the protections on the server. Validate that input is valid, including the provided IP address. Check user input on
         client side before sending to server.

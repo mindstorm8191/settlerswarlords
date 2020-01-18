@@ -67,4 +67,11 @@
         // $list - array of items (of any type) to select from. This function assumes element keys are 0 to (n-1)
         return $list[rand(0, sizeof($list))];
     }
+
+    function includesAll($pond, $fish) {
+        // Compares two different arrays, and returns true only if all the elements of $fish can be found in $pond
+        return JSEvery($fish, function($ele) use ($pond) {
+            return in_array($ele, $pond);
+        });
+    }
 ?>

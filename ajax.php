@@ -158,14 +158,16 @@
                     $player['id'] .";",
                     'ajax.php->case login->update player info');
             
+            $map = loadLocalMapXY($player['currentx'], $player['currenty']);
+            
             // Beyond game data, we are ready to send a success response to the user. For game data, we have a function to provide
             // all the local map content.
             die(json_encode([
                 "result"=>"success",
                 "userid"=>$player['id'],
                 "access"=>$accesscode, // this is the updated code, not the old one
-                "mapcontent"=>loadLocalMapXY($player['currentx'], $player['currenty']),
-                "buildoptions"=>loadBuildOptions(0)
+                "mapcontent"=>$map,
+                "buildoptions"=>loadBuildOptions($map['id'])
             ]));
         break;
 

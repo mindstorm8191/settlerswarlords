@@ -7,12 +7,28 @@
     function loadBuildOptions($worldMapId) {
         // Outputs an array of building types that this user is able to build, at their current location
 
-        // For now, our data is pretty fixed (we only have two buildings so far). Go ahead and output those building types, including the
-        // fields we need. Later, we will have to determine what can be built here based on available resources (and/or what the user can
-        // build everywhere).
-        return danqueryajax("SELECT name, image, buildtime, resources, landtype, minworkers, maxworkers, resourcesUsed, output, description ".
-                            "FROM sw_structuretype WHERE resources='';",
-                            'server/localMap.php->loadBuildOptions()');
+        // While doing this, we need to consider the prerequisites of the building. Get a list of item names available here
+        // This gives us a 'name' & value pair, so we need to map it to only hold the name
+        $itemsAccessed = array_map(function($ele) {
+            return $ele['name'];
+        }, danqueryajax("SELECT `name` FROM sw_item WHERE mapID=". $worldMapId .";",
+                        'server/localMap.php->loadBuildOptions()'));
+        return array_filter(danqueryajax("SELECT name, image, buildtime, resources, landtype, minworkers, maxworkers, ".
+                                         "resourcesUsed, output, prereqs, description FROM sw_structuretype;",
+                                         'server/localMap.php->loadBuildOptions()'),
+            function($single) use ($itemsAccessed) {
+                // Split the prereqs list into individual items, then ensure all of them are in the
+                // $itemsAccessed array. If not, return false.
+                //if($single['prereqs']!='') {
+                  //  reporterror('Debug in server/localMap.php->loadBuildOptions()->filter: Pond object contains '. json_encode($itemsAccessed));
+                //}
+                return $single['prereqs']=='' ||
+                       includesAll($itemsAccessed, explode(",", $single['prereqs']));
+            });
+        
+        // Eventually, we would also like to exclude buildings that have been deprecated by better buildings. But
+        // now that I think about it, this should be handled on the client side, since the player will be able to
+        // view it there anyway.
     }
 
     function loadLocalMapXY($worldX, $worldY) {

@@ -7,7 +7,6 @@ import { DAX } from "./DanAjax.jsx";
 import { danCommon } from "./danCommon.js";
 
 /* Task List
-    1) Test out the code that checks building prerequisites
     5) Send additional information to the user, such as food stores and other resources that have been produced
     3) Step up the protections on the server. Validate that input is valid, including the provided IP address. Check user input on
         client side before sending to server.
@@ -24,9 +23,10 @@ import { danCommon } from "./danCommon.js";
         App.css     LocalMap.jsx    jsarray.php   processEvents.php
            MyInput.jsx  WorldMap.jsx   globals.php
               DanAjax.jsx   ajax.php      mapbuilder.php
-    539+31+40+45+56+428+234+441+282+70+26+359+111+261 = 2923 lines
+    533+31+40+45+56+428+234+453+282+77+26+359+127+261 = 2952 lines
     11/6/19 - 2469 lines
     12/22/19 - 2923 lines
+    01/18/20 - 2952 lines
 
     What to include when exporting the database
     * All table structures
@@ -42,11 +42,11 @@ export const cardinalDirections = [
 
 export const serverURL =
     process.env.NODE_ENV === "production"
-        ? "https://bookalong.x10host.com/settlerswarlords/ajax.php"
+        ? "http://bookalong.x10host.com/settlerswarlords/ajax.php"
         : "http://localhost:80/settlerswarlordsCRA/ajax.php";
 export const imageURL =
     process.env.NODE_ENV === "production"
-        ? "https://bookalong.x10host.com/settlerswarlords/img/"
+        ? "http://bookalong.x10host.com/settlerswarlords/img/"
         : "http://localhost:80/settlerswarlordsCRA/img/";
 
 function App() {

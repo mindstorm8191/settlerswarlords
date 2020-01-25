@@ -11,7 +11,9 @@
     
     $userid = 0;
     $accesscode = 0;
-    header('Access-Control-Allow-Origin: http://localhost:3000');
+    if($_SERVER['HTTP_ORIGIN']=="http://localhost:3000") header('Access-Control-Allow-Origin: http://localhost:3000');
+    if($_SERVER['HTTP_ORIGIN']=="http://localhost:80") header('Access-Control-Allow-Origin: http://localhost:80');
+    
 
     // Before starting, check the user's IP address to determine if they have triggered a block. IP blocks will only occur if a single user
     // posts more than 10 errors in 10 seconds

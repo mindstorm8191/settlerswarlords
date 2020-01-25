@@ -1,14 +1,25 @@
 Settlers and Warlords
-Game like Evony (and Vesuvius), but focus on diplomatics instead of all-out war (war will still be an option, though), and developing your lands
-to better your empire.
+Game like Evony or Travian (or Vesuvius), but focus on diplomatics instead of all-out war (war will still be an option, though),
+and developing your lands to better your empire.
 
 ## Project Setup
 
-This is set up in two parts, the client-side code runs through Netlify, while the server-side code is hosted elsewhere.
-To run this local to your machine, you will need WAMP to run the back end code, while the front end runs through npm.
-You will need to adjust the path to the ajax.php file within the front-end source, along with all the image paths.
-Also note, the database is design to start with no map content; it will be generated upon the first player signing up.
-From the project's root folder, run npm start.
+So, recent developments have left this project broken. I was hosting the client side on Netlify, where it was easy to deploy a
+React application; but Netlify offers no back-end code. To solve that, I was using my personal web host to serve as a back end,
+using API calls to trigger all the needed server-side activities. This worked great... for a while
+
+At this point, Netlify is promoting web security by making all their websites use HTTPS. My web host doesn't allow HTTPS unless
+you pay. Additionally, browsers now will block any connections to an HTTP location, if you're using HTTPS. This means my site won't
+work anymore.
+
+I had multiple ways to solve this issue:
+
+1. My first solution was to re-write the back end to use node.js (and MongoDB)... not easy.
+2. Or, I could set up a server on an HTTPS site (such as Heroku). The client could contact this server, and this server could
+   fetch content from the real server, since servers wouldn't have such source limitations. This middle-server would be nothing
+   more than a bridge between the two
+3. (Why didn't I think of this before?) We can simply deploy the React app, and place it on the server. I'm still working out
+   the details for this part...
 
 Note: The rest of this is notes I generated for this project thus far. All this is subject to change
 

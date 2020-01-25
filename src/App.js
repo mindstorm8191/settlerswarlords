@@ -31,6 +31,16 @@ import { danCommon } from "./danCommon.js";
     What to include when exporting the database
     * All table structures
     * Data for sw_resourceGroup, sw_structureAction, sw_structureItem, sw_structureType... that should be it!
+     
+    To run locally:
+    navigate to the project's root folder and run 'npm start'. This will start the client half of the server.
+    For the server half, run WAMP. The server's location can be set below (for localhost).
+    Note that this will function as separate servers, therefore CORS management will be necessary
+    For production, we can place the front & back ends on the same server, meaning CORS is not needed.
+    To set up production, do npm run build from Command Prompt. Note the variable homepage, within package.json
+    This will set the relative path of all files included into the React package.
+    In my local running setup, my correct path was http://localhost/settlerswarlordsCRA/build Yours may be
+    different, depending on where you placed the project
 */
 
 export const cardinalDirections = [
@@ -40,14 +50,13 @@ export const cardinalDirections = [
     { x: -1, y: 0 }
 ];
 
+//* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
 export const serverURL =
-    process.env.NODE_ENV === "production"
-        ? "http://bookalong.x10host.com/settlerswarlords/ajax.php"
-        : "http://localhost:80/settlerswarlordsCRA/ajax.php";
-export const imageURL =
-    process.env.NODE_ENV === "production"
-        ? "http://bookalong.x10host.com/settlerswarlords/img/"
-        : "http://localhost:80/settlerswarlordsCRA/img/";
+    process.env.NODE_ENV === "production" ? "ajax.php" : "http://localhost:80/settlerswarlordsCRA/ajax.php";
+export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlordsCRA/img/";
+
+//export const serverURL = "http://localhost:80/settlerswarlordsCRA/ajax.php";
+//export const imageURL = "http://localhost:80/settlerswarlordsCRA/img/";
 
 function App() {
     // This is the root of the page. Everything connects to this component.
@@ -259,11 +268,27 @@ function HomePage(props) {
                 enemies. Outfit your armies with your best tech to wage war and capture enemy lands.
             </p>
             <RegisterForm onLogin={props.onLogin} />
-            <p>
+            {/*<p>
                 Welcome to my latest project! This is mostly a hobby project, but I am still using it to practice my
                 programming skills and learn new tools. This game is hardly playable, there is so much left to add. The
                 more features I add, the more there is that needs to be added. But that's just how project development
                 goes, sometimes.
+            </p>*/}
+            <p style={{ fontWeight: "bold" }}>Important Updates</p>
+            <p>
+                If you are viewing this on the Netlify site, the game will not work here - but you can play it here:{" "}
+                <a href="http://bookalong.x10host.com/settlerswarlords">bookalong.x10host.com/settlerswarlords</a> The
+                reason behind this is rather complicated. Settlers & Warlords works by contacting my own web host for
+                'world' information and important game stats. Netlify runs all their sites through HTTPS; they are
+                working to promote web security, which is good. However, my web host only works through HTTP (unless I
+                pay money, and that's not an option right now). Modern browsers no longer allow a site under HTTPS to
+                communicate with a site under HTTP. To solve this, I am now hosting the front end code on my own web
+                host. It is very easy to simply build the React application, converting everything into a functional
+                website, and place this where you want to run it. Why didn't I think of this before?
+            </p>
+            <p>
+                As useful as Netlify is, I will have to move this project away from it. DanIdle can still be hosted on
+                Netlify (it has no back end).
             </p>
             <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>

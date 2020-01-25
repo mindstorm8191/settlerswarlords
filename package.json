@@ -2,7 +2,7 @@
     "name": "settlerswarlords",
     "version": "0.1.0",
     "private": true,
-    "homepage": "/",
+    "homepage": "https://settlerswarlords.netlify.com",
     "dependencies": {
         "react": "^16.10.2",
         "react-dom": "^16.10.2",

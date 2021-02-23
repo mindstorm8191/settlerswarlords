@@ -22,8 +22,6 @@ import { AdminPage } from "./comp_admin.jsx";
         correctly, and rewrite code bit by bit as I go through rebuilding. It can go pretty fast, at times.
 
     Task list
-    2) On start of expeditions, reduce the population while those units are away from home. This will trigger process updates before &
-        after the journey
     3) Give players the option to conquer the lands neighboring their kingdom
     3) Set up an auto-update system for the client code, that will automatically request updates from the server at a specific time. This can
         be used for world map activities, as well as updating resource production rates after a ResourceUpdate event should have passed. We

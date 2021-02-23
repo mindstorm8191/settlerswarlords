@@ -21,7 +21,7 @@
 
         global $db;
         global $civilizations;
-        global $civTypes;
+        global $civData;
 
         // Let's start with deciding how many types of land to provide. Map tile selection is still based on randomness, meaning swamps can
         // be located directly next to deserts. I don't know of any easy solution to correct that, at this time.
@@ -199,15 +199,20 @@
         // x = (0 to 1.5) + 0.5
         // x = (0.5 to 2.0)
 
-        $built = implode(',', array_map(function($long) use ($civTypes) {
-            return implode(',', array_map(function($wide) use ($civTypes) {
+        $built = implode(',', array_map(function($long) use ($civData) {
+            return implode(',', array_map(function($wide) use ($civData) {
                 if(isset($wide['civ'])) {
                     // Before we can save, we need to convert our civ value to an int. Best to do that before returning a value...
-                    $civID = JSFindIndex($civTypes, function($civ) use ($wide) {
-                        return $civ == $wide['civ'];
+                    $civObj = JSFind($civData, function($civ) use ($wide) {
+                        return strtolower($civ['name']) === strtolower($wide['civ']);
                     });
+                    if($civObj==null) {
+                        reporterror('server/mapbuilder.php->worldmap_generate()->build query',
+                                    'Error: civlization '. $wide['civ'] .' was not found');
+                        return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
+                    }
                     return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .','.
-                           $civID .','. $wide['civstrength'] .')';
+                           $civObj['id'] .','. $wide['civstrength'] .')';
                 }
                 return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
             }, $long));
@@ -216,7 +221,7 @@
         $db->query("INSERT INTO sw_map (x, y, biome, ugresource, ugamount, civilization, civlevel) VALUES ". $built .";");
         $err = mysqli_error($db);
         if($err) {
-            reporterror('mapbuilder.php->worldmap_generate()->save all content', 'Mysql reported an error: '. $err);
+            reporterror('mapbuilder.php->worldmap_generate()->save all content', 'Mysql reported an error: '. $err ."\r\nFull data:". $built);
             ajaxreject('internal', "There was an error saving worldmap data. See the error log");
         }
                 //'server/mapbuild.php->generatemap()->save map content');

@@ -342,6 +342,7 @@ function AdminAction(props) {
                     <div key={key}>
                         Name
                         <DanInput
+                            style={{marginRight:30}}
                             fieldName={"InExName"+item.name}
                             default={item.name}
                             onFocus={()=>working={name:item.name, mode:'name', side:'input', value:item.name}}
@@ -353,7 +354,6 @@ function AdminAction(props) {
                                 props.changeActionItems(props.action.name, 'input', 'name', item.name, working.value)
                             }}
                         />
-                        <span style={{marginRight:30}}></span>
                         Qty:
                         <DanInput
                             fieldName={"InExAmount"+item.name}
@@ -372,18 +372,18 @@ function AdminAction(props) {
                 {/* Allow new input items to be added */}
                 Name
                 <DanInput
+                    style={{marginRight:30}}
                     fieldName={"InNewName"}
                     placeholder={"New Item Name"}
                     onUpdate={(f,v)=>working.name=v}
                 />
-                <span style={{marginRight:30}} />
                 Qty:
                 <DanInput
+                    style={{marginRight:30}}
                     fieldName={"InNewAmount"}
                     default={1}
                     onUpdate={(f,v)=>working.amount=v}
                 />
-                <span style={{marginRight:30}} />
                 <button onClick={()=>props.newActionItem(props.action.name, 'input', working.name, working.amount)}>Add Item</button>
             </div>
 
@@ -424,6 +424,5 @@ function AdminAction(props) {
                 <button onClick={()=>props.newActionItem(props.action.name, 'output', working.name,working.amount)}>Add Item</button>
             </div>
         </div>
-        
     );
 }

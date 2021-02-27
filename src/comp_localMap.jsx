@@ -15,7 +15,7 @@ export function localMap_fillFromServerData(mapContent) {
 
     // We basically need to attach any active processes - and items of those processes - to the building instance
     mapContent.minimap = mapContent.minimap.map(tile => {
-        if(tile.buildid==0) return tile;  // Nothing to update here
+        if(tile.buildid===0) return tile;  // Nothing to update here
         tile.process = mapContent.processes.find(process => process.buildingId===tile.buildid); // This will either hold data or be null
         if(tile.process!==null && typeof tile.process !== 'undefined') {
             // Find any items for inputGroup, and attach the current quantity and calculated production rate
@@ -62,10 +62,10 @@ export function LocalMap(props) {
 
     return (
         <div>
-            <span style={{ margin: 10 }}>Biome: {props.localMap.biome}</span>
-            <span style={{ margin: 10 }}>Population: {props.localMap.population}</span>
+            <span className="haslinespacing">Biome: {props.localMap.biome}</span>
+            <span className="haslinespacing">Population: {props.localMap.population}</span>
             <PageChoices selected={"localmap"} onPagePick={props.setPage} />
-            <div style={{ width: "100%", position: "relative" }}>
+            <div id="localmapbox">
                 {props.localMap.minimap.map((square, key) => {
                     // Before trying to display this tile, determine if there is any active construction going on
                     let hasConstruction = 0;
@@ -197,11 +197,11 @@ function EmptyLandShowBuildChoices(props) {
                 // have to convert that for each building type.
                 let landTypes = ele.landtype.split(",").map((rev) => parseInt(rev));
                 //console.log("Landtypes (" + props.landType + "): ", landTypes);
-                if (!landTypes.includes(props.landType)) return;
+                if (!landTypes.includes(props.landType)) return '';
                 return (
                     <div key={key}>
                         {ele === selected ? (
-                            <div style={{ border: "1px solid green", textAlign: "center" }}>
+                            <div className="buildingListSelected">
                                 {ele.name}
                                 <p>{ele.description}</p>
                                 {/* Show construction time, if there is any */}
@@ -213,7 +213,7 @@ function EmptyLandShowBuildChoices(props) {
                                 </p>
                             </div>
                         ) : (
-                            <p className="singleline" style={{ fontWeight: "bold", cursor: "pointer" }} onClick={() => setSelected(ele)}>
+                            <p className="singleline buildingListChoice" onClick={() => setSelected(ele)}>
                                 {ele.name}
                             </p>
                         )}
@@ -295,7 +295,7 @@ function LocalTileBuildingDetail(props) {
                 <p>No activity</p>
             ):(
                 <div>
-                    <p className="singleline" style={{textAlign: 'center', fontWeight:'bold'}}>
+                    <p className="singleline simpletitle">
                         Current Activity:
                     </p>
                     <div style={{ justifyContent:'center', display:'flex', marginRight:20}}>

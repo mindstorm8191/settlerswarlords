@@ -38,8 +38,6 @@ import { AdminPage } from "./comp_admin.jsx";
 
     4) Start working on remote troop management. Get troops to go to new locations. Set up regular report messenging. Have work done on remote
         lands. Reinforce one group with another
-    3) Start allowing players to send expeditions to explore neighboring lands, so we can encounter other civilizations
-    later: Allow the world map to be scrolled by click & drag. Figure out the way to do this using React
     later: See if having specific groups of tools will be useful. Gregtech has 9, maybe we could match that (or get close to it).
         We will need a way to consume tools as a group, instead of naming specific ones to consume. For example, we want to chop down wood
         using an axe (or hatchet), but we will have many kinds of tools. This will be a separate 'consumption stream' of sorts; we may choose
@@ -51,7 +49,6 @@ import { AdminPage } from "./comp_admin.jsx";
     later: When viewing buildings, display the current process running there (from the map content)
     later: Have the server report to the client about any newly created events, when the server responds to a message. This will be useful
         when building upgrades require construction
-    Later: Get the login portion to update after the user logs in, so they can log out properly
     later: Move all the ore selection into the WeightedRandom class, to better control the likelihood of each ore
     later: If an action is currently working in a building, don't list it in the 'other processes' section
     later: Include dragons as a civilization in world gen; this will be their place to land.
@@ -61,6 +58,17 @@ import { AdminPage } from "./comp_admin.jsx";
   
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
+
+    Project size
+    src/app.js                 src/comp_worldMap.jsx          server/mapbuilder.php
+        src/app.css                src/comp_admin.jsx             server/usermap.php
+           src/DanAjax.js              ajax.php                       server/process.php
+              src/comp_account.jsx         server/common.php              server/event.php
+                  src/DanInput.jsx             server/DanGlobal.php           server/route_account.php
+                     src/DanCommon.js             server/jsarray.php              server/route_admin.php
+                        src/comp_ErrorOverlay.jsx     server/weightedRandom.php       server/route_localMap.php
+                           src/comp_localMap.jsx          server/globals.php              server/route_worldMap.php
+    378+47+48+208+62+56+68+405+487+429+122+239+37+220+138+132+404+302+388+270+268+198+245+153=5304 lines (2/23/21)
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
@@ -167,9 +175,9 @@ function App() {
     return (
         <div className="app">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
-                <div style={{ width: "100%", minHeight: 150, padding: -15 }}>
+                <div id="titleblock">
                     <AccountBox onLogin={onLogin} user={userData} />
-                    <div style={{ position: "absolute", left: 5, fontSize: "40px" }}>
+                    <div id="titletext">
                         Settlers & <br />
                         Warlords
                     </div>
@@ -354,10 +362,11 @@ export default App;
     component InventoryPage - src/App.js
     component LocalMap - src/comp_localMap.jsx
     function localMap_fillFromServerData() - src/comp_localMap.jsx
+    component LocalTileBuildingDetail - src/comp_localMap.jsx
     function manDist (int) - src/comp_worldMap.jsx
     component PageChoices - src/App.js
     component PagePicker - src/App.js
-    component RegisterForm - src/App.js
+    component RegisterForm - src/comp_account.js
     const serverURL (string) - src/App.js
     component WorldActionDetail - src/comp_worldMap.jsx
     component Worldmap - src/comp_worldMap.jsx

@@ -180,19 +180,13 @@ export function WorldMap(props) {
                 >
                 {props.worldMap.map((ele, key) => (
                     <div
+                        key={key}
+                        className="worldmaptile"
                         style={{
-                            display: "block",
-                            position: "absolute",
-                            draggable: 'false',
-                            width: 55,
-                            height: 55,
                             top: (ele.y - props.specifics.cury) * 55 + (window.innerHeight - 170) / 2,
                             left: (ele.x - props.specifics.curx) * 55 + window.innerWidth / 2,
-                            cursor: "pointer",
                             border: (ele.owner===0?'0px':'1px solid '+ ele.tileColor)
                         }}
-                        key={key}
-                        
                     >
                         <img
                             src={imageURL + worldMapTile[ele.biome].image}
@@ -206,16 +200,16 @@ export function WorldMap(props) {
                         />
                         {ele.x === props.specifics.curx && ele.y === props.specifics.cury ? (
                             <img
+                                className="worldmaptileimageoverlay"
                                 src={imageURL + "youarehere.png"}
-                                style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
                                 alt="you are here"
                             />
                         ) : 
                             // Show the civilization type on top, if one exists here
                             ele.civ===-1?(''):ele.civ.image===''?(''):(
                                 <img
+                                    className="worldmaptileimageoverlay"
                                     src={imageURL+ele.civ.image}
-                                    style={{position:'absolute', top:0, left:0, pointerEvents:'none'}}
                                     alt={ele.civ.name}
                                 />
                             )
@@ -312,47 +306,45 @@ function WorldTileDetail(props) {
     }
 
     return (
-        <div style={{display:'block', position:'absolute', border:'1px solid', minWidth:200,
-                    top: (1+props.tile.y - props.curDetails.cury) * 55 + (window.innerHeight - 170) / 2,
-                    left: (props.tile.x - props.curDetails.curx) * 55 + window.innerWidth / 2,
-                backgroundColor: 'white', padding:2}}>
-            <div style={{display:'block'}}>
-                {/* Start with the X close button at the top right */}
-                <div style={{position:'absolute', top:4, right:10 }}>
-                    <img src={imageURL + "exit.png"} style={{cursor: 'pointer'}} onClick={props.onClose} alt={"eXit"} />
-                </div>
+        <div className="worldmaptiledetailbox"
+            style={{
+                top: (1+props.tile.y - props.curDetails.cury) * 55 + (window.innerHeight - 170) / 2,
+                left: (props.tile.x - props.curDetails.curx) * 55 + window.innerWidth / 2,
+            }}
+        >
+            {/* Start with the X close button at the top right */}
+            <img className="exitbutton" src={imageURL + "exit.png"} onClick={props.onClose} alt={"eXit"} />
 
-                {/* Show some basic data of this land, including inhabitants */}
-                <div style={{textAlign: 'center'}}>
-                    {props.tile.civ===-1?(
-                        <div>
-                            <p className="singleline" style={{fontWeight:'bold'}}>
-                                {worldMapTile[props.tile.biome].name}
-                            </p>
-                            <p>{worldMapTile[props.tile.biome].desc}</p>
-                        </div>
-                    ):(
-                        <div>
-                            <p className="singleline" style={{fontWeight:'bold'}}>
-                                {props.tile.civ.name}
-                            </p>
-                            <p>{props.tile.civ.desc}</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Show some actions the user can do with this land */}
-                {action === "" ? (
-                    showOptions()
-                ) : (
-                    <WorldActionDetail
-                        choice={action}
-                        distance={manDist(props.tile.x, props.tile.y, props.curDetails.curx, props.curDetails.cury)}
-                        startWorldAction={startWorldAction}
-                        localItems={props.localItems}
-                    />
+            {/* Show some basic data of this land, including inhabitants */}
+            <div style={{textAlign: 'center'}}>
+                {props.tile.civ===-1?(
+                    <div>
+                        <p className="singleline" style={{fontWeight:'bold'}}>
+                            {worldMapTile[props.tile.biome].name}
+                        </p>
+                        <p>{worldMapTile[props.tile.biome].desc}</p>
+                    </div>
+                ):(
+                    <div>
+                        <p className="singleline" style={{fontWeight:'bold'}}>
+                            {props.tile.civ.name}
+                        </p>
+                        <p>{props.tile.civ.desc}</p>
+                    </div>
                 )}
             </div>
+
+            {/* Show some actions the user can do with this land */}
+            {action === "" ? (
+                showOptions()
+            ) : (
+                <WorldActionDetail
+                    choice={action}
+                    distance={manDist(props.tile.x, props.tile.y, props.curDetails.curx, props.curDetails.cury)}
+                    startWorldAction={startWorldAction}
+                    localItems={props.localItems}
+                />
+            )}
         </div>
     );
 }

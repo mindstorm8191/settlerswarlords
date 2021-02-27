@@ -7,15 +7,17 @@ import React from "react";
 
 export function DanInput(props) {
     // Handles all things needed for a generic input box
-    // prop values:
-    //    onUpdate - Required. What function to call when the content of the input box changes
+    // prop fields - data
     //    default - Optional. What value this field should start with
     //    placeholder - Optional. What value to place in the input box before the user adds content. This is an HTML trick
     //    fieldName - Optional. Name of this input box, for the parent component. onUpdate() will be called with parameters
     //          (fieldName, value), even if fieldName is not set.
-    //    onEnter - Optional. What function to call when the user presses enter
-    //    onFocus - Optional. What function to call when the user selects the input box
-    //    onBlur - Optional. What function to call when the user exits the input box
+    //    styles - Optional. Sets the style of the input box
+    // prop fields - functions
+    //    onUpdate - Required. Called when the content of the input box changes
+    //    onEnter - Optional. Called when the user presses enter
+    //    onFocus - Optional. Called when the user selects the input box
+    //    onBlur - Optional. Called when the user exits the input box
 
     const [name, setName] = React.useState(props.default === undefined ? "" : props.default);
     function watchChange(e) {
@@ -51,12 +53,13 @@ export function DanInput(props) {
 
     return (
         <input
+            style={props.style}
             value={name}
-            onChange={(e) => watchChange(e)}
-            onKeyDown={(r) => watchKey(r)}
-            onFocus={()=> watchFocus()}
-            onBlur={() => watchBlur()}
-            placeholder={props.placeholder === undefined ? "" : props.placeholder}
+            placeholder={props.placeholder}
+            onChange={watchChange}
+            onKeyDown={watchKey}
+            onFocus={watchFocus}
+            onBlur={watchBlur}
         />
     );
 }

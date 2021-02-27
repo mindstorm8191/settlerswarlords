@@ -73,7 +73,7 @@ export function AccountBox(props) {
     }
 
     return (
-        <div style={{ position:'absolute', right:15, top:15}} >
+        <div id="loginblock" >
             {isLoggedIn?(
                 <div>
                     <p>Hello, {props.user.name}!</p>

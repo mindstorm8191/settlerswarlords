@@ -182,6 +182,7 @@ export function WorldMap(props) {
                     <div
                         key={key}
                         className="worldmaptile"
+                        
                         style={{
                             top: (ele.y - props.specifics.cury) * 55 + (window.innerHeight - 170) / 2,
                             left: (ele.x - props.specifics.curx) * 55 + window.innerWidth / 2,
@@ -189,6 +190,7 @@ export function WorldMap(props) {
                         }}
                     >
                         <img
+                            draggable="false"
                             src={imageURL + worldMapTile[ele.biome].image}
                             onClick={() => {
                                 setPickedTile(ele);
@@ -256,22 +258,26 @@ function WorldTileDetail(props) {
         if(props.tile.biome===worldMapTile[worldMapTile.length-1].biome) {
             // This area is not explored yet. Allow the area to be explored
             return (
-                <div>
+                <>
                     <p className={"singleline"}>You must explore a land first</p>
-                    <p className={"fakelink singleline"} onClick={()=>setAction('expedition')}>
-                        Send Expedition
-                    </p>
-                </div>
+                    <p className={"fakelink singleline"} onClick={()=>setAction('expedition')}>Send Expedition</p>
+                </>
             );
         }
         if(props.tile.biome===worldMapTile[worldMapTile.length-2].biome) {
             // The user is already exploring this area
-            return (
-                <p>We will decide what to do when they have returned</p>
-            );
+            return <p>We will decide what to do when they have returned</p>;
         }
-        if(props.tile.civ===-1 && props.tile.owner===0) {
+        if(props.tile.civ===-1 && props.tile.owner===0 && props.tile.canConquer) {
             // Nobody owns this land. Allow the player to conquer it
+            console.log(props.tile.canConquer);
+            return (
+                <>
+                    <p className="singleline">Nobody owns this land.</p>
+                    <p className="singleline fakelink" onClick={()=>setAction('settle')}>Settle lands</p>
+                    <p className="singleline fakelink" onClick={()=>setAction('gather')}>Gather resources</p>
+                </>
+            );
         }
         return <p className="singleline">This needs coded</p>;
     }
@@ -354,12 +360,13 @@ function WorldActionDetail(props) {
     // prop fields - data
     //      choice - which action they chose to view details of
     //      distance - distance from the current location this is
+    //      localItems - list of all items the player currently has at this location
     // prop fields - functions
     //      startWorldAction - called when the user chooses to start the selected action. parameters:
     //          1 (required): number of colonists being used for this action
     //          2 (required): List of items the colonists will take with them. This will include at least some amount of food, selected by the user
 
-    const [numTravellers, setNumTravellers] = React.useState(1);
+    const [numTravellers, setNumTravellers] = React.useState(props.choice==='settle'?4:1);
     const [pickedItems, setPickedItems] = React.useState([]);
     const [itemChoices, setItemChoices] = React.useState([]);
 
@@ -395,6 +402,9 @@ function WorldActionDetail(props) {
 
     function foodNeeded() {
         // Returns how much food is needed for the trip. This is used more than once
+        if(props.choice==='settle') {
+            return props.distance * numTravellers;
+        }
         return props.distance * 2 * numTravellers;
     }
 
@@ -405,19 +415,28 @@ function WorldActionDetail(props) {
         console.log(result);
         return result;
     }
+
+    function displayPrompt() {
+        // Shows the correct prompt, based on what action was selected (in props)
+        switch(props.choice) {
+            case 'expedition': return <p>Send people to explore new lands, and determine its inhabitants</p>;
+            case 'settle':     return <p>Settle a land to expand your kingdom</p>;
+            case 'gather':     return <p>Send people to gather resources at remote locations</p>;
+        }
+    }
     
     // Generally, it will take 5 minutes to walk between each world tile
     // Food is also consumed at a rate of 1 every 5 minutes, per colonist
     return (
         <div>
-            <p>Send people to explore new lands, and determine its inhabitants</p>
+            {displayPrompt()}
             <p className="singleline">
                 Distance: {props.distance}
                 <span style={{ marginLeft: 30 }}></span>
                 Time to return: {props.distance * 10} minutes
             </p>
             <p className="singleline">
-                <DanInput placeholder="travellers - min 1" onUpdate={(f, v) => setNumTravellers(v)} default={1} />
+                <DanInput placeholder="travellers - min 1" onUpdate={(f, v) => setNumTravellers(v)} default={numTravellers} />
             </p>
             <span style={{fontWeight:'bold'}}>Load</span> (capacity {capacity()})
             {pickedItems.map((ele,key) => (
@@ -474,6 +493,8 @@ function WorldActionDetail(props) {
                 </button>
             </p>
             Journey requires {foodNeeded()} food
+
+            {props.choice!='settle'?(''):<><p className="singleline" style={{fontWeight:'bold'}}>Starting actions</p></>}
         </div>
     );
 }

@@ -32,48 +32,21 @@
             ajaxreject('badinput', 'The player does not have ownership of this land');
         }
 
-        // Next, verify that there is no (blocking) structure at this location on the local map
-        $localMapSquare = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND x=? AND y=?;", 'iii',
-                                    [$worldMapSquare['id'], $con['localx'], $con['localy']],
-                                    'server/route_localMap.php->route_addBuilding()->get local map data')[0];
-        if($localMapSquare['buildid']!=0) {
-            // Later on, we will add additional checks to see if this is a non-blocking structure (aka concrete floor or roof).
-            // For now, reject out-right
+        // Add the building. We made a function to do this, since this isn't the only place buildings are added.
+        // This also sets the building ID to the local square data, so that localMap_GetSquareInfo() will pick up the
+        // correct building & data
+        $plat = localMap_addBuilding($worldMapSquare, $con['localx'], $con['localy'], $con['name'], 'NOW()');
+        $worldMapSquare = $plat['worldmap'];
+        $localMapSquare = $plat['localsquare'];
+        if($plat['error']==='building already here') {
             ajaxreject('badinput', 'There is already a building at this location');
         }
-
-        // Now, we need data about the building type to be added.
-        $res = DanDBList("SELECT * FROM sw_structuretype WHERE name=? AND devlevel=1 AND fortlevel=1;", 's', [$con['name']],
-                         'server/route_localMap.php->route_addBuilding()->get building type details');
-        if(sizeof($res)===0) ajaxreject('badinput', 'Error: structure type (name='. $con['name'] .') does not exist.');
-        $buildType = $res[0];
-
-        // At this point, we need to determine resource consumption for building this structure.
-        // However we don't yet have any structures that need resources
-
-        // We can now create this building, so that we can work with it.
-        DanDBList("INSERT INTO sw_structure (buildtype, devlevel, fortlevel, worldmapid, localx, localy, detail) VALUES (?,1,1,?,?,?,?);",
-                  'iiiis', [$buildType['id'], $worldMapSquare['id'], $localMapSquare['x'], $localMapSquare['y'], ''],
-                  'server/route_localMap.php->route_addBuilding()->create new structure instance');
-        $structureId = mysqli_insert_id($db);
-        // Now update the minimap
-        DanDBList("UPDATE sw_minimap SET buildid=? WHERE mapid=? AND x=? AND y=?;", 'iiii',
-                  [$structureId, $worldMapSquare['id'], $localMapSquare['x'], $localMapSquare['y']],
-                  'server/route_localMap.php->route_addBuilding()->update local tile');
-        
-        // We can now add a new event to trigger when the building has been completed - that is, if the building requires construction time
-        if($buildType['buildtime']>0) {
-            createEvent(0, $worldMapSquare['id'], 'BuildingUpgrade', json_encode(['buildid'=>$structureId]), "NOW()", $buildType['buildtime'], 0);
-            // Note that even when buildings are under construction, we can increase their levels now. However, buildings under construction
-            // cannot be used, so it won't really matter anyway
+        if($plat['error']==='building type not foudnd') {
+            ajaxreject('badinput', 'Error: structure type (name='. $con['name'] .') does not exist');
         }
-        
-        // To send data back, we have a function getSquareInfo, which collects data for a single tile. We already use this
-        // when logging in. We can use it here too - but we have to include the building ID within the record first.
-        $localMapSquare['buildid'] = $structureId;
 
         $localMapSquare = localMap_GetSquareInfo($localMapSquare, $worldMapSquare);
-
+        
         // Now we're ready to send a reply
         die(json_encode([
             "result"=>"success",
@@ -96,6 +69,15 @@
             ['name'=>'tomake', 'required'=>true, 'format'=>'int']
         ], 'server/route_localMap.php->route_AddProcess->verify input');
         verifyUser($con);
+
+        // This can be a long drawn-out process, but fortunately we now have a function to take care of it for us
+        $result = localMap_addProcess($con['userid'], null, null, $con['buildid'], $con['process'], $con['workers'], "NOW()");
+        if($result['error']==='No building with that id') ajaxreject('badinput', 'There is no building with id='. $con['buildid']);
+        if($result['error']==='local tile not found') ajaxreject('badinput', 'There is no tile for this building');
+        if($result['error']==='user not landowner') ajaxreject('badinput', 'You must own this land to build structures here');
+        if($result['error']==='action not found') ajaxreject('badinput', 'There is no action of that name');
+        if($result['error']==='Building does not use that action') ajaxreject('badinput', 'Building does not use that action');
+        /*
 
         // Start by collecting some data. We have the building ID, but need to verify the user owns the land here
         $res = DanDBList("SELECT * FROM sw_structure WHERE id=?;", 'i', [$con['buildid']],
@@ -139,9 +121,6 @@
                 array_push($newItems, $none);
             } unset($none);
         }
-        // This isn't really needed here, but we need to debug this operation
-        //DanDBList("UPDATE sw_map SET items=? WHERE id=?;", 'si', [json_encode($newItems), $worldMapSquare['id']],
-        //          'route_localMap.php->route_addProcess()->save items for debug review');
         
         // Filter out the items we already have instances of
         $newItems = array_filter($newItems, function($ele) use ($existing) {
@@ -183,9 +162,11 @@
         reporterror('server/route_localMap.php->route_AddProcess()->after process addition', 'new process list='. json_encode($processes));
         // Now, calculate the production rates of all items
         $worldMapSquare = updateProcesses($worldMapSquare, "NOW()");
+        */
+
         // With updates to the worldmap complete, we need to save the updated content
         DanDBList("UPDATE sw_map SET items=?, processes=?, resourceTime=NOW() WHERE id=?;", 'ssi',
-                  [$worldMapSquare['items'], $worldMapSquare['processes'], $worldMapSquare['id']],
+                  [$result['worldTile']['items'], $result['worldTile']['processes'], $result['worldTile']['id']],
                   'server/route_localMap.php->route_AddProcess()->save world map changes');
 
         // I think we're done here (for now). Send a success reponse to the server

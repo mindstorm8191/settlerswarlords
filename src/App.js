@@ -158,14 +158,19 @@ function App() {
 
     function onTileUpdate(pack) {
         // Handles updating a set of tiles that need updating. Once finished, we will update React with the new data
+        //console.log("pack received:", pack);
         let newSet = localMap.minimap.map((ele) => {
             // Find any tiles within 'pack' to replace our list with
             let match = pack.find((mel) => {
                 return ele.x === mel.x && ele.y === mel.y;
             });
-            if (match === undefined) return ele;
+            if (match === undefined) {
+                //console.log(`[${ele.x},${ele.y}] != [${pack[0].x},${pack[0].y}]`);
+                return ele;
+            }
             return match;
         });
+
         setLocalMap({ ...localMap, minimap: newSet });
     }
 

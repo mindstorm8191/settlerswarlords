@@ -64,7 +64,9 @@
             ['name'=>'y', 'required'=>true, 'format'=>'int'],
             ['name'=>'command', 'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'members', 'required'=>true, 'format'=>'posint'],
-            ['name'=>'items', 'required'=>true, 'format'=>'array']
+            ['name'=>'items', 'required'=>true, 'format'=>'array'],
+            ['name'=>'forage', 'required'=>false, 'format'=>'stringnotempty'],
+            ['name'=>'leantos', 'required'=>false, 'format'=>'stringnotempty']
         ], 'server/route_worldMap.php->route_startWorldAction()->verify input');
         verifyUser($con);
         // Everything else will be left to the specific command
@@ -98,10 +100,9 @@
                                         'server/route_worldMap.php->route_startWorldAction()->case expedition->get current map id')[0];
                 // Update all the current items to current time, so everything is accurate
                 advanceProcesses($curMapTile, "NOW()");
-                // Reduce the population here, and then update all processes
-                $curMapTile['population']-= $con['members'];
-                updateProcesses($curMapTile, "NOW()");
 
+                // Reduce the population & items here, and then update all processes
+                $curMapTile['population']-= $con['members'];
                 // Remove the items being used for the journey from the map's record
                 $curMapTile['items'] = json_encode(
                     array_map(function($ele) use ($con) {
@@ -114,6 +115,8 @@
                         return $ele;
                     }, json_decode($curMapTile['items'], true))
                 );
+
+                updateProcesses($curMapTile, "NOW()");
 
                 // Update the local map record with the missing items
                 DanDBList("UPDATE sw_map SET population=?, items=?, processes=? WHERE id=?;", 'issi',
@@ -143,6 +146,64 @@
                 // Now, send a response to the client. Because the changes are expected, we can have tha client update the world map content
                 // However, we will need to send a time point when we expect to update the map
                 die(json_encode(['result'=>'success', 'nextUpdate'=>$secsNeeded*2+60]));
+            
+            case 'settle':
+                // This is neighboring land, which we can settle. This will be a one-way journey, where the colonists will
+                // stay there and set up things
+
+                // To make sure this is valid (and to handle future situations), we need to calculate the time needed to get there
+                $player = DanDBList("SELECT * FROM sw_player WHERE id=?;", 'i', [$con['userid']],
+                                    'server/route_worldMap.php->route_startWorldAction()->case settle->get player coords')[0];
+                $secsNeeded = 300 * manhattanDistance($player['currentx'], $player['currenty'], $con['x'], $con['y']);
+
+                // Get the map ID, instead of world coordinates, as we need them both
+                $worldMapId = DanDBLIst("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$con['x'], $con['y']],
+                                        'server/route_worldMap.php->route_startWorldAction()->case settle->get worldmap tile id')[0]['id'];
+                
+                // We also need data about the player's current location
+                $curMapTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$player['currentx'], $player['currenty']],
+                                        'server/route_worldMap.php->route_startWorldAction()->case settle->get local worldmap data')[0];
+                
+                // Update all current items to current time, so everything is accurate
+                advanceProcesses($curMapTile, "NOW()");
+
+                // Reduce population and items being taken
+                $curMapTile['population'] -= $con['members'];
+                $curMapTile['items'] = json_encode(
+                    array_map(function($ele) use ($con) {
+                        $slot = JSFindIndex($con['items'], function($inner) use ($ele) {
+                            return $inner['name'] === $ele['name'];
+                        });
+                        if($slot==null) return $ele;
+                        $ele['amount'] -= $con['items'][$slot]['amount'];
+                        return $ele;
+                    }, json_decode($curMapTile['items'], true))
+                );
+                // Update current processes. The population shift will have a much larger impact than the items being removed
+                updateProcesses($curMapTile, "NOW()");
+                // Update the local map record of all our changes (population, items & processes)
+                DanDBList("UPDATE sw_map SET population=?, items=?, processes=? WHERE id=?;", 'issi',
+                          [$curMapTile['population'], $curMapTile['items'], $curMapTile['processes'], $curMapTile['id']],
+                          'server/route_worldMap.php->route_startWorldAction()->case settle->save map after changes');
+                
+                // All that's left now is to create the event
+                createEvent(
+                    $con['userid'],
+                    $worldMapId,
+                    'Settle',
+                    json_encode([
+                        'travellers'=>$con['members'],
+                        'items'=>$con['items'], // Since we're not returning, we don't really need to track our return tile data
+                        'startForage'=>$con['forage'],
+                        'startHousing'=>$con['leantos']
+                    ]),
+                    'NOW()',
+                    $secsNeeded,
+                    1
+                );
+
+                // Send a response to the client
+                die(json_encode(['result'=>'success']));
         }
     }
 

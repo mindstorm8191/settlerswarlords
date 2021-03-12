@@ -94,6 +94,8 @@
     function JSNextId() - server/jsarray.php
     function JSSome() - server/jsarray.php
     const $knownMapBiomes (array of strings) - server/globals.php
+    function localMap_addBuilding() - server/usermap.php
+    function localMap_addProcess() - server/usermap.php
     function localMap_GetSquareInfo() - server/usermap.php
     function localMap_loadBuildOptions() - server/usermap.php
     function newPlayerLocation() - server/mapbuilder.php

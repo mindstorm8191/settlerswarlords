@@ -190,7 +190,7 @@ export function WorldMap(props) {
                         }}
                     >
                         <img
-                            draggable="false"
+                            draggable="false" // this can only be applied to the image tag, nothing else
                             src={imageURL + worldMapTile[ele.biome].image}
                             onClick={() => {
                                 setPickedTile(ele);
@@ -282,10 +282,11 @@ function WorldTileDetail(props) {
         return <p className="singleline">This needs coded</p>;
     }
 
-    function startWorldAction(travellers, itemsList) {
+    function startWorldAction(travellers, itemsList, startActions) {
         // Handles setting up a world action to take place
         // travellers - number of colony units being sent. Minimum is 1
         // itemsList - array of all items being taken on this journey
+        // startActions - object with properties specific to settling new lands. So far we only have forage:t/f or leantos:t/f
         // The world coordinates for this action is determined by props.tile
         // The action used is determined by the React state named action
 
@@ -293,8 +294,12 @@ function WorldTileDetail(props) {
             console.log('Error - called startWorldAction() while props.tile is not set. No action taken');
             return;
         }
-        fetch(serverURL, DAX.serverMessage("startworldaction",
-            { x: props.tile.x, y: props.tile.y, command: action, members: travellers, items:itemsList }, true))
+        let pkg = { x: props.tile.x, y: props.tile.y, command: action, members: travellers, items:itemsList };
+        if(action==='settle') {
+            pkg.forage = startActions.forage?'true':'false';
+            pkg.leantos = startActions.leantos?'true':'false';
+        }
+        fetch(serverURL, DAX.serverMessage("startworldaction", pkg, true))
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))
             .then((data) => {
@@ -365,10 +370,12 @@ function WorldActionDetail(props) {
     //      startWorldAction - called when the user chooses to start the selected action. parameters:
     //          1 (required): number of colonists being used for this action
     //          2 (required): List of items the colonists will take with them. This will include at least some amount of food, selected by the user
+    //          3 (required): List of properties to include, exclusive to settling new lands. So far we only have forage:t/f and leantos:t/f
 
     const [numTravellers, setNumTravellers] = React.useState(props.choice==='settle'?4:1);
     const [pickedItems, setPickedItems] = React.useState([]);
     const [itemChoices, setItemChoices] = React.useState([]);
+    const [startActions, setStartActions] = React.useState({forage:false, leantos:false});
 
     //console.log(props.localItems);
 
@@ -486,7 +493,7 @@ function WorldActionDetail(props) {
             ))}
             <p className="singleline">
                 <button
-                    onClick={() => props.startWorldAction(numTravellers, pickedItems)}
+                    onClick={() => props.startWorldAction(numTravellers, pickedItems, startActions)}
                     disabled={(foodNeeded()>foodItems())?true:false}
                 >
                     Start
@@ -494,7 +501,21 @@ function WorldActionDetail(props) {
             </p>
             Journey requires {foodNeeded()} food
 
-            {props.choice!='settle'?(''):<><p className="singleline" style={{fontWeight:'bold'}}>Starting actions</p></>}
+            {props.choice!='settle'?(
+                ''
+            ):(
+                <>
+                    <p className="singleline" style={{fontWeight:'bold'}}>Starting actions</p>
+                    <p className="singleline">
+                        <input type="checkbox" onChange={()=>setStartActions({...startActions, forage:!startActions.forage})} />
+                        Forage for food
+                    </p>
+                    <p className="singleline">
+                        <input type="checkbox" onChange={()=>setStartActions({...startActions, leantos:!startActions.leantos})} />
+                        Build lean-tos for settlers
+                    </p>
+                </>
+            )}
         </div>
     );
 }

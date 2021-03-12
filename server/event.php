@@ -53,7 +53,7 @@
                 }
                 array_splice($eventList, $nextEventId-1, 0, [[
                     'player'=>$player,
-                    'mapid'=>$mapId,
+                    'mapID'=>$mapId,
                     'task'=>$task,
                     'detail'=>$detail,
                     'timepoint'=>$timeCard->format('Y-m-d H:i:s'),
@@ -82,6 +82,7 @@
 
         global $eventList;
         global $eventProcessingActive;
+        global $db;
 
         // Go ahead and grab all events that need to be processed, and put them into the eventList
         $eventList = DanDBList("SELECT * FROM sw_event WHERE (mapid=? OR worldaffected=1) AND timepoint<NOW() ORDER BY timepoint ASC;",
@@ -254,9 +255,58 @@
                     // Update the local map record with the missing items (and members)
                     DanDBList("UPDATE sw_map SET population=?, items=?, processes=? WHERE id=?;", 'issi',
                               [$sourceTile['population'], $sourceTile['items'], $sourceTile['processes'], $sourceTile['id']],
-                              'server/route_worldMap.php->route_startWorldAction()->case expedition->save map after items removal');
+                              'server/event.php->processEvents()->case ExpeditionReturn->save map after items removal');
 
                     // That should be everything
+                break;
+
+                case 'Settle':
+                    // The player has sent a team to settle into a new land. This will mark the land as owned by that player
+                    // This task may take considerable more work than other tasks have
+
+                    // Start by collecting data about this map location
+                    $jSon = json_decode($event['detail'], true);
+                    $mapTile = DanDBList("SELECT * FROM sw_map WHERE id=?;", 'i', $event['mapID'],
+                                         'server/event.php->processEvents()->case ExpeditionReturn->get target map data')[0];
+                    // Verify this tile is 'safe' to be conquered; mainly that there are no other users running this land
+                    if($mapTile['owner']!==0) {
+                        // Well, the colonists are not prepared to return home. Guess they'll just... die?
+                        break;
+                    }
+
+                    // Now, update this map tile with the arrived settlers. Start by generating the mini-map (if it hasn't
+                    // been generated already), then some basic items
+                    ensureMinimap($mapTile);
+                    $mapTile['population'] = $jSon['travellers'];
+                    $mapTile['items'] = json_encode($jSon['items']);
+                    $mapTile['processes'] = json_encode([[
+                        'id'=>'1',
+                        'name'=>'ConsumeFood',
+                        'buildingId'=>0,
+                        'actionId'=>7,
+                        'workers'=>0,
+                        'priority'=>0,
+                        'inputGroup'=>[],
+                        'outputGroup'=>[]
+                    ]]);
+
+                    if($jSon['startForage']=='true') {
+                        // User wants to set up a forage post, and begin foraging food straight away. Locate a random valid tile in
+                        // the local map to place a foraging post, and start the foraging process
+                        $localTile = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND landtype=0 AND buildid!=0 ORDER BY RAND() LIMIT 1;",
+                                               'i', [$event['mapID']],
+                                               'server/event.php->processEvents()->case Settle->get grass spot for new forage post')[0];
+                        
+                        // We have a function to add new buildings, so long as we know where to place it & what building to use
+                        $pack = localMap_addBuilding($mapTile, $localTile['x'], $localTile['y'], $event['timepoint']);
+                        $mapTile = $pack['worldmap'];
+                        $localTile = $pack['localsquare'];
+                        if($pack['error']==='building already here' || $pack['error']==='building type not found') {
+                            reporterror('server/event.php->processEvents()->case Settle->add forage post',
+                                        'There was a problem adding the forage post: '. $pack['error']);
+                        }
+                        // With the building added, we also need to create the foraging process
+                    }
                 break;
             }
         }

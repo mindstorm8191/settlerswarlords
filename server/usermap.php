@@ -62,11 +62,6 @@
                             [$pack['building']['buildtype'], $pack['building']['devlevel']],
                             'server/localMap.php->localMap_getSquareInfo()->collect all actions');
         $pack['actions'] = array_map(function($ele) {
-            /*if($ele['name']==='Craft Hide Armor') {
-                reporterror('server/usermap.php->localMap_getSquareInfo()->converting actions',
-                            'dataType of inputGroup='. gettype($ele['inputGroup']) .', sizeof(inputGroup)='.
-                            sizeof(json_decode($ele['inputGroup'])));
-            }*/
             $ele['inputGroup'] = ($ele['inputGroup']=='')?[]:json_decode($ele['inputGroup'], false);
             $ele['outputGroup'] = ($ele['outputGroup']=='')?[]:json_decode($ele['outputGroup'], false);
             return $ele;
@@ -192,30 +187,166 @@
         });
     }
 
-    /*
-    function updateknownmap($playerid, $xpos, $ypos) {
-        // Updates the user's known map, based on a given coordinate.  If they don't have information about the given location, it
-        // will be generated.
+    function localMap_addBuilding($worldMap, $x, $y, $buildingName, $curTime) {
+        // Allows a new building to be added. Since this can be done remotely now, we're gonna be doing this more often
+        // All new buildings are added at level 1. There may be a construction period before it can be used, and resources consumed to do so
+        // $worldMap - data package of the world map data, as received from the database
+        // $x - x coordinate of the localmap to place this building on
+        // $y - y coordinate of the localmap to place this building on
+        // $buildingName - name of the building to add here (the data for this will be pulled from the database)
+        // $curTime - current time to add events relative to. If current time, pass 'NOW()'.
+        // Returns an object containing three elements:
+        //      worldmap: world map data (since new buildings may require resources to be used)
+        //      localsquare: updated content with the new building included as buildid
+        //      error: any error text that may have been generated. If no error, this will be empty
 
-        // Start with getting current information about the given map square
-        $square = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$xpos, $ypos], "server/mapbuilder.php->updateknownmap->get map data")[0];
+        global $db;
 
-        // With 3 variables serving as the 'key', we can't really do the 'on duplicate key update' trick. So, start by checking if
-        // this knownmap location exists (for this player)
-        if(sizeof(DanDBList("SELECT * FROM sw_knownmap WHERE playerid=? AND x=? AND y=?;", 'iii', [$playerid, $xpos, $ypos],
-                        'server/mapbuilder.php->updateknownmap()->find existing known square'))>0) {
-            // Record already exists. Update it
-            DanDBList("UPDATE sw_knownmap SET lastcheck=NOW(), owner=?, civ=0, population=? WHERE playerid=? AND x=? AND y=?;",
-                      'iiiii', [$square['owner'], $square['population'], $playerid, $xpos, $ypos],
-                      'server/mapbuilder.php->updateknownmap()->update existing instance');
-        }else{
-            // No record was found. Create a new one
-            DanDBList("INSERT INTO sw_knownmap (playerid,x,y,lastcheck,owner,civ,population) VALUES (?,?,?,NOW(),?,0,?);",
-                     'iiiii', [$playerid, $xpos, $ypos, $square['owner'], $square['population']],
-                    'server/mapbuilder.php->updateknownmap()->add new spot to KnownMap');
+        // Verify there is no (blocking) structure at this location
+        $localSquare = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND x=? AND y=?;", 'iii', [$worldMap['id'], $x, $y],
+                                 'server/usermap.php->localMap_addBuilding()->get localmap square data')[0];
+        if($localSquare['buildid']!=0) {
+            return ['worldmap'=>$worldMap, 'localsquare'=>$localSquare, 'error'=>'building already here'];
         }
+
+        // Gather the building stats that we need
+        $res = DanDBList("SELECT * FROM sw_structuretype WHERE name=? AND devlevel=1 AND fortlevel=1;", 's', [$buildingName],
+                         'server/usermap.php->localMap_addBuilding()->get building structure data');
+        if(sizeof($res)===0) {
+            return ['worldmap'=>$worldMap, 'localsquare'=>$localSquare, 'error'=>'building type not found'];
+        }
+        $buildType = $res[0];
+
+        // Create the new building
+        DanDBList("INSERT INTO sw_structure (buildtype, devlevel, fortlevel, worldmapid, localx, localy, detail) VALUES ".
+                  "(?,1,1,?,?,?,'');", 'iiii', [$buildType['id'], $worldMap['id'], $x, $y],
+                  'server/usermap.php->localMap_addBuilding()->create new building');
+        $buildId = mysqli_insert_id($db);
+
+        // Consume the resources needed for this building. This hasn't been built in just yet, even though this is the only reason
+        // we're loading & returning the world map content
+        
+        // For buildings that need construction, create the event
+        if($buildType['buildtime']>0) {
+            createEvent(0, $worldMap['id'], 'BuildingUpgrade', json_encode(['buildid'=>$buildId]), $curTime, $buildType['buildtime'], 0);
+        }
+
+        // Update the local map with the new building data
+        DanDBList("UPDATE sw_minimap SET buildid=? WHERE mapid=? AND x=? AND y=?;", 'iiii', [$buildId, $worldMap['id'], $x, $y],
+                  'server/usermap.php->localMap_addBuilding()->update local tile');
+
+        $localSquare['buildid'] = $buildId;
+        return ['worldmap'=>$worldMap, 'localsquare'=>$localSquare, 'error'=>''];
     }
-    */
+
+    function localMap_addProcess($playerId, $worldTile, $localTile, $buildid, $processName, $workers, $timepoint) {
+        // Adds a new process to a given local map. Since this can be done remotely now, we're gonna be doing this more often
+        // $playerId - ID of the player, to verify this player has ownership of the land here. If none is provided, it will be set
+        //             to the user currently accessing the server
+        // $worldTile - data package from the world map. If this is not yet accessed, pass null here and it will be collected
+        // $localTile - data package of this tile in the local map. If this is not yet accessed, pass null here and it will be collected
+        // $buildid - ID of the building to add the process to
+        // $processName - name of the process to add here. Specific to the building
+        // $workers - number of workers to assign to this
+        // $timepoint - When this process is added. If adding it for current time, pass 'NOW()'
+        // Returns a multi-part data structure
+        //      worldTile: updated data about the world map
+        //      error: An error that occurred while running this. If there was no error, this will be an empty string
+        
+        global $userid;
+        if($playerId===null) $playerId = $userid;
+
+        // Start by getting the full structure data.
+        $res = DanDBList("SELECT * FROM sw_structure WHERE id=?;", 'i', [$buildid],
+                         'server/route_localMap.php->route_AddProcess->get building data');
+        if(sizeof($res)===0) return ['worldTile'=>$worldTile, 'error'=>'No building with that id'];
+        
+        $building = $res[0];
+
+        // Get the local tile data, if we don't already have it
+        if($localTile===null) {
+            $res = DanDBList("SELECT * FROM sw_minimap WHERE buildid=?;", 'i', [$buildid],
+                             'server/route_localMap.php->route_AddProcess->get minimap data');
+            if(sizeof($res)===0) return ['worldTile'=>$worldTile, 'error'=>'local tile not found'];
+            $localTile = $res[0];
+        }
+
+        // Get the world map tile data, if we don't already have it
+        if($worldTile===null) {
+            $worldTile = DanDBList("SELECT * FROM sw_map WHERE id=?;", 'i', [$localTile['mapid']],
+                                   'server/route_localMap.php->route_AddProcess->get world map data')[0];
+            if($worldTile['owner']!=$playerId) {
+                return ['worldTile'=>$worldTile, 'error'=>'user not landowner'];
+            }
+        }
+        
+        // Find the action we need, based on the name
+        $res = DanDBList("SELECT * FROM sw_structureaction WHERE name=?;", 's', [$processName],
+                         'server/route_localMap.php->route_AddProcess->get action information');
+        if(sizeof($res)===0) {
+            return ['worldTile'=>$worldTile, 'error'=>'action not found'];
+        }
+        $action = $res[0];
+        if($action['buildType']!==$building['buildtype']) {
+            return ['worldTile'=>$worldTile, 'error'=>'Building does not use that action'];
+        }
+
+        // Before creating the process, update the levels of all items to current
+        $worldTile = advanceProcesses($worldTile, $timepoint);
+
+        // Ensure the map has some existence of any new items. These need to be added here so that everything later works
+        // correctly.
+        $existingItems = json_decode($worldTile['items'], true);
+        $newItems = [];
+        if($action['inputGroup']!='') {
+            $actionItems = json_decode($action['inputGroup'], true);
+            foreach($actionItems as $actionItem) {
+                // We need to push the whole item, because we need to keep the isFood property included
+                array_push($newItems, $actionItem);
+            } unset($actionItem);
+        }
+        if($action['outputGroup']!='') {
+            $actionItems = json_decode($action['outputGroup'], true);
+            foreach($actionItems as $actionItem) {
+                array_push($newItems, $actionItem);
+            } unset($actionItem);
+        }
+        // Filter out the items that are already in this map
+        $newItems = array_filter($newItems, function($ele) use ($existingItems) {
+            return !JSSome($existingItems, function($exist) use ($ele) {
+                return $exist['name']===$ele['name'];
+            });
+        });
+        // Push the remaining items into the list, giving it the proper structure
+        if(sizeof($newItems)>0) {
+            array_push($existingItems, ...array_map(function($ele) {
+                return ['name'=>$ele['name'], 'amount'=>0, 'isFood'=>$ele['isFood']];
+            }, $newItems));
+        }
+        $worldTile['items'] = json_encode($existingItems);
+
+        // Add this process to the list of processes. If it's empty, we'll need to create a list
+        $processes = json_decode($worldTile['processes'], true);
+        if(gettype($processes)==="NULL") $processes=[];
+        array_push($processes, [
+            'id'=>JSNextId($processes, 'id'),
+            'name'=>$action['name'],
+            'buildingId'=>$buildid,
+            'actionId'=>$action['id'],
+            'cycleTime'=>$action['cycleTime'],
+            'workers'=>$workers,
+            'priority'=>1,
+            'inputGroup'=>json_decode($action['inputGroup'], true),
+            'outputGroup'=>json_decode($action['outputGroup'], true)
+        ]);
+        $worldTile['processes'] = json_encode($processes);
+
+        // Calculate production rates, with the new process included
+        $worldTile = updateProcesses($worldTile, $timepoint);
+
+        // We should be done at this point, other than updating the database. But that should be handled by the calling process
+        return ['worldTile'=>$worldTile, 'error'=>''];
+    }
 
     function worldMap_updateKnown($userid, $updatex, $updatey, $timepoint, $owner, $civ, $pop, $biome=-1) {
         // Updates a tile of the user's known map. If they don't have any existing information about the specified

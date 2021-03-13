@@ -293,20 +293,54 @@
                     if($jSon['startForage']=='true') {
                         // User wants to set up a forage post, and begin foraging food straight away. Locate a random valid tile in
                         // the local map to place a foraging post, and start the foraging process
-                        $localTile = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND landtype=0 AND buildid!=0 ORDER BY RAND() LIMIT 1;",
+                        $localTile = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND landtype=0 AND buildid=0 ORDER BY RAND() LIMIT 1;",
                                                'i', [$event['mapID']],
                                                'server/event.php->processEvents()->case Settle->get grass spot for new forage post')[0];
                         
                         // We have a function to add new buildings, so long as we know where to place it & what building to use
                         $pack = localMap_addBuilding($mapTile, $localTile['x'], $localTile['y'], $event['timepoint']);
+                        if($pack['error']!=='') {
+                            reporterror('server/event.php->processEvents()->case Settle->add forage post',
+                                        'There was a problem adding the forage post. Operation aborted. Error: '. $pack['error']);
+                            break;
+                        }
                         $mapTile = $pack['worldmap'];
                         $localTile = $pack['localsquare'];
-                        if($pack['error']==='building already here' || $pack['error']==='building type not found') {
-                            reporterror('server/event.php->processEvents()->case Settle->add forage post',
-                                        'There was a problem adding the forage post: '. $pack['error']);
-                        }
                         // With the building added, we also need to create the foraging process
+                        $pack = localMap_addProcess($mapTile['owner'], $mapTile, $localTile, $localTile['buildid'], 'Forage for Food', 1, $event['timepoint']);
+                        if($pack['error']!=='') {
+                            reporterror('server/event.php->processEvents()->case Settle->add Forage for Food process',
+                                        'There was a problem adding the process to the Forage Post. Operation aborted. Error: '. $pack['error']);
+                        }
+                        $mapTile = $pack['worldmap'];
+                        
+                        // We would update the localmap square, but localMap_addBuilding already does that for us
                     }
+                    if($jSon['startHousing']) {
+                        // The user wants to set up initial housing for this settlement. For now, we will only use lean-tos, but we
+                        // need to generate enough to support the given population. The minimum is 2 lean-tos, but there's no maximum (right now)
+                        $leantosNeeded = ceil($jSon['travellers']/2.0);
+                        $localTileSet = DanDBList("SELECT * FROM sw_minimap WHERE mapid=? AND landtype=1 AND buildid=0 ORDER BY RAND() LIMIT ?;",
+                                                  'ii', [$event['mapID'], $leantosNeeded],
+                                                  'server/event.php->processEvents()->case Settle->get forest spot for new lean-tos');
+                        if(sizeof($localTileSet)<$leantosNeeded) {
+                            // There's not enough forested area to support all the lean-tos we need...
+                            // not sure what to do about this yet, though!
+                        }
+                        foreach($localTileSet as $localTile) {
+                            $pack = localMap_addBuilding($mapTile, $localTile['x'], $localTile['y'], $event['timepoint']);
+                            if($pack['error']!=='') {
+                                reporterror('server/event.php->processEvents()->case Settle->add Lean-to buildings',
+                                            'There was a problem adding this building. Operation aborted. Error: '. $pack['error']);
+                            }
+                            $mapTile = $pack['worldmap'];
+                        }
+                    }
+
+                    // Now, save all the changes to the world map tile
+                    DanDBList("UPDATE sw_map SET population=?, items=?, processes=? WHERE id=?;", 'issi',
+                              [$mapTile['population'], $mapTile['items'], $mapTile['processes'], $mapTile['id']],
+                              'server/event.php->processEvents()->case Settle->save worldmap data');
                 break;
             }
         }

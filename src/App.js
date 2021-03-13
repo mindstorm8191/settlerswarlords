@@ -54,21 +54,24 @@ import { AdminPage } from "./comp_admin.jsx";
     later: Include dragons as a civilization in world gen; this will be their place to land.
     later: Provide non-realistic plants of various types, for specific uses. For example, dragon flower plants can be traded with dragons
         (it gives them extra firepower)
+    later: Determine what to do when a new settlement doesn't have enough forested area to support the lean-tos needed. The player should
+        be informed of this, one way or another. Right now it won't have any affect on the settlement, but that may change later, as more
+        game complexity is added
     bugs: Panning doesn't work on the actual tiles of the world map. It should, but only works correctly on the open space
   
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
 
     Project size
-    src/app.js                 src/comp_worldMap.jsx          server/mapbuilder.php
-        src/app.css                src/comp_admin.jsx             server/usermap.php
-           src/DanAjax.js              ajax.php                       server/process.php
-              src/comp_account.jsx         server/common.php              server/event.php
-                  src/DanInput.jsx             server/DanGlobal.php           server/route_account.php
-                     src/DanCommon.js             server/jsarray.php              server/route_admin.php
-                        src/comp_ErrorOverlay.jsx     server/weightedRandom.php       server/route_localMap.php
-                           src/comp_localMap.jsx          server/globals.php              server/route_worldMap.php
-    378+47+48+208+62+56+68+405+487+429+122+239+37+220+138+132+404+302+388+270+268+198+245+153=5304 lines (2/23/21)
+    src/app.js                 src/comp_worldMap.jsx           server/mapbuilder.php
+        src/app.css                 src/comp_admin.jsx             server/usermap.php
+            src/DanAjax.js              ajax.php                       server/process.php
+               src/comp_account.jsx         server/common.php              server/event.php
+                   src/DanInput.jsx             server/DanGlobal.php           server/route_account.php
+                      src/DanCommon.js             server/jsarray.php              server/route_admin.php
+                         src/comp_ErrorOverlay.jsx     server/weightedRandom.php       server/route_localMap.php
+                            src/comp_localMap.jsx          server/globals.php              server/route_worldMap.php
+    384+114+48+208+65+56+68+405+521+428+124+239+37+220+138+132+404+434+388+354+268+198+141+214=5588 lines (3/13/2021)
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

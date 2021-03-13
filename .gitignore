@@ -2,11 +2,7 @@
 
 # dependencies
 /node_modules
-/version1
-/version2
-/version3
-/version3bridge
-/version4
+/version*
 /.pnp
 .pnp.js
 

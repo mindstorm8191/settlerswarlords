@@ -72,97 +72,12 @@
 
         // This can be a long drawn-out process, but fortunately we now have a function to take care of it for us
         $result = localMap_addProcess($con['userid'], null, null, $con['buildid'], $con['process'], $con['workers'], "NOW()");
+        // There's just a lot of possible errors to check for
         if($result['error']==='No building with that id') ajaxreject('badinput', 'There is no building with id='. $con['buildid']);
         if($result['error']==='local tile not found') ajaxreject('badinput', 'There is no tile for this building');
         if($result['error']==='user not landowner') ajaxreject('badinput', 'You must own this land to build structures here');
         if($result['error']==='action not found') ajaxreject('badinput', 'There is no action of that name');
         if($result['error']==='Building does not use that action') ajaxreject('badinput', 'Building does not use that action');
-        /*
-
-        // Start by collecting some data. We have the building ID, but need to verify the user owns the land here
-        $res = DanDBList("SELECT * FROM sw_structure WHERE id=?;", 'i', [$con['buildid']],
-                         'server/route_localMap.php->route_AddProcess->get building data');
-        if(sizeof($res)===0) ajaxreject('badinput', 'There is no building with id='. $con['buildid']);
-        $building = $res[0];
-        $minimapSquare = DanDBList("SELECT * FROM sw_minimap WHERE buildid=?;", 'i', [$con['buildid']],
-                                   'server/route_localMap.php->route_AddProcess->get minimap data')[0];
-        $worldMapSquare = DanDBList("SELECT * FROM sw_map WHERE id=?;", 'i', [$minimapSquare['mapid']],
-                                    'server/route_localMap.php->route_AddProcess->get world map data')[0];
-        if($worldMapSquare['owner']!=$userid) ajaxreject('badinput', 'You do not have ownership of this land');
-
-        // Now, find the action we need based on the name
-        $res = DanDBList("SELECT * FROM sw_structureaction WHERE name=?;", 's', [$con['process']],
-                         'server/route_localMap.php->route_AddProcess->get action information');
-        if(sizeof($res)===0) ajaxreject('badinput', 'There is no action with name='. $con['process']);
-        $action = $res[0];
-        if($action['buildType']!==$building['buildtype']) ajaxreject('badinput', 'The building selected does not support the action selected');
-
-        // Before creating the process, update resource times of all items to current
-        $worldMapSquare = advanceProcesses($worldMapSquare, 'NOW()');
-
-        // Create the process
-        DanDBList("INSERT INTO sw_process (mapid, buildingid, actionid, timeBalance, globalEffect, workers) VALUES (?,?,?,NOW(),0,?);", 'iiii',
-                  [$minimapSquare['mapid'], $con['buildid'], $action['id'], $con['workers']],
-                  'server/route_localMap.php->route_AddProcess->add process');
-        
-        // Now, ensure that this map tile has the appropriate items listed in the correct place. We need to ensure that these items
-        // don't already exist in the map's items list
-        $existing = json_decode($worldMapSquare['items'], true);
-        $newItems = [];
-        if($action['inputGroup']!='') {
-            $news = json_decode($action['inputGroup'], true);
-            foreach($news as $none) {
-                array_push($newItems, $none);
-            } unset($none);
-        }
-        if($action['outputGroup']!='') {
-            $news = json_decode($action['outputGroup'], true);
-            foreach($news as $none) {
-                array_push($newItems, $none);
-            } unset($none);
-        }
-        
-        // Filter out the items we already have instances of
-        $newItems = array_filter($newItems, function($ele) use ($existing) {
-            return !JSSome($existing, function($exist) use ($ele) {
-                return $exist['name']===$ele['name'];
-            });
-        });
-        // Push the rest of the new items into the list, while mapping them into the correct structure
-        if(sizeof($newItems)>0) {
-            array_push($existing, ...array_map(function($ele) {
-                return [
-                    'name'=>$ele['name'],
-                    'amount'=>0,
-                    //'production'=>0,
-                    'isFood'=>$ele['isFood']
-                    //'inputs'=>($action['inputGroup']=='')?[]:json_decode($action['inputGroup'], true),
-                    //'outputs'=>($action['outputGroup']=='')?[]:json_decode($action['outputGroup'], true)
-                ];
-            }, $newItems));
-        }
-        $worldMapSquare['items'] = json_encode($existing);
-
-        // Next, add this process to the list of processes 
-        $processes = json_decode($worldMapSquare['processes'], true);
-        if(gettype($processes)==="NULL") $processes = [];
-        array_push($processes, [
-            'id'=>JSNextId($processes, 'id'),
-            'name'=>$action['name'],
-            'buildingId'=>$con['buildid'],
-            'actionId'=>$action['id'],
-            'cycleTime'=>$action['cycleTime'],
-            'workers'=>$con['workers'],
-            'priority'=>1,
-            'inputGroup'=>json_decode($action['inputGroup'], true),
-            'outputGroup'=>json_decode($action['outputGroup'], true)
-        ]);
-        $worldMapSquare['processes'] = json_encode($processes);
-
-        reporterror('server/route_localMap.php->route_AddProcess()->after process addition', 'new process list='. json_encode($processes));
-        // Now, calculate the production rates of all items
-        $worldMapSquare = updateProcesses($worldMapSquare, "NOW()");
-        */
 
         // With updates to the worldmap complete, we need to save the updated content
         DanDBList("UPDATE sw_map SET items=?, processes=?, resourceTime=NOW() WHERE id=?;", 'ssi',

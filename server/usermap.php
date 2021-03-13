@@ -345,6 +345,7 @@
         $worldTile = updateProcesses($worldTile, $timepoint);
 
         // We should be done at this point, other than updating the database. But that should be handled by the calling process
+        // Earlier I thought we'd need to return the local tile data as well, but we don't actually make any changes to that here.
         return ['worldTile'=>$worldTile, 'error'=>''];
     }
 

@@ -32,8 +32,13 @@
             return $this->count;
         }
 
-        function push($name, $amount) {
-            // Adds a new element to the group. If it matches an existing 
+        function totalTypes() {
+            // Returns the total types of marbles in the bag
+            return sizeof($this->marbles);
+        }
+
+        function push($name, $amount=1) {
+            // Adds a new element to the group. If it matches an existing, group, it is added to that one instead of creating a new group 
             $match = JSFind($this->marbles, function($ele) use ($name) {
                 return ($ele['name']==$name);
             });
@@ -94,6 +99,7 @@
                     $this->cycleList[$i]['amount']--;
                     $grab = $this->cycleList[$i]['name'];
                     if($this->cycleList[$i]['amount']<=0) {
+                        reporterror('server/weightedRandom.php->class WeightedRandom->cyclepull()', 'Cycling has been reset!');
                         array_splice($this->cycleList, $i, 1);
                         if(sizeof($this->cycleList)==0) {
                             $this->cycleList = null;
@@ -108,31 +114,14 @@
     //
     // We need to include a few functions from our JSArray library
     //
-    if (!function_exists('JSFindIndex')) {
-        function JSFindIndex($array, $callable) {
+    if(!function_exists('JSFind')) {
+        function JSFind($array, $callable) {
+            // Returns the first array element that passes the provided test (from $callable). If none pass the test, null will be returned
             if(sizeof($array)==0) return null;
-            for($i=0; $i<sizeof($array); $i++) {
-                if($callable($array[$i])) return $i;
+            foreach($array as $value) {
+                if($callable($value)) return $value;
             }
             return null;
         }
     }
-    
-    /*
-    function createWeightedRandom($baseContent) {
-        // Creates a new WeightedRandom object
-
-        return [
-            'marbles'=>$baseContent,
-            'pushMarbles'=>function($color, $amount) {
-                array_push($this['marbles'], ['name'=>$color, 'amount'=>$amount]);
-            },
-            'peekMarbles'=>function() {
-                //meep!
-            }
-        ];
-    }
-    */
-
-    // CyclePick - will remove 'marbles' from 'bag', but when bag is empty, it will reset
 ?>

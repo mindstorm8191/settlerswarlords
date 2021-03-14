@@ -47,7 +47,7 @@
 
     switch($msg['action']) {
         case 'signup': return route_signup($msg);       // reference server/route_account.php
-        case 'login': return route_login($msg);         // reference server/route_account.php
+        /*case 'login': return route_login($msg);         // reference server/route_account.php
         case 'autologin': return route_autologin($msg); // reference server/route_account.php
         case 'logout': return route_logout($msg);                     // refernece server/route_account.php
         case 'addbuilding': return route_addBuilding($msg);  // reference server/route_localMap.php
@@ -58,6 +58,7 @@
         case 'adminAddBuildingAction': return route_adminAddBuildingAction($msg); // reference server/route_admin.php
         case 'adminChangeActionItem':  return route_adminChangeActionItem($msg);  // reference server/route_admin.php
         case 'adminNewActionItem':     return route_adminNewActionItem($msg);     // reference server/route_admin.php
+        //*/
         default: ajaxreject('badroute', 'Route of '. $msg['action'] .' not supported');
     }
     
@@ -78,11 +79,11 @@
     function ensureMinimapXY() - server/mapbuilder.php
     function finishLogin() - server/route_account.php
     function forrange() - server/jsarray.php
+    function generateClusterMap() - server/mapbuilder.php
     function getGlobal() - server/DanGlobal.php
     function getMapId() - server/usermap.php
     function getMapXY() - server/usermap.php
     function getRandomFrom() - server/jsarray.php
-    function goodSpot() - server/mapbuilder.php
     function includesAll() - server/jsarray.php
     function JSEvery() - server/jsarray.php
     function JSFilter() - server/jsarray.php
@@ -118,6 +119,7 @@
     function verifyInput() - server/common.php
     function verifyUser() - server/route_account.php
     class weightedRandom - server/weightedRandom.php
+    function within() - server/mapbuilder.php
     const $worldBiomes (array of strings) - server/globals.php
     function worldmap_generate() - server/mapbuilder.php
     */

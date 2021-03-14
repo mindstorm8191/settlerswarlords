@@ -10,7 +10,26 @@ import { localMap_fillFromServerData, LocalMap } from "./comp_localMap.jsx";
 import { worldMap_fillFromServerData, WorldMap } from "./comp_worldMap.jsx";
 import { AdminPage } from "./comp_admin.jsx";
 
-/*  Version 5!
+/*  Version 6?!?
+    Version 5 was a success, on the aspect of managing resources. We had (almost) everything of that working the way we wanted,
+    and it was much faster than before. The problem, however, was that the game was becoming very much not like DanIdle, and
+    this game is to be a conceptual expansion of DanIdle.
+    There are challenges to make this game be more like DanIdle. With DanIdle, all the processing takes place on the client side.
+    If players are offline for any amount of time, client-side processing won't happen, and to do step-wise processing on the server
+    just wouldn't work. But, is client-side processing really that bad? So here's the plan:
+    1) The local map will look much, much more like DanIdle. Players will set up processes to produce goods, just like DanIdle.
+        Players will also have ways to produce goods to a certain amount, and put priority on producing X amount of certain items
+        (this will involve robust display of processes... lots to figure out with that)
+    2) When players leave, all production lines will stop. Production will only happen while players are logged in. We may provide
+        'bonus ticks' (a concept from Reactor Idle) to allow players to catch up with lost time, though it may not be as valuable
+        as being logged in the whole time.
+    3) The client will report items on-hand to the server, which will occur on a regular basis. We will also provide a save button
+        for when players leave. There may be a way to save as players exit the page, but I won't take that as a guarantee of
+        saving the game. This will probably save the game state as well, meaning we'll be sending a lot more data to the server
+        this time around
+    All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
+
+
     Version 4 was mostly a success. However, we got held up when trying to update population based on food supply
     For this version, we are approaching items in a much different way: they will all be tied to the map record,
     in a single text field (as JSON). When gathering map data, I will have the entire map-tile's items in one field,
@@ -320,16 +339,17 @@ function HomePage(props) {
             <RegisterForm onLogin={props.onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
-                Yes, I'm building this game from scratch. Well, not completely from scratch. I use a process of copying over code that works, while
-                replacing code that doesn't. This lets me review all the code for this project, refining as I go, until I reach portions that require
-                full re-writes.
+                Version 6? Starting from scratch, again? Am I crazy? Now, before you freak out, there are good reasons for restarting. Settlers &
+                Warlords is supposed to be a conceptual expansion of another project of mine, DanIdle, where players set up production chains to
+                produce resources, building their way up a tech tree. (DanIdle had no need to produce weapons or defenses as there was nothing to
+                threaten the player, and what's the fun in that?) The previous version of Settlers & Warlords was... kinda nice in it's own right. But
+                in comparison to DanIdle, it was missing the mark.
             </p>
             <p>
-                I have chosen a new way to manage items within a map tile; instead of being its own record, all items will be a single field, attached
-                to the map record, stored as JSON. While this sacrifices the searchability offered by the database (which I wasn't using for items
-                anyway), it makes accessing item data faster & easier - it's already attached to map data that I'm already collecting. Will it work?
-                The only way to know is to build it, and find out. But doing so means changing everything related to items, which warrants a full
-                re-write.
+                This time, we're going to do things much differently. Players will manage resource production client-side, just like DanIdle. No
+                production will happen while players aren't playing, but that's okay. We can also throw in a larger-world environment that players
+                have to explore, with threats to deal with and other players to encounter. It should be a lot of fun! But now most the old code is
+                irrelevant (including all the process management code I spent so much time perfecting), but that's how life goes sometimes.
             </p>
             <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>

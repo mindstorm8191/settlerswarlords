@@ -44,6 +44,7 @@
     function JSFindIndex($array, $callable) {
         // Returns the array index of the first element that passes the provided function ($callable). If none passes the test, null
         // will be returned
+        // Note: If your source array is only a list of basic data types, just use array_search($target, $array); it's built into php
 
         // Note that when testing against null (aka result!=null), zero will count as null. To check properly, do gettype($result)!="NULL"
         if(gettype($array)!='array') return null;

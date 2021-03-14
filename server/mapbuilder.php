@@ -1,18 +1,93 @@
 <?php
-
-    function goodSpot($xpos, $ypos) {
-        // Returns true if the given location is within the bounds of our array, or false if not
-        // Since our range is fixed, this is pretty simple
-        if($xpos<-50) return false;
-        if($xpos>50) return false;
-        if($ypos<-50) return false;
-        if($ypos>50) return false;
-        return true;
-    }
-
+    // mapbuilder.php
+    // Functions that handle generating world map data and local map data
+    // for the game Settlers & Warlords
+    
     function randfloat() {
         // Returns a random float value between 0 and 1.
         return mt_rand(0, PHP_INT_MAX)/PHP_INT_MAX;
+    }
+
+    function within($val, $min, $max, $inclusive) {
+        // returns true if $val falls within $min and $max
+        // We had goodSpot() for this job, but it expected fixed boundaries
+
+        if($inclusive) return $val >= $min && $val <= $max;
+        return $val > $min && $val < $max;
+    }
+
+    function generateClusterMap($minX, $maxX, $minY, $maxY, $biomeGroup, $biomeDensity) {
+        // Generates a cluster map, to be used for showing biome-based map content
+        // $minX, $maxX, $minY, $maxY: range of points to add to this map
+        // $biomeGroup - a WeightedRandom class instance, containing each biome and the probability of seeing it. This affects
+        //  the number of generated sections, not how large they can become
+        // $biomeDensity - Indirectly sets the size of each biome. Determines the number of biomes to place on the map
+        // Returns a list of objects, each containing an X, Y coordinate, and a biome value (how that value is used is up to you)
+
+        global $directionMap;
+
+        // Start with building a 2D array of map plots, with basic data
+        $fullMap = forrange($minY, $maxY, 1, function($y) use ($minX, $maxX) {
+            return forrange($minX, $maxX, 1, function($x) use ($y) {
+                return ['x'=>$x, 'y'=>$y, 'landType'=>-1];
+                // This generateClusterMap() is only responsible for determining the land types. Everything else can be appended to this later
+            });
+        });
+
+        srand(time());
+        $mapSizeX = $maxX-$minX;
+        $mapSizeY = $maxY-$minY;
+        $pointCount = floor(($mapSizeX * $mapSizeY) / $biomeDensity);
+        reporterror('server/mapbuilder.php->generateClusterMap()', 'We have '. $pointCount .' points to place');
+        $biomePoints = forrange(0, $pointCount-1, 1, function($i) use ($minX, $maxX, $minY, $maxY, $biomeGroup) {
+            $genX = rand($minX,$maxX);
+            $genY = rand($minY,$maxY);
+            //$biome = rand(0,$biomeCount-1);
+            $biome = $biomeGroup->cyclepull();
+            $fullMap[$genX][$genY]['landType'] = $biome;
+            return [
+                'x'=>$genX,
+                'y'=>$genY,
+                'biome'=>$biome,
+                'captured'=>[['x'=>$genX,'y'=>$genY]]
+            ];
+        });
+
+        // Run through all biome points and try to expand each one. Keep doing this until all biome points are empty
+        while(sizeof($biomePoints)>0) {
+            foreach($biomePoints as &$group) {  // since the internal parts of $group will be modified, we must pass by reference
+                $targetSlot = rand(0,sizeof($group['captured'])-1); // This is stored for later
+                $target = $group['captured'][$targetSlot];
+                $choices = $directionMap[rand(0,sizeof($directionMap)-1)]; // This selects one of the direction lists, at random
+                $flagged = 0;
+                for($dir=0;$dir<4;$dir++) {
+                    $spotX = $target['x']+$choices[$dir]['x'];
+                    $spotY = $target['y']+$choices[$dir]['y'];
+                    if(within($spotX, $minX, $maxX, true) && within($spotY, $minY, $maxY, true)) {
+                        if($flagged===0) {
+                            if($fullMap[$spotX][$spotY]['landType']===-1) {
+                                // This is a good spot to expand to. Mark this as this biome's land type, and add this location
+                                // to the list of captured locations. We don't need to remove this current captured entry, as other
+                                // nearby blocks might be able to be captured
+                                $fullMap[$spotX][$spotY]['landType'] = $group['biome'];
+                                array_push($group['captured'], ['x'=>$spotX, 'y'=>$spotY]);
+                                $flagged = 1;
+                            }
+                        }
+                    }
+                }
+                if($flagged===0) {
+                    // This spot went through all 4 directions and didn't find a hit. It needs to be removed
+                    array_splice($group['captured'], $targetSlot, 1);
+                }
+            }
+
+            // Find any biomePoint groups that are out of directions to go, and remove them
+            $biomePoints = array_filter($biomePoints, function($ele) {
+                return sizeof($ele['captured'])>0;
+            });
+        }
+        return $fullMap;
     }
 
     function worldmap_generate() {
@@ -22,155 +97,61 @@
         global $db;
         global $civilizations;
         global $civData;
+        global $worldBiomes;
 
-        // Let's start with deciding how many types of land to provide. Map tile selection is still based on randomness, meaning swamps can
-        // be located directly next to deserts. I don't know of any easy solution to correct that, at this time.
-        define('x', 'x');
-        define('y', 'y');
-        $directionmap = [
-            [[x=> 0, y=>-1], [x=> 1, y=> 0], [x=> 0, y=> 1], [x=>-1, y=> 0]],
-            [[x=> 0, y=>-1], [x=> 1, y=> 0], [x=>-1, y=> 0], [x=> 0, y=> 1]],
-            [[x=> 0, y=>-1], [x=> 0, y=> 1], [x=> 1, y=> 0], [x=>-1, y=> 0]],
-            [[x=> 0, y=>-1], [x=> 0, y=> 1], [x=>-1, y=> 0], [x=> 1, y=> 0]],
-            [[x=> 0, y=>-1], [x=>-1, y=> 0], [x=> 1, y=> 0], [x=> 0, y=> 1]],
-            [[x=> 0, y=>-1], [x=>-1, y=> 0], [x=> 0, y=> 1], [x=> 1, y=> 0]],
-            [[x=> 1, y=> 0], [x=> 0, y=>-1], [x=> 0, y=> 1], [x=>-1, y=> 0]],
-            [[x=> 1, y=> 0], [x=> 0, y=>-1], [x=>-1, y=> 0], [x=> 0, y=> 1]],
-            [[x=> 1, y=> 0], [x=> 0, y=> 1], [x=> 0, y=>-1], [x=>-1, y=> 0]],
-            [[x=> 1, y=> 0], [x=> 0, y=> 1], [x=>-1, y=> 0], [x=> 0, y=>-1]],
-            [[x=> 1, y=> 0], [x=>-1, y=> 0], [x=> 0, y=>-1], [x=> 0, y=> 1]],
-            [[x=> 1, y=> 0], [x=>-1, y=> 0], [x=> 0, y=> 1], [x=> 0, y=>-1]],
-            [[x=> 0, y=> 1], [x=> 0, y=>-1], [x=> 1, y=> 0], [x=>-1, y=> 0]],
-            [[x=> 0, y=> 1], [x=> 0, y=>-1], [x=>-1, y=> 0], [x=> 1, y=> 0]],
-            [[x=> 0, y=> 1], [x=> 1, y=> 0], [x=> 0, y=>-1], [x=>-1, y=> 0]],
-            [[x=> 0, y=> 1], [x=> 1, y=> 0], [x=>-1, y=> 0], [x=> 0, y=>-1]],
-            [[x=> 0, y=> 1], [x=>-1, y=> 0], [x=> 0, y=>-1], [x=> 1, y=> 0]],
-            [[x=> 0, y=> 1], [x=>-1, y=> 0], [x=> 1, y=> 0], [x=> 0, y=>-1]],
-            [[x=>-1, y=> 0], [x=> 0, y=>-1], [x=> 1, y=> 0], [x=> 0, y=> 1]],
-            [[x=>-1, y=> 0], [x=> 0, y=>-1], [x=> 0, y=> 1], [x=> 1, y=> 0]],
-            [[x=>-1, y=> 0], [x=> 1, y=> 0], [x=> 0, y=>-1], [x=> 0, y=> 1]],
-            [[x=>-1, y=> 0], [x=> 1, y=> 0], [x=> 0, y=> 1], [x=> 0, y=>-1]],
-            [[x=>-1, y=> 0], [x=> 0, y=> 1], [x=> 1, y=> 0], [x=> 0, y=> 1]],
-            [[x=>-1, y=> 0], [x=> 0, y=> 1], [x=> 0, y=> 1], [x=> 1, y=> 0]]];
-        // This directionmap looks complicated, but once you know how to use it, it'll make lots of sense. The objective here is to
-        // pick a random direction, but if that doesn't work, pick another one. Picking one, and trying to prevent re-using the same
-        // one for another pass, results in code that is much more complicated than desired. Here, you select a top-level array
-        // entry at random. You then use the first 'set' of that as your random direction. If that doesn't work, try the next set.
-        // If you go through all four sets, there are no other possible directions to go; options are exhausted, you're finished
-        // checking.
-
-        $mapminx = -50;
-        $mapmaxx = 50;
-        $mapminy = -50;
-        $mapmaxy = 50;
-        $biomesGenerated = 6;
-
-        // Next, we need to have an array of map plots (with basic data applied to it).
-        $fullmap = forrange($mapminy, $mapmaxy, 1, function($y) use ($mapminx, $mapmaxx) {
-            return forrange($mapminx, $mapmaxx, 1, function($x) use ($y) {
-                return [x=>$x,
-                        y=>$y,
-                        'landtype'=>-1];
-                // We are only storing land type values here, since everything will be going into the database anyway, when we're done.
-            });
-        });
-
-        // Now, generate a set number of points, based on the size of the map. This will manage all the tiles gathered by this point
-        // land types to have now: 0=grassland, 1=forest, 2=desert, 3=swamp, 4=water
-        srand(time());
-        $biomepoint = [];
         $mapsize = 101;
-        $chunkdensity = 25; // Here, larger numbers mean larger biomes
-        $civdensity = 5; // Here, larger numbers mean fewer civilzations encountered
-        $pointcount = floor(($mapsize * $mapsize) / $chunkdensity);
-        //reporterror('Debug in server/mapbuilder.php->generatemap(): we have '. $pointcount .' biome points to generate');
-        $biomepoint = forrange(0, $pointcount-1, 1, function($i) use ($mapminx, $mapmaxx, $mapminy, $mapmaxy, $biomesGenerated) {
-            $genx = rand($mapminx,$mapmaxx);
-            $geny = rand($mapminy,$mapmaxx);
-            $biome = rand(0,$biomesGenerated-1);
-            $fullmap[$genx][$geny]['landtype'] = $biome;
-            return [
-                'x'=>$genx,
-                'y'=>$geny,
-                'biome'=>$biome,
-                'captured'=> [[
-                    'x'=>$genx,
-                    'y'=>$geny
-                ]]
-            ];
-        });
-        //reporterror("Debugging in server/mapbuilder.php->generatemap(): we have ". sizeof($biomepoint) ." biome points to process");
-        //$logging = '';
+        $mapminx = -50; $mapmaxx = 50;
+        $mapminy = -50; $mapmaxy = 50;
+        $civdensity = 5;
+        
+        // We need to generate the clustered map, as a base. This has been moved to its own function, since the clustering system is
+        // also done on the localmap, too.
+        $fullMap = generateClusterMap(-50, 50, -50, 50, new WeightedRandom([
+            ['name'=>'grassland', 'amount'=>10],
+            ['name'=>'forest', 'amount'=>10],
+            ['name'=>'desert', 'amount'=>7],
+            ['name'=>'swamp', 'amount'=>6],
+            ['name'=>'water', 'amount'=>12],
+            ['name'=>'jungle', 'amount'=>9]
+        ]), 25);
 
-        // Now, we need to run through all the boimepoints and try to advance each one of them. We will continue doing this until all the
-        // biomepoints are empty
-        while(sizeof($biomepoint)>0) {
-            foreach($biomepoint as &$biome) {   // Since the internal components of $biome will be modified, we must pass by reference
-                $targetslot = rand(0, sizeof($biome['captured'])-1);
-                $target = $biome['captured'][$targetslot];
-                $choices = $directionmap[rand(0, sizeof($directionmap)-1)]; // This selects one of the direction lists, at random
-                $flagged = 0;
-                //$logging .= 'Using slot '. $targetslot .' of '. sizeof($biome['captured']) .': ';
-                for($dir=0; $dir<4; $dir++) {
-                    $spotx = $target['x']+$choices[$dir]['x'];
-                    $spoty = $target['y']+$choices[$dir]['y'];
-                    if(goodSpot($spotx, $spoty)) {
-                        if($flagged==0) {
-                            //$logging .= 'Try #'. $dir .' = ['. $spotx .','. $spoty .']. ';
-                            if($fullmap[$spotx][$spoty]['landtype']==-1) {
-                                // This is a good spot to expand to. Mark this as this biomepoint's land type, and add this location to the
-                                // list of captured locations.  We don't need to remove this current captured entry, as nearby blocks might 
-                                // also be open to being captured.
-                                //$logging .= 'Success'. PHP_EOL;
-                                $fullmap[$spotx][$spoty]['landtype'] = $biome['biome'];
-                                array_push($biome['captured'], ['x'=>$spotx, 'y'=>$spoty]);
-                                $flagged = 1;
-                            }
-                        }
-                    }
-                }
-                if($flagged==0) {
-                    //$logging .= 'Source ['. $target['x'] .','. $target['y'] .'] deleted'. PHP_EOL;
-                    array_splice($biome['captured'], $targetslot, 1);
-                }
-            }
-            
-            // Now, determine if there are any boimepoints that are out of directions to go, and remove them.
-            // Using array_filter() here seems the best option
-            $biomepoint = array_filter($biomepoint, function($ele) {
-                return (sizeof($ele['captured'])>0);
-            });
+        // We need to convert our biome names to an ID, as it matches the indexing of other parts, including the database
+        reporterror('server/mapbuilder.php->worldmap_generate()->before landType update', 'Center land type='. $fullMap[0][0]['landType']);
+        $fullMap = array_map(function($long) {
+            return array_map(function($wide) {
+                global $worldBiomes;
+                $wide['landType'] = array_search($wide['landType'], $worldBiomes);
+                //$wide['landType'] = JSFindIndex($worldBiomes, function($ele) use ($wide) {
+                //    return $wide['landType'] == $ele;
+                //});
+                return $wide;
+            }, $long);
+        }, $fullMap);
+        reporterror('server/mapbuilder.php->worldmap_generate()->after landType update', 'Center  land type='. $fullMap[0][0]['landType']);
 
-            // This section is only for debugging
-            /*reporterror('Debugging result: '. $logging); $logging = '';
-            reporterror('Debugging in server/mapbuilder.php->generatemap(): there are '. array_sum(array_map(function($ele) {
-                return sizeof($ele['captured']);
-            }, $biomepoint)) .' points left'); */
-        }
-        // With all the biomepoints gone, the map should be fully populated with biomes. Next, place down some civilizations.
-        // Civilization choices will be determined by land types, so we need to determine which biome we're at before deciding
-        // a civilization there
+        // Place down some civilizations. Civilization choices will be determined by land types, so we need to determine which
+        // biome we're at before deciding a civilization there
         $civcount = floor(($mapsize * $mapsize) / $civdensity);
         for($i=0; $i<$civcount; $i++) {
             $xspot = rand($mapminx, $mapmaxx);
             $yspot = rand($mapminy, $mapmaxy);
             // First, make sure there isn't already a civilization here. If so, find a new place
-            if(isset($fullmap[$xspot][$yspot]['civ'])) {
+            if(isset($fullMap[$xspot][$yspot]['civ'])) {
                 $i--;
             }else{
                 // Since civilizations are stored in order, we can use the land type value to select which list of civilizations
                 // to pick from, which will match the correct biome
-                $fullmap[$xspot][$yspot]['civ'] = $civilizations[$fullmap[$xspot][$yspot]['landtype']]['civs']->cyclepull();
+                $fullMap[$xspot][$yspot]['civ'] = $civilizations[$fullMap[$xspot][$yspot]['landType']]['civs']->cyclepull();
                 // Some civilizations can alter the biome they are in. Let's do that now
-                if($fullmap[$xspot][$yspot]['civ'] == 'ice horrors') {
-                    $fullmap[$xspot][$yspot]['landtype'] = 7;
+                if($fullMap[$xspot][$yspot]['civ'] == 'ice horrors') {
+                    $fullMap[$xspot][$yspot]['landType'] = 7;//'frozen wasteland';
                 }
-                if($fullmap[$xspot][$yspot]['civ'] == 'ork tribe') {
-                    $fullmap[$xspot][$yspot]['landtype'] = 6;
+                if($fullMap[$xspot][$yspot]['civ'] == 'ork tribe') {
+                    $fullMap[$xspot][$yspot]['landType'] = 6;//'lavascape';
                 }
                 // Also include a strength of this civilization. We want to display lots of abandoned civilization places, too
                 // Anything zero is considered abandoned, so the real range is from 0 to 3
-                $fullmap[$xspot][$yspot]['civstrength'] = max(0, randfloat()*4.5-1.5);
+                $fullMap[$xspot][$yspot]['civstrength'] = max(0, randfloat()*4.5-1.5);
             }
         }
         
@@ -199,8 +180,8 @@
         // x = (0 to 1.5) + 0.5
         // x = (0.5 to 2.0)
 
-        $built = implode(',', array_map(function($long) use ($civData) {
-            return implode(',', array_map(function($wide) use ($civData) {
+        $built = implode(',', array_map(function($long) use ($civData, $worldBiomes) {
+            return implode(',', array_map(function($wide) use ($civData, $worldBiomes) {
                 if(isset($wide['civ'])) {
                     // Before we can save, we need to convert our civ value to an int. Best to do that before returning a value...
                     $civObj = JSFind($civData, function($civ) use ($wide) {
@@ -208,15 +189,15 @@
                     });
                     if($civObj==null) {
                         reporterror('server/mapbuilder.php->worldmap_generate()->build query',
-                                    'Error: civlization '. $wide['civ'] .' was not found');
-                        return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
+                                    'Error: civilization '. $wide['civ'] .' was not found');
+                        return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
                     }
-                    return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .','.
+                    return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .','.
                            $civObj['id'] .','. $wide['civstrength'] .')';
                 }
-                return '('. $wide['x'] .','. $wide['y'] .','. $wide['landtype'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
+                return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
             }, $long));
-        },$fullmap));
+        },$fullMap));
         //reporterror('Build content: '. $built);
         $db->query("INSERT INTO sw_map (x, y, biome, ugresource, ugamount, civilization, civlevel) VALUES ". $built .";");
         $err = mysqli_error($db);

@@ -57,82 +57,92 @@ export function LocalMap(props) {
     //      onTileUpdate - handles any map tiles that have been updated
 
     // minimap images could be global later, but for now we only need them here
-    const minimapImages = ["emptygrass.jpg", "pinetreetwo.jpg", "smallpond.jpg", "desert.jpg", "smallpond.jpg", "basicrock.jpg", "basicore.jpg"];
+    const minimapImages = ["emptygrass.jpg", "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "basicrock.jpg", "basicore.jpg"];
     const [detailed, setDetailed] = React.useState(null); // which square is selected to show details on the right
+    const [scrollPos, setScrollPos] = React.useState({moveState:false,x:0,y:0});
+
+    function startPan() {
+        setScrollPos({...scrollPos, moveState:true});
+    }
+
+    function continuePan(e) {
+        if(!scrollPos.moveState) return;
+        setScrollPos({moveState:true, x:scrollPos.x+e.movementX, y:scrollPos.y+e.movementY});
+    }
+
+    function endPan() {
+        setScrollPos({...scrollPos, moveState:false});
+    }
 
     return (
-        <div>
-            <span className="haslinespacing">Biome: {props.localMap.biome}</span>
-            <span className="haslinespacing">Population: {props.localMap.population}</span>
-            <PageChoices selected={"localmap"} onPagePick={props.setPage} />
-            <div id="localmapbox">
-                {props.localMap.minimap.map((square, key) => {
-                    // Before trying to display this tile, determine if there is any active construction going on
-                    let hasConstruction = 0;
-                    if(parseInt(square.buildid)!==0) {
-                        props.localMap.events.find(eve => {
-                            if(eve.task === 'BuildingUpgrade') {
-                                let details = JSON.parse(eve.detail);
-                                if(details.buildid===square.buildid) {
-                                    hasConstruction=1;
-                                    return true;
-                                }
-                            }
-                            return false;
-                        });
-                    }
-                    
-                    return (
-                        <div
-                            style={{
-                                display: "block",
-                                position: "absolute",
-                                width: 55,
-                                height: 55,
-                                top: square.y * 55,
-                                left: square.x * 55,
-                                backgroundImage: "url(" + imageURL + minimapImages[square.landtype] + ")",
-                                cursor: "pointer",
-                            }}
-                            key={key}
-                            onClick={() => setDetailed(square)}
-                        >
-                            {parseInt(square.buildid) === 0 ? (
-                                ""
-                            ) : (
-                                <div>
-                                    <img src={imageURL + square.buildType.image} alt={"building"} style={{ pointerEvents: "none" }} />
-                                    {hasConstruction === 0 ? (
+        <>
+            <div style={{display:'flex', width:'100%'}}>
+                <div>
+                    <span className="haslinespacing">Biome: {props.localMap.biome}</span>
+                    <span className="haslinespacing">Population: {props.localMap.population}</span>
+                    <PageChoices selected={"localmap"} onPagePick={props.setPage} />
+                </div>
+            </div>
+            <div style={{display:'flex', width:'100%'}}>
+                <div style={{width:180}}>
+                    <img src={imageURL +'leanto.png'} alt="leanto"/>
+                    <img src={imageURL +'foragepost.png'} alt="forage post"/>
+                    <img src={imageURL +'rockKnapper.png'} alt="rock knapper"/>
+                    <img src={imageURL +'toolbox.png'} alt="toolbox"/>
+                </div>
+                <div id="localmapbox">
+                    {/* This is the map container, that helps us scroll the whole map at once */}
+                    <div
+                        style={{position:'absolute', top:scrollPos.y, left:scrollPos.x}}
+                        onMouseDown={startPan}
+                        onMouseMove={continuePan}
+                        onMouseUp={endPan}
+                    >
+                        {props.localMap.tiles.map((tile, key) => {
+                            let hasConstruction=0;
+                            
+                            return (
+                                <div
+                                    style={{
+                                        display: "block",
+                                        position: "absolute",
+                                        width: 55,
+                                        height: 55,
+                                        top: tile.y * 55,
+                                        left: tile.x * 55,
+                                        backgroundImage: "url(" + imageURL + minimapImages[tile.landtype] + ")",
+                                        cursor: "pointer",
+                                    }}
+                                    key={key}
+                                    onClick={() => setDetailed(tile)}
+                                >
+                                    {parseInt(tile.buildid) === 0 ? (
                                         ""
                                     ) : (
-                                        <img
-                                            src={imageURL + "construction.png"}
-                                            alt={"under construction"}
-                                            style={{ pointerEvents: "none", position: "absolute", top: 0, left: 0 }}
-                                        />
+                                        <img src={imageURL + tile.buildType.image} alt={"building"} style={{ pointerEvents: "none" }} draggable="false"/>
                                     )}
                                 </div>
-                            )}
-                        </div>
-                    );
-                })}
+                            );
+                        })}
+                    </div>
+                </div>
+                <div style={{ position: "absolute", right:0, width:250, backgroundColor:'white', height:'calc(100vh - 185px)' }}>
+                    {detailed === null ? (
+                        "Click a tile to view options"
+                    ) : parseInt(detailed.buildid) === 0 ? (
+                        <EmptyLandShowBuildChoices
+                            landType={detailed.landtype}
+                            buildTypes={props.localMap.buildoptions}
+                            onTileUpdate={props.onTileUpdate}
+                            x={detailed.x}
+                            y={detailed.y}
+                        />
+                    ) : (
+                        <LocalTileBuildingDetail tile={detailed} />
+                    )}
+                </div>
             </div>
-            <div style={{ position: "absolute", left: 500 }}>
-                {detailed === null ? (
-                    "Click a tile to view options"
-                ) : parseInt(detailed.buildid) === 0 ? (
-                    <EmptyLandShowBuildChoices
-                        landType={detailed.landtype}
-                        buildTypes={props.localMap.buildoptions}
-                        onTileUpdate={props.onTileUpdate}
-                        x={detailed.x}
-                        y={detailed.y}
-                    />
-                ) : (
-                    <LocalTileBuildingDetail tile={detailed} />
-                )}
-            </div>
-        </div>
+        </>
     );
 }
 
@@ -191,7 +201,7 @@ function EmptyLandShowBuildChoices(props) {
     return (
         <div>
             {LandDescription()}
-            <p className="singleline">Nothing is built here. Choose an option below</p>
+            <p className="singleline">Nothing is built here. Choose an option from the left</p>
             {props.buildTypes.map((ele, key) => {
                 // First, filter out the land types. Our 'data package' receives land types as a comma-delimited string, so we first
                 // have to convert that for each building type.

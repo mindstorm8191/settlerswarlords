@@ -12,6 +12,7 @@
         global $db;
         global $WorldBiomes;
         global $OreTypes;
+        global $biomeData;
 
         // Start by verifying the ajax input
         $con = verifyInput($msg, [
@@ -71,22 +72,27 @@
         // Update the player's known map now to show that they're aware of their own starting land
         worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
 
-        // Generate the internal content of this map tile
-        ensureMiniMapXY($playerx, $playery);
+        // Generate the localMap content of this worldMap tile
+        ensureMiniMapXY($playerx, $playery, true);
 
+        finishLogin($uid, $ajaxcode, $playerx, $playery);
+
+        // With that finished, new players don't have any other content to load. We can now send a response to the user, which
+        // primarily contains all the localMap content.
+        
+        /*
         // Before wrapping up, we need to update the production of the bread resource we have. We will have to grab the map data first.
-        $worldMapData = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
-                                  'server/route_account.php->route_signup()->get world map data')[0];
-        $worldMapData = updateProcesses($worldMapData, "NOW()");
+        $worldTile = updateProcesses($worldTile, "NOW()");
         // Now save it before proceeding
         DanDBList("UPDATE sw_map SET items=? WHERE x=? AND y=?;", 'sii',
-                  [$worldMapData['items'], $playerx, $playery], 'server/route_account.php->route_signup()->save world map data');
+                  [$worldTile['items'], $playerx, $playery], 'server/route_account.php->route_signup()->save world map data');
 
         // Create a population-check event. We can use our createEvent function b/c it's easier. Triggers every 30 minutes
-        createEvent(0, $worldMapData['id'], 'CheckPopulation', '', "NOW()", 1800, false);
+        createEvent(0, $worldTile['id'], 'CheckPopulation', '', "NOW()", 1800, false);
         
         // Now, we only have to send a response to the client. Since we have three routes to do that, we made a function to handle it
         finishLogin($uid, $ajaxcode, $playerx, $playery);
+        */
     }
 
     //spectrum? 866-914-5806
@@ -101,7 +107,26 @@
 
         global $WorldBiomes;
         global $OreTypes;
+        global $biomeData;
 
+        $worldTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
+                               'server/route_account.php->route_signup()->get world map data')[0];
+        $localTiles = DanDBList("SELECT x,y,landtype,buildid FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i', [$worldTile['id']],
+                                'server/route_account.php->route_signup()->get local map tiles');
+        die(json_encode([
+            'result'=>'success',
+            'userid'=>$userid,
+            'userType'=>'player',
+            'access'=>$accesscode,
+            'localContent'=>[
+                'biome'=>$biomeData[$worldTile['biome']]['biome'],
+                'ugresource'=>$OreTypes[$worldTile['ugresource']],
+                'ugamount'=>$worldTile['ugamount'],
+                'population'=>$worldTile['population'],
+                'tiles'=>$localTiles
+            ]
+        ]));
+/*
         $worldMapData = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
                                   'ajax.php->action login->get world map data')[0];
         // Now is a good time to update the stats of this world
@@ -145,7 +170,7 @@
                 'processes'=>json_decode($worldMapData['processes'], true),
                 'events'=>$eventList
             ],
-        ]));
+        ]));*/
     }
 
     function route_login($msg) {
@@ -196,7 +221,7 @@
         ], 'server/route_account.php->route_autologin()->verify input');
 
         // We need the player data anyway, so go ahead and verify the input is a valid player
-        // We also want to check that the user's last login was less than 24 hours ago. We will 'politely' reject
+        // We also want to check that the user's last login was less than 24 hours ago. We will politely reject
         // the auto-login if it's been too long
         $res = DanDBList("SELECT *, TIME_TO_SEC(TIMEDIFF(NOW(), lastlogin)) AS diff FROM sw_player WHERE id=? AND ajaxcode=? ".
                          "AND ipaddress=?;", 'iis', [$con['userid'], $con['access'], $_SERVER['REMOTE_ADDR']],

@@ -11,7 +11,7 @@
     https://stackoverflow.com/questions/9896254/php-class-instance-to-json
     */
 
-    class weightedRandom {
+    class WeightedRandom {
         private $marbles; // This is an array of objects, pairing names with a value
         private $count;   // How many marbles total we have here (not the # of types, that is given by sizeof($marbles))
         private $cycleList = null;

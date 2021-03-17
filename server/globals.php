@@ -62,73 +62,124 @@
         ['id'=>38, 'name'=>'Life Altar',            'image'=>'', 'desc'=>'An altar devoted to life forces. What can be learned here?'],
     ];
 
-    $civilizations = [
-        ['biome'=>'plains', 'civs'=> new weightedRandom([
-            ['name'=>'horse-mounted raiders', 'amount'=>10],
-            ['name'=>'centaur tribe', 'amount'=>4],
-            ['name'=>'farmers camp', 'amount'=>8],
-            ['name'=>'herders camp', 'amount'=>5],
-            ['name'=>'castle', 'amount'=>5],
-            ['name'=>'dwarves', 'amount'=>3],
-            ['name'=>'grass elemental', 'amount'=>4],
-            ['name'=>'roah pack', 'amount'=>7],
-            ['name'=>'zenith altar', 'amount'=>2],
-            ['name'=>'ice horrors', 'amount'=>1],
-            ['name'=>'ork tribe', 'amount'=>1]
-        ])],
-        ['biome'=>'forest', 'civs'=> new weightedRandom([
-            ['name'=>'elves', 'amount'=>5],
-            ['name'=>'enchanted grove', 'amount'=>4],
-            ['name'=>'lumberjack grove', 'amount'=>6],
-            ['name'=>'malicious vines', 'amount'=>2],
-            ['name'=>'ent clan', 'amount'=>6],
-            ['name'=>'magicians', 'amount'=>4],
-            ['name'=>'werewolf pack', 'amount'=>6],
-            ['name'=>'dwarves', 'amount'=>3],
-            ['name'=>'wood elemental', 'amount'=>4],
-            ['name'=>'fairie camp', 'amount'=>4],
-            ['name'=>'wisp altar', 'amount'=>2],
-            ['name'=>'ice horrors', 'amount'=>1],
-            ['name'=>'ork tribe', 'amount'=>1]
-        ])],
-        ['biome'=>'desert', 'civs'=> new weightedRandom([
-            ['name'=>'oasis camp', 'amount'=>5],
-            ['name'=>'scorpion den', 'amount'=>4],
-            ['name'=>'dwarves', 'amount'=>3],
-            ['name'=>'sand elemental', 'amount'=>3],
-            ['name'=>'sun altar', 'amount'=>2],
-            ['name'=>'moon altar', 'amount'=>2],
-            ['name'=>'wind altar', 'amount'=>2],
-            ['name'=>'earth altar', 'amount'=>2],
-            ['name'=>'ice horrors', 'amount'=>1],
-            ['name'=>'ork tribe', 'amount'=>1]
-        ])],
-        ['biome'=>'swamp', 'civs'=> new weightedRandom([
-            ['name'=>'dwarves', 'amount'=>3],
-            ['name'=>'malicious vines', 'amount'=>3],
-            ['name'=>'sludge elemental', 'amount'=>4],
-            ['name'=>'necromancer', 'amount'=>4],
-            ['name'=>'fairie camp', 'amount'=>4],
-            ['name'=>'swamp horror', 'amount'=>5],
-            ['name'=>'swirl altar', 'amount'=>2],
-            ['name'=>'ice horrors', 'amount'=>1],
-            ['name'=>'ork tribe', 'amount'=>1]
-        ])],
-        ['biome'=>'water', 'civs'=> new weightedRandom([
-            ['name'=>'dolphin pod', 'amount'=>4],
-            ['name'=>'water elemental', 'amount'=>3],
-            ['name'=>'crustacean cluster', 'amount'=>2],
-            ['name'=>'angry whale', 'amount'=>3]
-        ])],
-        ['biome'=>'jungle', 'civs'=> new weightedRandom([
-            ['name'=>'dwarves', 'amount'=>3],
-            ['name'=>'plant elemental', 'amount'=>4],
-            ['name'=>'gorrila camp', 'amount'=>6],
-            ['name'=>'life altar', 'amount'=>2],
-            ['name'=>'ice horrors', 'amount'=>1],
-            ['name'=>'ork tribe', 'amount'=>1]
-        ])]
+    // This holds specific tile information based on 
+    $biomeData = [
+        [
+            'biome'=>'plains',
+            'civs'=> new weightedRandom([
+                ['name'=>'horse-mounted raiders', 'amount'=>10],
+                ['name'=>'centaur tribe', 'amount'=>4],
+                ['name'=>'farmers camp', 'amount'=>8],
+                ['name'=>'herders camp', 'amount'=>5],
+                ['name'=>'castle', 'amount'=>5],
+                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'grass elemental', 'amount'=>4],
+                ['name'=>'roah pack', 'amount'=>7],
+                ['name'=>'zenith altar', 'amount'=>2],
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'grass', 'amount'=>25],
+                ['name'=>'trees', 'amount'=>5],
+                ['name'=>'water', 'amount'=>2],
+                ['name'=>'rock', 'amount'=>2]
+            ])
+        ],[
+            'biome'=>'forest',
+            'civs'=> new WeightedRandom([
+                ['name'=>'elves', 'amount'=>5],
+                ['name'=>'enchanted grove', 'amount'=>4],
+                ['name'=>'lumberjack grove', 'amount'=>6],
+                ['name'=>'malicious vines', 'amount'=>2],
+                ['name'=>'ent clan', 'amount'=>6],
+                ['name'=>'magicians', 'amount'=>4],
+                ['name'=>'werewolf pack', 'amount'=>6],
+                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'wood elemental', 'amount'=>4],
+                ['name'=>'fairie camp', 'amount'=>4],
+                ['name'=>'wisp altar', 'amount'=>2],
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'trees', 'amount'=>25],
+                ['name'=>'grass', 'amount'=>5],
+                ['name'=>'water', 'amount'=>5],
+                ['name'=>'rock', 'amount'=>2]
+            ])
+        ],[
+            'biome'=>'desert',
+            'civs'=> new WeightedRandom([
+                ['name'=>'oasis camp', 'amount'=>5],
+                ['name'=>'scorpion den', 'amount'=>4],
+                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'sand elemental', 'amount'=>3],
+                ['name'=>'sun altar', 'amount'=>2],
+                ['name'=>'moon altar', 'amount'=>2],
+                ['name'=>'wind altar', 'amount'=>2],
+                ['name'=>'earth altar', 'amount'=>2],
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'sands', 'amount'=>25],
+                ['name'=>'rock', 'amount'=>5],
+                ['name'=>'grass', 'amount'=>3],
+                ['name'=>'water', 'amount'=>1]
+            ])
+        ],[
+            'biome'=>'swamp',
+            'civs'=> new WeightedRandom([
+                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'malicious vines', 'amount'=>3],
+                ['name'=>'sludge elemental', 'amount'=>4],
+                ['name'=>'necromancer', 'amount'=>4],
+                ['name'=>'fairie camp', 'amount'=>4],
+                ['name'=>'swamp horror', 'amount'=>5],
+                ['name'=>'swirl altar', 'amount'=>2],
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'water', 'amount'=>20],
+                ['name'=>'grass', 'amount'=>12],
+                ['name'=>'trees', 'amount'=>8],
+                ['name'=>'rock', 'amount'=>3]//,
+                //['name'=>'jungle', 'amount'=>20]
+            ])
+        ],[
+            'biome'=>'water',
+            'civs'=> new WeightedRandom([
+                ['name'=>'dolphin pod', 'amount'=>4],
+                ['name'=>'water elemental', 'amount'=>3],
+                ['name'=>'crustacean cluster', 'amount'=>2],
+                ['name'=>'angry whale', 'amount'=>3]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'water', 'amount'=>23],
+                ['name'=>'rock', 'amount'=>2]
+            ])
+        ],[
+            'biome'=>'jungle',
+            'civs'=> new WeightedRandom([
+                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'plant elemental', 'amount'=>4],
+                ['name'=>'gorrila camp', 'amount'=>6],
+                ['name'=>'life altar', 'amount'=>2],
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
+            ]),
+            'localTiles'=> new WeightedRandom([
+                ['name'=>'water', 'amount'=>10],
+                ['name'=>'trees', 'amount'=>16],
+                ['name'=>'grass', 'amount'=>4],
+                ['name'=>'rock', 'amount'=>1]
+            ])
+        ]
     ];
+
+    $localTileNames = ['grass', 'trees', 'rock', 'sands', 'water', 'lava', 'ice', 'snow'];
 
     define('x', 'x');
     define('y', 'y');

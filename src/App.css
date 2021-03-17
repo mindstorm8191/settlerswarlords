@@ -57,7 +57,10 @@
 
 #localmapbox {
     width: 100%;
+    height: calc(100vh - 185px);
+    display: block;
     position: relative;
+    overflow: hidden;
 }
 
 .haslinespacing {

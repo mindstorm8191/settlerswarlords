@@ -29,19 +29,11 @@ import { AdminPage } from "./comp_admin.jsx";
         this time around
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
-
-    Version 4 was mostly a success. However, we got held up when trying to update population based on food supply
-    For this version, we are approaching items in a much different way: they will all be tied to the map record,
-    in a single text field (as JSON). When gathering map data, I will have the entire map-tile's items in one field,
-    ready to be manipulated as needed.
-    There are two reasons we are creating a new version for this task:
-    1) the changes needed to support such a system are large and far-reaching. It will be easier & safer to rebuild the whole project from scratch.
-    2) I haven't looked at the old code in several months, I cannot say for certain where all the important parts are. Rebuilding gives me an
-        opportunity to review the code as I go. I mean, we're not rewriting _everything_ from scratch. I more copy & paste code I know will work
-        correctly, and rewrite code bit by bit as I go through rebuilding. It can go pretty fast, at times.
-
     Task list
-    3) Give players the option to conquer the lands neighboring their kingdom
+    1) Fix the crash-bug where clicking on the map anywhere causes a React error
+    2) Allow players to select a block on the left panel, and be able to place it on the map
+    3) Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
+    
     3) Set up an auto-update system for the client code, that will automatically request updates from the server at a specific time. This can
         be used for world map activities, as well as updating resource production rates after a ResourceUpdate event should have passed. We
         will have to determine how know what to return to the client, but we will likely be able to know that before the request
@@ -77,6 +69,12 @@ import { AdminPage } from "./comp_admin.jsx";
         be informed of this, one way or another. Right now it won't have any affect on the settlement, but that may change later, as more
         game complexity is added
     bugs: Panning doesn't work on the actual tiles of the world map. It should, but only works correctly on the open space
+
+    Further ideas
+    Tool boxes: they will provide tools to any blocks needing them within an X-block radius (we can make it 10, for now).
+    Any blocks needing a specific tool can get tools from that box. If a block is out of range of a toolbox, the user will be told that
+    there are no tools within range. Each toolbox block can only hold a single tool type
+    Farmer's post will work in a similar fashion: Any farmable blocks in its range needing work will get work from this block 
   
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
@@ -145,9 +143,9 @@ function App() {
                 return;
             }
 
-            let mapSet = localMap_fillFromServerData(pack.mapcontent);
-            console.log(mapSet);
-            setLocalMap(mapSet);
+            //let mapSet = localMap_fillFromServerData(pack.mapcontent);
+            console.log(pack.localContent);
+            setLocalMap(pack.localContent);
             setPage("localmap");
         }
     }

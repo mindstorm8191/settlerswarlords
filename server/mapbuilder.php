@@ -96,8 +96,7 @@
 
         global $db;
         global $civilizations;
-        global $civData;
-        global $worldBiomes;
+        global $biomeData;
 
         $mapsize = 101;
         $mapminx = -50; $mapmaxx = 50;
@@ -121,9 +120,6 @@
             return array_map(function($wide) {
                 global $worldBiomes;
                 $wide['landType'] = array_search($wide['landType'], $worldBiomes);
-                //$wide['landType'] = JSFindIndex($worldBiomes, function($ele) use ($wide) {
-                //    return $wide['landType'] == $ele;
-                //});
                 return $wide;
             }, $long);
         }, $fullMap);
@@ -141,7 +137,7 @@
             }else{
                 // Since civilizations are stored in order, we can use the land type value to select which list of civilizations
                 // to pick from, which will match the correct biome
-                $fullMap[$xspot][$yspot]['civ'] = $civilizations[$fullMap[$xspot][$yspot]['landType']]['civs']->cyclepull();
+                $fullMap[$xspot][$yspot]['civ'] = $biomeData[$fullMap[$xspot][$yspot]['landType']]['civs']->cyclepull();
                 // Some civilizations can alter the biome they are in. Let's do that now
                 if($fullMap[$xspot][$yspot]['civ'] == 'ice horrors') {
                     $fullMap[$xspot][$yspot]['landType'] = 7;//'frozen wasteland';
@@ -180,8 +176,9 @@
         // x = (0 to 1.5) + 0.5
         // x = (0.5 to 2.0)
 
-        $built = implode(',', array_map(function($long) use ($civData, $worldBiomes) {
-            return implode(',', array_map(function($wide) use ($civData, $worldBiomes) {
+        $built = implode(',', array_map(function($long) {
+            return implode(',', array_map(function($wide) {
+                global $civData;
                 if(isset($wide['civ'])) {
                     // Before we can save, we need to convert our civ value to an int. Best to do that before returning a value...
                     $civObj = JSFind($civData, function($civ) use ($wide) {
@@ -209,25 +206,28 @@
         // And... that should be everything we need
     }
 
-    function ensureMinimapXY($worldx, $worldy) {
+    function ensureMinimapXY($worldx, $worldy, $newPlayer) {
         // Allows you to create a minimap based on world coordinates, if you don't (yet) have the map object from the database
         ensureMinimap(DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$worldx,$worldy],
-                                'sever/mapbuilder.php->ensureMinimapXY()')[0]);
+                                'sever/mapbuilder.php->ensureMinimapXY()')[0], $newPlayer);
         /*
         ensureMinimap(danget("SELECT * FROM sw_map WHERE x=". $worldx ." AND y=". $worldy .";",
                              'server/mapbuilder.php->generateminimapbycoords'));*/
     }
 
-    function ensureMinimapId($worldcoordid) {
+    function ensureMinimapId($worldcoordid, $newPlayer) {
         // Allows you to create a minimap based on a world coordinate ID.
         ensureMinimap(DanDBList("SELECT * FROM sw_map WHERE id=?;", 'i', [$worldcoordid],
-                                'server/mapbuilder.php->ensureMinimapId()')[0]);
+                                'server/mapbuilder.php->ensureMinimapId()')[0], $newPlayer);
         /*ensureMinimap(danget("SELECT * FROM sw_map WHERE id=". $worldcoordid .";",
                              'server/mapbuilder.php->generateminimapfromid'));*/
     }
 
-    function ensureMinimap($mapdata) {
+    function ensureMinimap($worldTile, $newPlayer) {
         // Allows us to ensure that a minimap exists for a given world map location. If none exists, one will be created for it.
+        // $worldTile: full data package as received from the database about this world location
+        // $newPlayer: set to true if this is for a new player. This will ensure at least 1 rock tile and 5 tree tiles exist
+        //      on the map somewhere
 
         // Generates a minimap. Requires a full read-out of the world map coordinate from the database.  Use either
         // generateminimapfromcoords or generateminimapfromid to grab that data.
@@ -235,64 +235,81 @@
         // At some point, we may want to consider the land types of surrounding territories. But for now, we won't worry about it.
 
         global $db;
+        global $biomeData;
+
+        $localMapWidth = 40;
+        $localMapHeight = 40;
 
         // Start by ensuring there is no minimap data here yet already
-        if(sizeof(DanDBList("SELECT x FROM sw_minimap WHERE mapid=? LIMIT 1;", 'i', [$mapdata['id']],
+        if(sizeof(DanDBList("SELECT x FROM sw_minimap WHERE mapid=? LIMIT 1;", 'i', [$worldTile['id']],
                   'server/mapbuilder.php->generateminimap()->check existence of minimap'))>0)
             return;
         
-        // To start with, we need to determine the probability rate of certain land types for this area.
-        $ratios = [ // Determines the likelihood of seeing certain types of land (relative to the area)
-            ['group'=>'major', 'amount'=>100],
-            ['group'=>'minor', 'amount'=>50],
-            ['group'=>'rock', 'amount'=>15], // This is exposed rock that doesn't require digging through dirt to find. For new players,
-                                                    // we will guarantee at least 1 rock square on the map somewhere
-            ['group'=>'rare', 'amount'=>5],
-            ['group'=>'ore', 'amount'=>1], // This is exposed ore that can be mined straight away - but is rare to find
-        ];
-        $conversion = [ // Determines what land types we'll find, based on the land type
-            ['name'=>'grassland', 'major'=>'grass', 'minor'=>'trees', 'rock'=>'rock', 'rare'=>'swamp', 'ore'=>'ore'],
-            ['name'=>'forest', 'major'=>'trees', 'minor'=>'grass', 'rock'=>'rock', 'rare'=>'swamp', 'ore'=>'ore'],
-            ['name'=>'desert', 'major'=>'desert', 'minor'=>'grass', 'rock'=>'rock', 'rare'=>'water', 'ore'=>'desert'],
-            ['name'=>'swamp', 'major'=>'swamp', 'minor'=>'trees', 'rock'=>'rock', 'rare'=>'grass', 'ore'=>'water'],
-            ['name'=>'water', 'major'=>'water', 'minor'=>'grass', 'rock'=>'rock', 'rare'=>'rock', 'ore'=>'water'],
-            ['name'=>'jungle', 'major'=>'trees', 'minor'=>'water', 'rock'=>'rock', 'rare'=>'swamp', 'ore'=>'swamp'],
-            ['name'=>'lavascape', 'major'=>'rock', 'minor'=>'lava', 'rock'=>'rock', 'rare'=>'lava', 'ore'=>'lava'],
-            ['name'=>'frozen', 'major'=>'ice', 'minor'=>'ice', 'rock'=>'rock', 'rare'=>'ice', 'ore'=>'ice']
-        ];
-        $names = ['grass', 'trees', 'swamp', 'desert', 'water', 'rock', 'ore', 'lava', 'ice'];
-
-        // Now, turn our ratios list into a flat array, with X number of elements per type
-        $source = [];
-        foreach($ratios as $ra) {
-                // We need to append the existing array with the output of our forrange function
-            $source = array_merge($source, forrange(0, $ra['amount'], 1, function() use ($ra) {
-                return $ra['group'];
-            }));
-        }
-        // Shuffle our list, and then select only the first 64 elements
-        shuffle($source);
-        array_splice($source, 64, sizeof($source)-64);
-
-        // Next, we need to turn our array into a list of DB entries. Note that we need to convert our 'major/minor/rare' elements into the
-        // target types for this particular land type
-        $slot = -1;
-        $send = implode(',', array_map(function($ele) use ($conversion, &$slot, $mapdata, $names) {
-            $slot++;
-            // Here, $ele is either major, minor or something similar. First, we need to convert this into one of the land types, based on
-            // the $conversion array, as well as the biome ID of the world map tile.
-            //$landtype = JSFind($conversion, function($reap) use ($mapdata) {  // This won't work, because $mapdata['biome'] holds an id, not a name
-            //    return (name==$mapdata['biome']);
-            //})[$ele];
-            $landtype = $conversion[$mapdata['biome']][$ele];
-            // Next, convert this from our land names, to land types. Note that the needle parameter comes first, then the haystack parameter
-            $landid = array_search($landtype, $names);
-            //reporterror('Debug in server/mapbuilder.php->generateminimap(): From '. $ele .' to '. $landtype .' to '. $landid);
-            return '('. $mapdata['id'] .','. ($slot%8) .','. (floor($slot/8.0)) .','. $landid .')';
-        }, $source));
+        // Let's start with a chart to determing the likelihood of each land type, given the selected biome.
+        // I was going to add it here, but instead, added it to the biomeData structure, as it's already built based on biome
         
-        // Now we are ready to send this to the database
-        $db->query("INSERT INTO sw_minimap (mapid,x,y,landtype) VALUES ". $send .";");
+        // Generate a clustered map based on the biome selected
+        $localTiles = generateClusterMap(0,$localMapWidth,0,$localMapHeight,$biomeData[$worldTile['biome']]['localTiles'], 25);
+
+        // For new players, check that they have the starting essentials
+        if($newPlayer) {
+            $passingSet = array_reduce($localTiles, function($carryLong, $long) {
+                return array_reduce($long, function($carry, $item) {
+                    if($item['landType']==='rock') {
+                        $carry['rock'] +=1;
+                        return $carry;
+                    }
+                    if($item['landType']==='trees') {
+                        $carry['trees'] +=1;
+                        return $carry;
+                    }
+                    if($item['landType']==='water') {
+                        $carry['water'] +=1;
+                        return $carry;
+                    }
+                    return $carry; // This item didn't fit any of the targets. Pass the same list forward
+                }, $carryLong);
+            }, ['rock'=>0, 'trees'=>0, 'water'=>0]);
+
+            // If any are missing or insufficient, find places in the map (at random) to fill in
+            if($passingSet['trees']<5) {
+                reporterror('server/mapbuilder.php->ensureMinimap()->new-player checks',
+                            'Notice: localMap only has '. $passingSet['trees'] .' trees. Adding more manually');
+                for($i=$passingSet['trees'];$i<=5;$i++) {
+                    $localTiles[mt_rand(0,$localMapHeight)][mt_rand(0,$localMapWidth)]['landType'] = 'trees';
+                }
+            }
+            if($passingSet['rock']<1) {
+                reporterror('server/mapbuilder.php->ensureMinimap()->new-player checks',
+                            'Notice: localMap only has '. $passingSet['rock'] .' rocks. Adding more manually');
+                $localTiles[mt_rand(0,$localMapHeight)][mt_rand(0,$localMapWidth)]['landType'] = 'rock';
+            }
+            if($passingSet['water']<1) {
+                reporterror('server/mapbuilder.php->ensureMinimap()->new-player checks',
+                            'Notice: localMap only has '. $passingSet['water'] .' water. Adding more manually');
+                $localTiles[mt_rand(0,$localMapHeight)][mt_rand(0,$localMapWidth)]['landType'] = 'water';
+            }
+        }
+            
+        // Convert the tile type names to the correct tile type ID
+        $localTiles = array_map(function($long) {
+            return array_map(function($wide) {
+                global $localTileNames;
+                $wide['landType'] = array_search($wide['landType'], $localTileNames);
+                return $wide;
+            }, $long);
+        }, $localTiles);
+
+        // This should be all we need to do here, except for saving the content... which needs to be in a DB-ready format. Convert to string!
+        $built = implode(',', array_map(function($long) use ($worldTile) {
+            return implode(',', array_map(function($wide) use ($worldTile) {
+                return '('. $worldTile['id'] .','. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .')';
+                // We don't need to include the building ID of 0, since this is a default in the DB
+            }, $long));
+        }, $localTiles));
+
+        // We should be all set to save all the data
+        $db->query("INSERT INTO sw_minimap (mapid,x,y,landtype) VALUES ". $built .";");
         $err = mysqli_error($db);
         if($err) {
             reporterror('server/mapbuilder.php->generateminimap()->save new map data', 'MySQL reported an error: '. $err);

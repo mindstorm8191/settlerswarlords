@@ -3,10 +3,12 @@
 // for the game Settlers & Warlords
 
 import React from "react";
-import { DAX } from "./DanAjax.js";
-import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
-import { DanInput } from "./DanInput.jsx";
-import { ErrorOverlay} from "./comp_ErrorOverlay.jsx";
+import { imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
+import { DanCommon } from "./DanCommon.js";
+//import { DAX } from "./DanAjax.js";
+//import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
+//import { DanInput } from "./DanInput.jsx";
+//import { ErrorOverlay} from "./comp_ErrorOverlay.jsx";
 
 export function localMap_fillFromServerData(mapContent) {
     // Handles a bit of processing for the local map
@@ -47,42 +49,114 @@ export function LocalMap(props) {
         setScrollPos({...scrollPos, moveState:false});
     }
 
+    function EmptyLandDescription() {
+        // Provides a basic description of the land on this selected tile
+        // landType - ID of the land type. This should be provided by props.landType
+
+        switch (selected.landtype) {
+            case 0: return <p>Grassland. Excellent for new construction and farming</p>;
+            case 1: return <p>Forest. Best source of wood and other materials</p>;
+            case 2: return <p>Barren rock. Easy source of stone materials and building on</p>;
+            case 3: return <p>Desert. Hot and hard to build on</p>;
+            case 4: return <p>Open water. A vital resource for life</p>;
+            case 5: return <p>Hot lava! Very dangerous, even from a distance</p>;
+            case 6: return <p>Slick ice. Very cold</p>;
+            case 7: return <p>Snowed-over ground. Very cold</p>;
+            default: return <p>Land type {props.landId} has not been coded yet</p>;
+        }
+    }
+
     function placeBuilding(buildingName) {
         // Check that we have a map tile selected, and that there is no building declared here
         if(selected===null) return;
-        if(selected.buildid!==0) return;
+        if(selected.buildid!==0) {
+            console.log('There is already building id='+ selected.buildid +' here');
+            return;
+        }
+        let b = {};
 
-        // Let's start by creating our object first
-        let b = {
-            id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
-                // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
-                // This will only work until we prioritize buildings (to use work points correctly)
-            image: imageURL+'leanto.png',
-            mode: 'building',
-            progressBar: 0,
-            progressBarMax: 120,
-            progressBarColor: 'brown',
-            tileX: selected.x,
-            tileY: selected.y,
-            update: () => {
-                if(b.mode==='building') {
-                    b.progressBar++;
-                    if(b.progressBar>=120) {
-                        b.mode = 'in use';
-                        b.progressBar = 300;
-                        b.progressBarMax = 300;
-                        b.progressBarColor = 'green';
-                    }
-                }else{
-                    b.progressBar--;
-                    if(b.progressBar<=0) {
-                        b.mode = 'building';
-                        b.progressBar = 0;
-                        b.progressBarMax = 120;
-                        b.progressBarColor = 'brown';
+        switch(buildingName) {
+            case 'leanto':
+                // Let's start by creating our object first
+                b = {
+                    id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+                        // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
+                        // This will only work until we prioritize buildings (to use work points correctly)
+                    name: 'Lean-To',
+                    descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
+                            for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
+                            on top, this is fast & easy to set up, but wont last long in the elements itself.`,
+                    usage: `Needs time to set up, then can be used for a time before it must be rebuilt`,
+                    image: imageURL+'leanto.png',
+                    mode: 'building',
+                    progressBar: 0,
+                    progressBarMax: 120,
+                    progressBarColor: 'brown',
+                    tileX: selected.x,
+                    tileY: selected.y,
+                    update: () => {
+                        if(b.mode==='building') {
+                            b.progressBar++;
+                            if(b.progressBar>=120) {
+                                b.mode = 'in use';
+                                b.progressBar = 300;
+                                b.progressBarMax = 300;
+                                b.progressBarColor = 'black';
+                            }
+                        }else{
+                            b.progressBar--;
+                            if(b.progressBar<=0) {
+                                b.mode = 'building';
+                                b.progressBar = 0;
+                                b.progressBarMax = 120;
+                                b.progressBarColor = 'brown';
+                            }
+                        }
+                    },
+                    sidePanel: ()=>{
+                        return (
+                            <>
+                                <div>Mode: {b.mode}</div>
+                                <div>Counter: {b.progressBar}</div>
+                            </>
+                        );
                     }
                 }
-            }
+            break;
+            case 'foragepost':
+                // Check that there are no other forage posts in this area
+                if(buildingList.some(e=>e.name==="Forage Post")) {
+                    console.log('There is already a forage post in this area');
+                    return;
+                }
+                b = {
+                    id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+                    name: "Forage Post",
+                    descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it first.`,
+                    usage: `Collects edible foods from the surrounding environment.  Local supplies can only support up to 4 workers. Cannot place
+                            another one in this area`,
+                    image: imageURL+'foragepost.png',
+                    progressBar: 0,
+                    progressBarColor: 'orange',
+                    progressBarMax: 30,
+                    tileX: selected.x,
+                    tileY: selected.y,
+                    onhand: [],
+                    update: ()=>{
+                        b.progressBar++;
+                        if(b.progressBar>=30) {
+                            b.onhand.push(DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'));
+                            b.progressBar = 0;
+                        }
+                    },
+                    sidePanel: ()=>{
+                        return <>
+                            <div>Progress: {parseInt((b.progressBar*100)/30)}%</div>
+                            <div>Food on hand: {b.onhand.length}</div>
+                        </>;
+                    }
+                }
+            break;
         }
         buildingList.push(b);
         
@@ -107,7 +181,7 @@ export function LocalMap(props) {
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
                     <img src={imageURL +'leanto.png'} alt="leanto" onClick={()=>placeBuilding('leanto')}/>
-                    <img src={imageURL +'foragepost.png'} alt="forage post"/>
+                    <img src={imageURL +'foragepost.png'} alt="forage post" onClick={()=>placeBuilding('foragepost')}/>
                     <img src={imageURL +'rockKnapper.png'} alt="rock knapper"/>
                     <img src={imageURL +'toolbox.png'} alt="toolbox"/>
                 </div>
@@ -143,12 +217,12 @@ export function LocalMap(props) {
                                         ""
                                     ) : (
                                         <>
-                                            <img src={tile.buildimage} alt={"building"} style={{ pointerEvents: "none" }} draggable="false"/>
+                                            <img src={tile.buildimage} alt={"building"} style={{ pointerEvents: "none", border:0 }} draggable="false"/>
                                             {typeof(tile.progressBar)==='undefined'? (''):
                                                 <div style={{
                                                     backgroundColor: tile.progressBarColor,
                                                     bottom:0,
-                                                    height:5,
+                                                    height:20,
                                                     width:tile.progressBar
                                                 }}></div>
                                             }
@@ -163,12 +237,10 @@ export function LocalMap(props) {
                     {selected === null ? (
                         "Click a tile to view options"
                     ) : parseInt(selected.buildid) === 0 ? (
-                        <EmptyLand
-                            landType={selected.landtype}
-                            onTileUpdate={props.onTileUpdate}
-                            x={selected.x}
-                            y={selected.y}
-                        />
+                        <>
+                            {EmptyLandDescription()}
+                            <p className="singleline">Nothing is built here. Select a block from the left to place it here</p>
+                        </>
                     ) : (
                         <LocalTileBuildingDetail tile={selected} />
                     )}
@@ -178,99 +250,20 @@ export function LocalMap(props) {
     );
 }
 
-function EmptyLand(props) {
-    // Shows information about an empty block that the user has selected
-    // prop fields
-    //      landType - land ID of the selected land. Helps determine what can be built at this location
-    //      buildTypes - list of all the buildings available to the player. This is received from the server as a buildoptions array
-    //      onTileUpdate - callback function to handle updating tiles when received from the server
-    //      x - X coordinate on the localmap of this tile. Only used for sending data to the server
-    //      y - Y coordinate
-
-    function LandDescription() {
-        // Provides a basic description of the land on this selected tile
-        // landType - ID of the land type. This should be provided by props.landType
-
-        switch (props.landType) {
-            case 0: return <p>Grassland. Excellent for new construction and farming</p>;
-            case 1: return <p>Forest. Best source of wood and other materials</p>;
-            case 2: return <p>Barren rock. Easy source of stone materials and building on</p>;
-            case 3: return <p>Desert. Hot and hard to build on</p>;
-            case 4: return <p>Open water. A vital resource for life</p>;
-            case 5: return <p>Hot lava! Very dangerous, even from a distance</p>;
-            case 6: return <p>Slick ice. Very cold</p>;
-            case 7: return <p>Snowed-over ground. Very cold</p>;
-            default: return <p>Land type {props.landId} has not been coded yet</p>;
-        }
-    }
-
-    return (
-        <>
-            {LandDescription()}
-            <p className="singleline">Nothing is built here. Select a block from the left to place it here</p>
-        </>
-    );
-}
-
 function LocalTileBuildingDetail(props) {
     // Shows cnotent on the right about the selected building.
     // Components that use this component: LocalMap
     // prop fields - data
     //     tile - object containing all the data about the building to show
-
-    const [pickedAction, setPickedAction] = React.useState(null);
-    const [actionWorkers, setActionWorkers] = React.useState(1);
-    const [priority, setPriority] = React.useState(1);
-    const [errorContent, setErrorContent] = React.useState('');
-
-    // When this gets updated with new content, we need to refresh some choices
-    React.useEffect(() => {
-        return () => {
-            setPickedAction(null);
-            setPriority(1);
-        };
-    }, [props.tile]);
-
-    console.log('Props provided:', props);
-
-    function changeActionWorkers(f, value) {
-        setActionWorkers(value);
-    }
-
-    function changePriority() {
-        console.log("Code has been ran!");
-        fetch(serverURL, DAX.serverMessage("setpriority", { buildid: props.tile.building.id, priority: priority }, true))
-            .then((res) => DAX.manageResponseConversion(res))
-            .catch((err) => console.log(err))
-            .then((data) => {
-                if (data.result !== "success") {
-                    console.log("Error in priority update", data);
-                    return;
-                }
-                console.log("Priority updated successfully");
-            });
-    }
-
-    function startAction(actionName) {
-        // Handles allowing a user to start a given action.
-        console.log("Using building data:", props.tile.building);
-        fetch(
-            serverURL,
-            DAX.serverMessage("addprocess", { buildid: props.tile.building.id, process: actionName, workers: actionWorkers, tomake: 0 }, true)
-        )
-            .then((res) => DAX.manageResponseConversion(res))
-            .catch((err) => console.log(err))
-            .then((data) => {
-                if (data.result !== "success") {
-                    console.log("Error in adding action:", data);
-                    setErrorContent(data.message);
-                    return;
-                }
-                // Now, we... well, I don't know what to do now
-            });
-    }
-
     
-    return <>Hello world!</>;
+    let block = buildingList.find(ele=>ele.id===props.tile.buildid);
+    if(typeof(block)==='undefined') return <>Block not found by id</>;
+
+    return <>
+        <div style={{width:'100%', align:'center'}}>{block.name}</div>
+        <p>{block.descr}</p>
+        <p>{block.usage}</p>
+        {block.sidePanel()}
+    </>;
 }
 

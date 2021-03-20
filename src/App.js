@@ -30,10 +30,7 @@ import { AdminPage } from "./comp_admin.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Update the server code to send tile data as a separate data chunk, instead of inside the localmap block. Update the client code
-        to have separate structures for both. This will allow us to store all the tile data away from React, so we can pass tile data
-        into React to update it
-    2) Update the tile display code to show buildings, when one exists
+    1) Figure out how to make the progress bar thicker, so it is more visible
     3) Fix the bug that allows more than one building to be applied to the same tile
     3) Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
     
@@ -112,9 +109,7 @@ function App() {
                 }
             });
             // Now plug in the updated gameLocalTiles into React
-            setLocalTiles(gameLocalTiles);
-
-            console.log(gameLocalTiles.length + "," + buildingList.length);
+            setLocalTiles([...gameLocalTiles]);
         }, 1000);
     }, []);
 

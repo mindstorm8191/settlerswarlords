@@ -122,9 +122,9 @@
                 'biome'=>$biomeData[$worldTile['biome']]['biome'],
                 'ugresource'=>$OreTypes[$worldTile['ugresource']],
                 'ugamount'=>$worldTile['ugamount'],
-                'population'=>$worldTile['population'],
-                'tiles'=>$localTiles
-            ]
+                'population'=>$worldTile['population']
+            ],
+            'localTiles'=>$localTiles
         ]));
 /*
         $worldMapData = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],

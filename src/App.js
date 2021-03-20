@@ -30,46 +30,13 @@ import { AdminPage } from "./comp_admin.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Fix the crash-bug where clicking on the map anywhere causes a React error
-    2) Allow players to select a block on the left panel, and be able to place it on the map
+    1) Update the server code to send tile data as a separate data chunk, instead of inside the localmap block. Update the client code
+        to have separate structures for both. This will allow us to store all the tile data away from React, so we can pass tile data
+        into React to update it
+    2) Update the tile display code to show buildings, when one exists
+    3) Fix the bug that allows more than one building to be applied to the same tile
     3) Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
     
-    3) Set up an auto-update system for the client code, that will automatically request updates from the server at a specific time. This can
-        be used for world map activities, as well as updating resource production rates after a ResourceUpdate event should have passed. We
-        will have to determine how know what to return to the client, but we will likely be able to know that before the request
-    3) Add additional details to the knownMap records. We want to be able to determine how much activity the player has had with a given
-       land location, and the status of their negotiations, user-made notes, etc
-    2) Get units to plot a path to the target whenever they travel somewhere. When they return, they will provide updates to the lands
-       they travelled through as well (which will be a bit more up-to-date than their target, since it was furthest away)
-    1) Get the user to be able to send a convoy to take over a new land
-    1) Work on dropping the fortification field in the building type table. Fortification level will be independent of the development
-        process now
-    1) Figure out what is causing the isFood parameter to be added to items within the processes structure
-    2) Check the other process-related server operations and ensure that resourceTime is being updated, where needed
-
-    4) Start working on remote troop management. Get troops to go to new locations. Set up regular report messenging. Have work done on remote
-        lands. Reinforce one group with another
-    later: See if having specific groups of tools will be useful. Gregtech has 9, maybe we could match that (or get close to it).
-        We will need a way to consume tools as a group, instead of naming specific ones to consume. For example, we want to chop down wood
-        using an axe (or hatchet), but we will have many kinds of tools. This will be a separate 'consumption stream' of sorts; we may choose
-        to consume weaker tools first (when possible) or the best tools first, not sure yet
-    later: Add a method to add a new building to the game. Start it with a name, and have a way to set the building's image
-    later: Allow players to set production rate when starting a process. It might just be better to get the page updated when the process starts
-    later: Show more details about item production to the user. Show current production vs total production rates
-    later: When looking at processes to load, show the resource quantities on hand, along with production & consumption of that resource
-    later: When viewing buildings, display the current process running there (from the map content)
-    later: Have the server report to the client about any newly created events, when the server responds to a message. This will be useful
-        when building upgrades require construction
-    later: Move all the ore selection into the WeightedRandom class, to better control the likelihood of each ore
-    later: If an action is currently working in a building, don't list it in the 'other processes' section
-    later: Include dragons as a civilization in world gen; this will be their place to land.
-    later: Provide non-realistic plants of various types, for specific uses. For example, dragon flower plants can be traded with dragons
-        (it gives them extra firepower)
-    later: Determine what to do when a new settlement doesn't have enough forested area to support the lean-tos needed. The player should
-        be informed of this, one way or another. Right now it won't have any affect on the settlement, but that may change later, as more
-        game complexity is added
-    bugs: Panning doesn't work on the actual tiles of the world map. It should, but only works correctly on the open space
-
     Further ideas
     Tool boxes: they will provide tools to any blocks needing them within an X-block radius (we can make it 10, for now).
     Any blocks needing a specific tool can get tools from that box. If a block is out of range of a toolbox, the user will be told that
@@ -95,10 +62,16 @@ import { AdminPage } from "./comp_admin.jsx";
 export const serverURL = process.env.NODE_ENV === "production" ? "ajax.php" : "http://localhost:80/settlerswarlords/ajax.php";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
+export let buildingList = [];
+export let gameLocalTiles = [];
+let timerLoop = null;
+let gameRunning = false;
+
 function App() {
     const [userData, setUserData] = React.useState(null);
     const [page, setPage] = React.useState("home");
-    const [localMap, setLocalMap] = React.useState(null);
+    const [localTiles, setLocalTiles] = React.useState(null); // Holds all the map tiles
+    const [localStats, setLocalStats] = React.useState(null); // Stores data about this area, but not the map tiles
     const [worldMap, setWorldMap] = React.useState(null);
     const [worldSpecifics, setWorldSpecifics] = React.useState(null);
     // Specific to admins only
@@ -119,6 +92,30 @@ function App() {
                 }
                 onLogin(data);
             });
+
+        // Start the progress loop!
+        timerLoop = setInterval(() => {
+            // Update all the buildings, then pass to React so the DOM can update
+            if (!gameRunning) return;
+
+            // So, from this vantage point, we actually cannot see any of the React useState variables. They're null. However, that
+            // doesn't stop us from setting these values through the respective function calls.
+            // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a copy
+            // on every game tick, where everything can be re-rendered
+            buildingList.forEach((block) => {
+                block.update();
+                // With this building updated, update the correct tile in gameLocalTiles
+                if (typeof block.progressBar !== "undefined") {
+                    let tile = gameLocalTiles.find((t) => t.buildid === block.id);
+                    tile.progressBar = (block.progressBar * 60.0) / block.progressBarMax;
+                    tile.progressBarColor = block.progressBarColor;
+                }
+            });
+            // Now plug in the updated gameLocalTiles into React
+            setLocalTiles(gameLocalTiles);
+
+            console.log(gameLocalTiles.length + "," + buildingList.length);
+        }, 1000);
     }, []);
 
     function onLogin(pack) {
@@ -129,7 +126,8 @@ function App() {
             localStorage.removeItem("userid");
             localStorage.removeItem("access");
             setPage("home");
-            setLocalMap(null);
+            setLocalTiles(null);
+            setLocalStats(null);
             setWorldMap(null); // we need to clear this too, so the new user can load content
         } else {
             setUserData({ id: pack.userid, access: pack.access });
@@ -144,9 +142,13 @@ function App() {
             }
 
             //let mapSet = localMap_fillFromServerData(pack.mapcontent);
-            console.log(pack.localContent);
-            setLocalMap(pack.localContent);
+            console.log(pack.localTiles);
+            let mapSet = localMap_fillFromServerData(pack.localTiles);
+            setLocalStats(pack.localContent);
+            setLocalTiles(mapSet);
+            gameLocalTiles = mapSet;
             setPage("localmap");
+            gameRunning = true;
         }
     }
 
@@ -179,19 +181,17 @@ function App() {
     function onTileUpdate(pack) {
         // Handles updating a set of tiles that need updating. Once finished, we will update React with the new data
         //console.log("pack received:", pack);
-        let newSet = localMap.minimap.map((ele) => {
+        //let newSet = localTiles.map((ele) => {
+        gameLocalTiles = gameLocalTiles.map((ele) => {
             // Find any tiles within 'pack' to replace our list with
             let match = pack.find((mel) => {
                 return ele.x === mel.x && ele.y === mel.y;
             });
-            if (match === undefined) {
-                //console.log(`[${ele.x},${ele.y}] != [${pack[0].x},${pack[0].y}]`);
-                return ele;
-            }
+            if (match === undefined) return ele;
             return match;
         });
 
-        setLocalMap({ ...localMap, minimap: newSet });
+        setLocalTiles(gameLocalTiles);
     }
 
     // So, instead of passing functions down to the components, where we handle server contact & updating the buildings list here,
@@ -212,7 +212,8 @@ function App() {
                 page={page}
                 setPage={onChangePage}
                 onLogin={onLogin}
-                localMap={localMap}
+                localTiles={localTiles}
+                localStats={localStats}
                 onTileUpdate={onTileUpdate}
                 worldMap={worldMap}
                 changeWorldMap={setWorldMap}
@@ -229,7 +230,8 @@ function PagePicker(props) {
     // prop fields - data
     //      page - which page to display. This is the only prop used for this component specifically; everything else is passed
     //              to the respective child components
-    //      localMap - full map content of the local world map tile
+    //      localTiles - list of all map tiles of the local map
+    //      localStats - objec tholding stats about the local map
     //      worldMap - full map content of the world map (as the user understands it)
     //      worldSpecifics - needed details for the world map, that is separate from the tiles array
     //      adminBuildingList - List of all buildings, for the admin to be able to edit them. Actions and their items are attached
@@ -244,7 +246,7 @@ function PagePicker(props) {
         case "home":
             return <HomePage onLogin={props.onLogin} />;
         case "localmap":
-            return <LocalMap setPage={props.setPage} localMap={props.localMap} onTileUpdate={props.onTileUpdate} />;
+            return <LocalMap setPage={props.setPage} localTiles={props.localTiles} localStats={props.localStats} onTileUpdate={props.onTileUpdate} />;
         case "inventory":
             return <InventoryPage setPage={props.setPage} inventory={props.localMap.items} />;
         case "worldmap":

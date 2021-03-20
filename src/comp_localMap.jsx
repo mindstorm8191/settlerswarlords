@@ -4,7 +4,7 @@
 
 import React from "react";
 import { DAX } from "./DanAjax.js";
-import { serverURL, imageURL, PageChoices } from "./App.js";
+import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 import { DanInput } from "./DanInput.jsx";
 import { ErrorOverlay} from "./comp_ErrorOverlay.jsx";
 
@@ -13,52 +13,25 @@ export function localMap_fillFromServerData(mapContent) {
     // mapContent - data received from the server
     // Returns an updated package of map content
 
-    // We basically need to attach any active processes - and items of those processes - to the building instance
-    mapContent.minimap = mapContent.minimap.map(tile => {
-        if(tile.buildid===0) return tile;  // Nothing to update here
-        tile.process = mapContent.processes.find(process => process.buildingId===tile.buildid); // This will either hold data or be null
-        if(tile.process!==null && typeof tile.process !== 'undefined') {
-            // Find any items for inputGroup, and attach the current quantity and calculated production rate
-            if(tile.process.inputGroup!==null && typeof tile.process.inputGroup !== 'undefined') {
-                tile.process.inputGroup = tile.process.inputGroup.map(root => {
-                    let pickup = mapContent.items.find(item => item.name===root.name);
-                    if(pickup===null) return root;
-                    root.onHand = pickup.amount;
-                    root.production = pickup.production-pickup.consumption;
-                    return root;
-                });
-            }else{
-                tile.process.inputGroup = 0;  // We can check for 0 later, but not for undefined
-            }
-            // Do the same for outputGroup
-            if(tile.process.outputGroup!==null && typeof tile.process.outputGroup !== 'undefined') {
-                tile.process.outputGroup = tile.process.outputGroup.map(root => {
-                    let pickup = mapContent.items.find(item => item.name===root.name);
-                    if(pickup===null) return root;
-                    root.onHand = pickup.amount;
-                    root.production = pickup.production-pickup.consumption;
-                    return root;
-                });
-            }else{
-                tile.process.outputGroup = 0;
-            }
-        }
+    return mapContent.map(tile => {
+        // Right now, we only need to make sure all tiles have a buildid field. Since we get no buildings from the server, this should be simple
+        tile.buildid = 0;
         return tile;
     });
-    return mapContent;
 }
 
 export function LocalMap(props) {
     // Handles displaying local map content, along with buildings and their options on the right side
     // prop fields - data
-    //      localMap - full map content as received from the server. Note that this will contain all events in an events structure now
+    //      localTiles - All tiles of the local map
+    //      localStats - Additional information about this local map
     // prop fields - functions
     //      setPage      - handles changing the selected page. Only passed to TabPicker
     //      onTileUpdate - handles any map tiles that have been updated
 
     // minimap images could be global later, but for now we only need them here
     const minimapImages = ["emptygrass.jpg", "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "basicrock.jpg", "basicore.jpg"];
-    const [detailed, setDetailed] = React.useState(null); // which square is selected to show details on the right
+    const [selected, setSelected] = React.useState(null); // which square is selected to show details on the right
     const [scrollPos, setScrollPos] = React.useState({moveState:false,x:0,y:0});
 
     function startPan() {
@@ -74,18 +47,66 @@ export function LocalMap(props) {
         setScrollPos({...scrollPos, moveState:false});
     }
 
+    function placeBuilding(buildingName) {
+        // Check that we have a map tile selected, and that there is no building declared here
+        if(selected===null) return;
+        if(selected.buildid!==0) return;
+
+        // Let's start by creating our object first
+        let b = {
+            id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+                // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
+                // This will only work until we prioritize buildings (to use work points correctly)
+            image: imageURL+'leanto.png',
+            mode: 'building',
+            progressBar: 0,
+            progressBarMax: 120,
+            progressBarColor: 'brown',
+            tileX: selected.x,
+            tileY: selected.y,
+            update: () => {
+                if(b.mode==='building') {
+                    b.progressBar++;
+                    if(b.progressBar>=120) {
+                        b.mode = 'in use';
+                        b.progressBar = 300;
+                        b.progressBarMax = 300;
+                        b.progressBarColor = 'green';
+                    }
+                }else{
+                    b.progressBar--;
+                    if(b.progressBar<=0) {
+                        b.mode = 'building';
+                        b.progressBar = 0;
+                        b.progressBarMax = 120;
+                        b.progressBarColor = 'brown';
+                    }
+                }
+            }
+        }
+        buildingList.push(b);
+        
+        // We also need to update the local tiles
+        let tile = gameLocalTiles.find(ele=>ele.x===selected.x && ele.y===selected.y);
+        tile.buildid = b.id;
+
+        // Update the specific tile. We already have a function to help us do that; it accepts any number of updated tiles,
+        // swapping out any based on X&Y coordinates
+        props.onTileUpdate([{...selected, buildid:b.id, buildimage:b.image}]);
+    }
+
     return (
         <>
             <div style={{display:'flex', width:'100%'}}>
                 <div>
-                    <span className="haslinespacing">Biome: {props.localMap.biome}</span>
-                    <span className="haslinespacing">Population: {props.localMap.population}</span>
+                    <span className="haslinespacing">Biome: {props.localStats.biome}</span>
+                    <span className="haslinespacing">Population: {props.localStats.population}</span>
                     <PageChoices selected={"localmap"} onPagePick={props.setPage} />
                 </div>
             </div>
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
-                    <img src={imageURL +'leanto.png'} alt="leanto"/>
+                    <img src={imageURL +'leanto.png'} alt="leanto" onClick={()=>placeBuilding('leanto')}/>
                     <img src={imageURL +'foragepost.png'} alt="forage post"/>
                     <img src={imageURL +'rockKnapper.png'} alt="rock knapper"/>
                     <img src={imageURL +'toolbox.png'} alt="toolbox"/>
@@ -98,7 +119,7 @@ export function LocalMap(props) {
                         onMouseMove={continuePan}
                         onMouseUp={endPan}
                     >
-                        {props.localMap.tiles.map((tile, key) => {
+                        {props.localTiles.map((tile, key) => {
                             let hasConstruction=0;
                             
                             return (
@@ -108,37 +129,48 @@ export function LocalMap(props) {
                                         position: "absolute",
                                         width: 55,
                                         height: 55,
-                                        top: tile.y * 55,
-                                        left: tile.x * 55,
+                                        top: tile.y * 57,
+                                        left: tile.x * 57,
                                         backgroundImage: "url(" + imageURL + minimapImages[tile.landtype] + ")",
+                                        backgroundColor: 'green',
                                         cursor: "pointer",
+                                        border: (tile===selected)?'1px solid black':'1px solid green'
                                     }}
                                     key={key}
-                                    onClick={() => setDetailed(tile)}
+                                    onClick={() => setSelected(tile)}
                                 >
                                     {parseInt(tile.buildid) === 0 ? (
                                         ""
                                     ) : (
-                                        <img src={imageURL + tile.buildType.image} alt={"building"} style={{ pointerEvents: "none" }} draggable="false"/>
+                                        <>
+                                            <img src={tile.buildimage} alt={"building"} style={{ pointerEvents: "none" }} draggable="false"/>
+                                            {typeof(tile.progressBar)==='undefined'? (''):
+                                                <div style={{
+                                                    backgroundColor: tile.progressBarColor,
+                                                    bottom:0,
+                                                    height:5,
+                                                    width:tile.progressBar
+                                                }}></div>
+                                            }
+                                        </>
                                     )}
                                 </div>
                             );
                         })}
                     </div>
                 </div>
-                <div style={{ position: "absolute", right:0, width:250, backgroundColor:'white', height:'calc(100vh - 185px)' }}>
-                    {detailed === null ? (
+                <div id="localmaprightpane">
+                    {selected === null ? (
                         "Click a tile to view options"
-                    ) : parseInt(detailed.buildid) === 0 ? (
-                        <EmptyLandShowBuildChoices
-                            landType={detailed.landtype}
-                            buildTypes={props.localMap.buildoptions}
+                    ) : parseInt(selected.buildid) === 0 ? (
+                        <EmptyLand
+                            landType={selected.landtype}
                             onTileUpdate={props.onTileUpdate}
-                            x={detailed.x}
-                            y={detailed.y}
+                            x={selected.x}
+                            y={selected.y}
                         />
                     ) : (
-                        <LocalTileBuildingDetail tile={detailed} />
+                        <LocalTileBuildingDetail tile={selected} />
                     )}
                 </div>
             </div>
@@ -146,8 +178,8 @@ export function LocalMap(props) {
     );
 }
 
-function EmptyLandShowBuildChoices(props) {
-    // List building types that can be built here, allowing the user to select one to build
+function EmptyLand(props) {
+    // Shows information about an empty block that the user has selected
     // prop fields
     //      landType - land ID of the selected land. Helps determine what can be built at this location
     //      buildTypes - list of all the buildings available to the player. This is received from the server as a buildoptions array
@@ -155,82 +187,28 @@ function EmptyLandShowBuildChoices(props) {
     //      x - X coordinate on the localmap of this tile. Only used for sending data to the server
     //      y - Y coordinate
 
-    const [selected, setSelected] = React.useState(null);
-
-    function buildStructure(buildName) {
-        // Allows the user to start construction of a given building
-        // buildingName - name of the building to start building here
-
-        // The build of this will be fetching data from the server
-        fetch(serverURL, DAX.serverMessage("addbuilding", { name: buildName, localx: props.x, localy: props.y }, true))
-            .then((res) => DAX.manageResponseConversion(res))
-            .catch((err) => console.log(err))
-            .then((data) => {
-                if (data.result !== "success") {
-                    console.log("Server reported error", data);
-                    return;
-                }
-                props.onTileUpdate([data.newmaptile]);
-            });
-    }
-
     function LandDescription() {
         // Provides a basic description of the land on this selected tile
         // landType - ID of the land type. This should be provided by props.landType
 
         switch (props.landType) {
-            case 0:
-                return <p>Grassland. Excellent for new construction and farming</p>;
-            case 1:
-                return <p>Forest. Best source of wood and other materials</p>;
-            case 2:
-                return <p>Swamp area. Not very useful</p>;
-            case 3:
-                return <p>Desert. Hot and hard to build on</p>;
-            case 4:
-                return <p>Open water. A vital resource for life</p>;
-            case 5:
-                return <p>Exposed rock. Easy source of stone materials and building on</p>;
-            case 6:
-                return <p>Exposed ore. Easy mineral access</p>;
-            default:
-                return <p>Land type {props.landId} has not been coded yet</p>;
+            case 0: return <p>Grassland. Excellent for new construction and farming</p>;
+            case 1: return <p>Forest. Best source of wood and other materials</p>;
+            case 2: return <p>Barren rock. Easy source of stone materials and building on</p>;
+            case 3: return <p>Desert. Hot and hard to build on</p>;
+            case 4: return <p>Open water. A vital resource for life</p>;
+            case 5: return <p>Hot lava! Very dangerous, even from a distance</p>;
+            case 6: return <p>Slick ice. Very cold</p>;
+            case 7: return <p>Snowed-over ground. Very cold</p>;
+            default: return <p>Land type {props.landId} has not been coded yet</p>;
         }
     }
 
     return (
-        <div>
+        <>
             {LandDescription()}
-            <p className="singleline">Nothing is built here. Choose an option from the left</p>
-            {props.buildTypes.map((ele, key) => {
-                // First, filter out the land types. Our 'data package' receives land types as a comma-delimited string, so we first
-                // have to convert that for each building type.
-                let landTypes = ele.landtype.split(",").map((rev) => parseInt(rev));
-                //console.log("Landtypes (" + props.landType + "): ", landTypes);
-                if (!landTypes.includes(props.landType)) return '';
-                return (
-                    <div key={key}>
-                        {ele === selected ? (
-                            <div className="buildingListSelected">
-                                {ele.name}
-                                <p>{ele.description}</p>
-                                {/* Show construction time, if there is any */}
-                                {ele.buildtime === 0 ? "" : <p className="singleline">Construction time: {ele.buildtime} seconds</p>}
-                                <p className="singleline" style={{ textAlign: "center" }}>
-                                    <span className="fakelink" onClick={() => buildStructure(ele.name)}>
-                                        Build
-                                    </span>
-                                </p>
-                            </div>
-                        ) : (
-                            <p className="singleline buildingListChoice" onClick={() => setSelected(ele)}>
-                                {ele.name}
-                            </p>
-                        )}
-                    </div>
-                );
-            })}
-        </div>
+            <p className="singleline">Nothing is built here. Select a block from the left to place it here</p>
+        </>
     );
 }
 
@@ -292,125 +270,7 @@ function LocalTileBuildingDetail(props) {
             });
     }
 
-    return (
-        <div>
-            <p>
-                <span style={{fontWeight:"bold", marginRight:20}}>{props.tile.buildType.name}</span>
-                <span style={{ marginRight: 20}}>Dev level: {props.tile.building.devlevel}</span>
-                <span>Fort level: {props.tile.building.fortlevel}</span>
-            </p>
-            <p>{props.tile.buildType.description}</p>
-            {/*If there is an active process for this building, show it here */}
-            {typeof props.tile.process === 'undefined' ? (
-                <p>No activity</p>
-            ):(
-                <div>
-                    <p className="singleline simpletitle">
-                        Current Activity:
-                    </p>
-                    <div style={{ justifyContent:'center', display:'flex', marginRight:20}}>
-                        {/* Show the name of this process */}
-                        <div style={{flexBasis:'100%'}}>
-                            <p className="singleline">
-                                {props.tile.process.name}, priority {props.tile.process.priority}, workers 1
-                            </p>
-
-                            {/* Show input items, if there are any */}
-                            {props.tile.process.inputGroup === 0 ? (
-                                <p className="singleline">Input items: none</p>
-                            ):(
-                                <div>
-                                    <p className="singleline">Input Items:</p>
-                                    {props.tile.process.inputGroup.map((ele,key) => (
-                                        <p key={key} className="singleline">
-                                            {ele.name}, on hand={ele.onHand}, producing {ele.production}/hr
-                                        </p>
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Also show output items */}
-                            {props.tile.process.outputGroup === 0 ? (
-                                <p className="singleline">Output items: none</p>
-                            ):(
-                                <div>
-                                    <p className="singleline">Output Items:</p>
-                                    {props.tile.process.outputGroup.map((ele,key) => (
-                                        <p key={key} className="singleline">
-                                            {ele.name}, on hand={ele.onHand}, producing {ele.production}/hr
-                                        </p>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Next, show an input box for priority, to allow the user to change it */}
-                        <div style={{ flexBasic: "100%" }}>
-                            <p className="singleline">
-                                Priority:{" "}
-                                <DanInput
-                                    default={props.tile.process.priority}
-                                    onUpdate={(f, value) => setPriority(value)}
-                                    onEnter={changePriority}
-                                    onBlur={changePriority}
-                                />
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/*Now, show a list of possible actions this building provides */}
-            <p className="singleline" style={{ fontWeight: "bold" }}>
-                {props.tile.process === null ? "" : "Other "}Actions
-            </p>
-            {props.tile.actions.map((ele, key) => {
-                if (ele === pickedAction) {
-                    return (
-                        <div key={key} style={{ border: "1px solid black", margin: 8 }}>
-                            <p className="singleline" style={{ textAlign: "center" }}>
-                                {ele.name}
-                            </p>
-                            <p className="singleline">
-                                # of workers: <DanInput onUpdate={changeActionWorkers} fieldName={"actionWorker"} default={actionWorkers} />
-                                Range: {ele.minWorkers} to {ele.maxWorkers}
-                            </p>
-                            <p className="singleline">
-                                Resources Needed: <span style={{ margin: 8 }}></span>
-                                {ele.inputGroup === 0
-                                    ? "none"
-                                    : ele.inputGroup.map((item, kel) => (
-                                          <span key={kel} className="commalist">
-                                              {item.name} x{item.amount} (have {item.amount === undefined ? 0 : item.amount})
-                                          </span>
-                                      ))}
-                            </p>
-                            <p className="singleline">
-                                Resources Produced: <span style={{ margin: 8 }}></span>
-                                {ele.outputGroup === 0
-                                    ? "none"
-                                    : ele.outputGroup.map((item, kel) => (
-                                          <span key={kel} className="commalist">
-                                              {item.name} x{item.amount} (have {item.amount === undefined ? 0 : item.amount})
-                                          </span>
-                                      ))}
-                            </p>
-                            <p className="singleline" style={{ textAlign: "center" }}>
-                                <span className="fakelink" onClick={() => startAction(ele.name)}>
-                                    Start Work
-                                </span>
-                            </p>
-                        </div>
-                    );
-                }
-                return (
-                    <div key={key} style={{ cursor: "pointer" }} onClick={() => setPickedAction(ele)}>
-                        {ele.name}
-                    </div>
-                );
-            })}
-            <ErrorOverlay content={errorContent} onContinue={setErrorContent} />
-        </div>
-    )
+    
+    return <>Hello world!</>;
 }
 

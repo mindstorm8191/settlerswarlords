@@ -63,6 +63,15 @@
     overflow: hidden;
 }
 
+#localmaprightpane {
+    position: absolute;
+    display: block;
+    right: 0px;
+    width: 300px;
+    background-color: white;
+    height: calc(100vh - 185px);
+}
+
 .haslinespacing {
     /* Generic span class that gives space betwen each element */
     margin: 10px;

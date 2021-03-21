@@ -4,7 +4,7 @@
 */
 
 import React from "react";
-import {buildingList, imageURL} from "./App.js";
+import {buildingList, imageURL, createItem } from "./App.js";
 import { DanCommon } from "./DanCommon.js";
 
 export function ForagePost(mapTile) {
@@ -26,10 +26,16 @@ export function ForagePost(mapTile) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
+        hasItem: name => false, // This doesn't return any items at this time
+        getItem: name => null,  // This doesn't return any items at this time
         update: ()=>{
             b.progressBar++;
             if(b.progressBar>=30) {
-                b.onhand.push(DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'));
+                b.onhand.push(createItem(
+                    b.id,
+                    DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'),
+                    'food', {liftime: 300}
+                ));
                 b.progressBar = 0;
             }
         },

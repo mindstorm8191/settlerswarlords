@@ -25,12 +25,25 @@ export function RockKnapper(mapTile) {
         tileY: mapTile.y,
         onhand: [],
         currentCraft: '',
+        hasItem: nameList =>{
+            // returns true if this block can output any item in the name list
+            return nameList.some(name => {
+                return b.onhand.some(item=>item.name===name);
+            });
+        },
+        getItem: name=>{
+            // Returns an item, removing it from this inventory
+            let slot = b.onhand.find(item => item.name===name);
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
+        },
         update: ()=>{
             if(b.currentCraft==='') return;
+            if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here
 
             b.progressBar++;
             if(b.progressBar>=20) {
-                b.onhand.push(b.currentCraft);
+                b.onhand.push({name:b.currentCraft,group:'tool'});
                 b.progressBar=0;
             }
         },
@@ -42,8 +55,12 @@ export function RockKnapper(mapTile) {
             ];
             // Maybe we can still use useState here?
             const [newMode, setNewMode] = React.useState(b.currentCraft);
+            // This will trigger updates locally, but only for a short duration. Once the game updates again, this will be irrelevant.
+            // But it keeps the interface responsive!
+
             return (
                 <>
+                    On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
                     <div>Choose what to craft</div>
                     <ClickableLabel
                         onClick={cur=>{

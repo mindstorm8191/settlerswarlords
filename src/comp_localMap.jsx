@@ -7,6 +7,7 @@ import { imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 import { LeanTo } from "./block_leanto.jsx";
 import { ForagePost } from "./block_foragepost.jsx";
 import { RockKnapper } from "./block_rockknapper.jsx";
+import { Toolbox } from "./block_toolbox.jsx";
 //import { DAX } from "./DanAjax.js";
 //import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 //import { DanInput } from "./DanInput.jsx";
@@ -80,6 +81,7 @@ export function LocalMap(props) {
             case 'leanto': b = LeanTo(selected); break;
             case 'foragepost': b = ForagePost(selected); break;
             case 'rockknapper': b = RockKnapper(selected); break;
+            case 'toolbox': b = Toolbox(selected); break;
         }
         if(typeof(b)==='string') {
             console.log('Building placement failed: '+ b);
@@ -110,7 +112,7 @@ export function LocalMap(props) {
                     <img src={imageURL +'leanto.png'} alt="leanto" onClick={()=>placeBuilding('leanto')}/>
                     <img src={imageURL +'foragepost.png'} alt="forage post" onClick={()=>placeBuilding('foragepost')}/>
                     <img src={imageURL +'rockKnapper.png'} alt="rock knapper" onClick={()=>placeBuilding('rockknapper')}/>
-                    <img src={imageURL +'toolbox.png'} alt="toolbox"/>
+                    <img src={imageURL +'toolbox.png'} alt="toolbox" onClick={()=>placeBuilding('toolbox')}/>
                 </div>
                 <div id="localmapbox">
                     {/* This is the map container, that helps us scroll the whole map at once */}

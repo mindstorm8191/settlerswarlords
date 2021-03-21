@@ -65,10 +65,18 @@ export const serverURL = process.env.NODE_ENV === "production" ? "ajax.php" : "h
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
 export let buildingList = [];
+export let itemList = [];
 export let gameLocalTiles = [];
 let timerLoop = null;
 let gameRunning = false;
-let foodCounter = 300; // 5 minutes to begin producing food before consumption begins
+let foodCounter = 180; // 3 minutes to begin producing food before consumption begins
+
+export function createItem(buildingId, name, group, extras) {
+    // Handles creating a new item, while also adding it to the global itemsList structure
+    let item = { id: itemList.length === 0 ? 1 : itemList[itemList.length - 1] + 1, name, group, ...extras };
+    itemList.push(item);
+    return item;
+}
 
 function App() {
     const [userData, setUserData] = React.useState(null);
@@ -103,8 +111,28 @@ function App() {
 
             // So, from this vantage point, we actually cannot see any of the React useState variables. They're null. However, that
             // doesn't stop us from setting these values through the respective function calls.
-            // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a copy
+            // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a new copy
             // on every game tick, where everything can be re-rendered
+
+            // Start with managing food consumption
+            foodCounter--;
+            if (foodCounter <= 0) {
+                // Find a suitable food item to consume
+                let foodList = itemList.filter((ele) => ele.group === "food");
+                let foodSlot = Math.floor(Math.random() * foodList.length);
+                let food = foodList[foodSlot];
+                // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
+                let foundFood = buildingList.forEach((building) => {
+                    if (typeof building.onhand === "undefined") return false;
+                    let slot = building.onhand.findIndex((i) => i.id === food.id);
+                    if (slot === -1) return false; // Our target food wasn't found in this building block
+                    building.onhand.splice(slot, 1);
+                    return true;
+                });
+                foodList.splice(foodSlot, 1);
+                foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
+            }
+
             buildingList.forEach((block) => {
                 block.update();
                 // With this building updated, update the correct tile in gameLocalTiles

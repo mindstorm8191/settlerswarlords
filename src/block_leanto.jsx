@@ -25,6 +25,8 @@ export function LeanTo(mapTile) {
         progressBarColor: 'brown',
         tileX: mapTile.x,
         tileY: mapTile.y,
+        hasItem: name => false, // This doesn't return any items
+        getItem: name => null,  // This doesn't return any items
         update: () => {
             if(b.mode==='building') {
                 b.progressBar++;

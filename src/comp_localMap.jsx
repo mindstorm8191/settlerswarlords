@@ -4,7 +4,9 @@
 
 import React from "react";
 import { imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
-import { DanCommon } from "./DanCommon.js";
+import { LeanTo } from "./block_leanto.jsx";
+import { ForagePost } from "./block_foragepost.jsx";
+import { RockKnapper } from "./block_rockknapper.jsx";
 //import { DAX } from "./DanAjax.js";
 //import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 //import { DanInput } from "./DanInput.jsx";
@@ -74,93 +76,18 @@ export function LocalMap(props) {
             return;
         }
         let b = {};
-
         switch(buildingName) {
-            case 'leanto':
-                // Let's start by creating our object first
-                b = {
-                    id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
-                        // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
-                        // This will only work until we prioritize buildings (to use work points correctly)
-                    name: 'Lean-To',
-                    descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
-                            for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
-                            on top, this is fast & easy to set up, but wont last long in the elements itself.`,
-                    usage: `Needs time to set up, then can be used for a time before it must be rebuilt`,
-                    image: imageURL+'leanto.png',
-                    mode: 'building',
-                    progressBar: 0,
-                    progressBarMax: 120,
-                    progressBarColor: 'brown',
-                    tileX: selected.x,
-                    tileY: selected.y,
-                    update: () => {
-                        if(b.mode==='building') {
-                            b.progressBar++;
-                            if(b.progressBar>=120) {
-                                b.mode = 'in use';
-                                b.progressBar = 300;
-                                b.progressBarMax = 300;
-                                b.progressBarColor = 'black';
-                            }
-                        }else{
-                            b.progressBar--;
-                            if(b.progressBar<=0) {
-                                b.mode = 'building';
-                                b.progressBar = 0;
-                                b.progressBarMax = 120;
-                                b.progressBarColor = 'brown';
-                            }
-                        }
-                    },
-                    sidePanel: ()=>{
-                        return (
-                            <>
-                                <div>Mode: {b.mode}</div>
-                                <div>Counter: {b.progressBar}</div>
-                            </>
-                        );
-                    }
-                }
-            break;
-            case 'foragepost':
-                // Check that there are no other forage posts in this area
-                if(buildingList.some(e=>e.name==="Forage Post")) {
-                    console.log('There is already a forage post in this area');
-                    return;
-                }
-                b = {
-                    id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
-                    name: "Forage Post",
-                    descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it first.`,
-                    usage: `Collects edible foods from the surrounding environment.  Local supplies can only support up to 4 workers. Cannot place
-                            another one in this area`,
-                    image: imageURL+'foragepost.png',
-                    progressBar: 0,
-                    progressBarColor: 'orange',
-                    progressBarMax: 30,
-                    tileX: selected.x,
-                    tileY: selected.y,
-                    onhand: [],
-                    update: ()=>{
-                        b.progressBar++;
-                        if(b.progressBar>=30) {
-                            b.onhand.push(DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'));
-                            b.progressBar = 0;
-                        }
-                    },
-                    sidePanel: ()=>{
-                        return <>
-                            <div>Progress: {parseInt((b.progressBar*100)/30)}%</div>
-                            <div>Food on hand: {b.onhand.length}</div>
-                        </>;
-                    }
-                }
-            break;
+            case 'leanto': b = LeanTo(selected); break;
+            case 'foragepost': b = ForagePost(selected); break;
+            case 'rockknapper': b = RockKnapper(selected); break;
+        }
+        if(typeof(b)==='string') {
+            console.log('Building placement failed: '+ b);
+            return;
         }
         buildingList.push(b);
         
-        // We also need to update the local tiles
+        // We also need to update the local tiles; updating `selected` won't work here
         let tile = gameLocalTiles.find(ele=>ele.x===selected.x && ele.y===selected.y);
         tile.buildid = b.id;
 
@@ -182,7 +109,7 @@ export function LocalMap(props) {
                 <div style={{width:180}}>
                     <img src={imageURL +'leanto.png'} alt="leanto" onClick={()=>placeBuilding('leanto')}/>
                     <img src={imageURL +'foragepost.png'} alt="forage post" onClick={()=>placeBuilding('foragepost')}/>
-                    <img src={imageURL +'rockKnapper.png'} alt="rock knapper"/>
+                    <img src={imageURL +'rockKnapper.png'} alt="rock knapper" onClick={()=>placeBuilding('rockknapper')}/>
                     <img src={imageURL +'toolbox.png'} alt="toolbox"/>
                 </div>
                 <div id="localmapbox">
@@ -194,8 +121,6 @@ export function LocalMap(props) {
                         onMouseUp={endPan}
                     >
                         {props.localTiles.map((tile, key) => {
-                            let hasConstruction=0;
-                            
                             return (
                                 <div
                                     style={{
@@ -255,6 +180,8 @@ function LocalTileBuildingDetail(props) {
     // Components that use this component: LocalMap
     // prop fields - data
     //     tile - object containing all the data about the building to show
+    // prop fields - functions
+    //      onTileUpdate - Allows a single map tile to be updated
     
     let block = buildingList.find(ele=>ele.id===props.tile.buildid);
     if(typeof(block)==='undefined') return <>Block not found by id</>;
@@ -263,7 +190,30 @@ function LocalTileBuildingDetail(props) {
         <div style={{width:'100%', align:'center'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
-        {block.sidePanel()}
+        {block.SidePanel()}
     </>;
 }
 
+export function ClickableLabel(props) {
+    // Provides a clickable label with multiple modes that can be swappd at will
+    // prop fields - data
+    //      mode - which mode to display
+    //      options: list of selectable modes, each containing properties:
+    //          name: name matching the value of 'mode'
+    //          bgColor: Color of the background
+    // prop fields - functions
+    //      onClick: action to take when the user clicks the box
+
+    // Pick out the correct element. If the element isn't found, pick the last one
+    let picked = props.options.find(e=>e.name===props.mode);
+    if(typeof(picked)==='undefined') picked = props.options[0];
+
+    return (
+        <span
+            style={{margin:1, padding:10, backgroundColor:picked.bgColor, cursor:'pointer', border:'1px black solid', display:'inline-block'}}
+            onClick={()=>props.onClick(props.mode)}
+        >
+            {props.children}
+        </span>
+    );
+}

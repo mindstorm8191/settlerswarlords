@@ -31,8 +31,13 @@ import { AdminPage } from "./comp_admin.jsx";
 
     Task list
     1) Figure out how to make the progress bar thicker, so it is more visible
-    3) Fix the bug that allows more than one building to be applied to the same tile
-    3) Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
+    2) Keep adding buildings and get the basic game running
+    3) Add a food consumption process that finds food for the colonists to eat
+    4) Update the block ID selection process to consider out-of-order blocks
+    5) Set up block operation restrictions based on worker points
+    6) Allow blocks to be sorted based on priority. Allow blocks to set their priority
+    later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status
+    later: Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
     
     Further ideas
     Tool boxes: they will provide tools to any blocks needing them within an X-block radius (we can make it 10, for now).
@@ -63,6 +68,7 @@ export let buildingList = [];
 export let gameLocalTiles = [];
 let timerLoop = null;
 let gameRunning = false;
+let foodCounter = 300; // 5 minutes to begin producing food before consumption begins
 
 function App() {
     const [userData, setUserData] = React.useState(null);

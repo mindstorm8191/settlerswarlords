@@ -9,6 +9,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { localMap_fillFromServerData, LocalMap } from "./comp_localMap.jsx";
 import { worldMap_fillFromServerData, WorldMap } from "./comp_worldMap.jsx";
 import { AdminPage } from "./comp_admin.jsx";
+import { game } from "./game.jsx";
 
 /*  Version 6?!?
     Version 5 was a success, on the aspect of managing resources. We had (almost) everything of that working the way we wanted,
@@ -64,20 +65,6 @@ import { AdminPage } from "./comp_admin.jsx";
 export const serverURL = process.env.NODE_ENV === "production" ? "ajax.php" : "http://localhost:80/settlerswarlords/ajax.php";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
-export let buildingList = [];
-export let itemList = [];
-export let gameLocalTiles = [];
-let timerLoop = null;
-let gameRunning = false;
-let foodCounter = 180; // 3 minutes to begin producing food before consumption begins
-
-export function createItem(buildingId, name, group, extras) {
-    // Handles creating a new item, while also adding it to the global itemsList structure
-    let item = { id: itemList.length === 0 ? 1 : itemList[itemList.length - 1] + 1, name, group, ...extras };
-    itemList.push(item);
-    return item;
-}
-
 function App() {
     const [userData, setUserData] = React.useState(null);
     const [page, setPage] = React.useState("home");
@@ -105,46 +92,7 @@ function App() {
             });
 
         // Start the progress loop!
-        timerLoop = setInterval(() => {
-            // Update all the buildings, then pass to React so the DOM can update
-            if (!gameRunning) return;
-
-            // So, from this vantage point, we actually cannot see any of the React useState variables. They're null. However, that
-            // doesn't stop us from setting these values through the respective function calls.
-            // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a new copy
-            // on every game tick, where everything can be re-rendered
-
-            // Start with managing food consumption
-            foodCounter--;
-            if (foodCounter <= 0) {
-                // Find a suitable food item to consume
-                let foodList = itemList.filter((ele) => ele.group === "food");
-                let foodSlot = Math.floor(Math.random() * foodList.length);
-                let food = foodList[foodSlot];
-                // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
-                let foundFood = buildingList.forEach((building) => {
-                    if (typeof building.onhand === "undefined") return false;
-                    let slot = building.onhand.findIndex((i) => i.id === food.id);
-                    if (slot === -1) return false; // Our target food wasn't found in this building block
-                    building.onhand.splice(slot, 1);
-                    return true;
-                });
-                foodList.splice(foodSlot, 1);
-                foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
-            }
-
-            buildingList.forEach((block) => {
-                block.update();
-                // With this building updated, update the correct tile in gameLocalTiles
-                if (typeof block.progressBar !== "undefined") {
-                    let tile = gameLocalTiles.find((t) => t.buildid === block.id);
-                    tile.progressBar = (block.progressBar * 60.0) / block.progressBarMax;
-                    tile.progressBarColor = block.progressBarColor;
-                }
-            });
-            // Now plug in the updated gameLocalTiles into React
-            setLocalTiles([...gameLocalTiles]);
-        }, 1000);
+        game.timerLoop = setInterval(game.update, 1000);
     }, []);
 
     function onLogin(pack) {
@@ -175,9 +123,10 @@ function App() {
             let mapSet = localMap_fillFromServerData(pack.localTiles);
             setLocalStats(pack.localContent);
             setLocalTiles(mapSet);
-            gameLocalTiles = mapSet;
+            game.tiles = mapSet;
+            game.updateReact = setLocalTiles; // Pass the handle of the function, not its result
             setPage("localmap");
-            gameRunning = true;
+            game.isRunning = true;
         }
     }
 
@@ -211,7 +160,7 @@ function App() {
         // Handles updating a set of tiles that need updating. Once finished, we will update React with the new data
         //console.log("pack received:", pack);
         //let newSet = localTiles.map((ele) => {
-        gameLocalTiles = gameLocalTiles.map((ele) => {
+        game.tiles = game.tiles.map((ele) => {
             // Find any tiles within 'pack' to replace our list with
             let match = pack.find((mel) => {
                 return ele.x === mel.x && ele.y === mel.y;
@@ -220,7 +169,7 @@ function App() {
             return match;
         });
 
-        setLocalTiles(gameLocalTiles);
+        setLocalTiles(game.tiles);
     }
 
     // So, instead of passing functions down to the components, where we handle server contact & updating the buildings list here,

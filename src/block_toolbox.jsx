@@ -12,11 +12,12 @@ to do things in React, but I'm not sure how to make it work properly
 */
 
 import React from "react";
-import {buildingList, imageURL} from "./App.js";
+import {imageURL} from "./App.js";
+import {game} from "./game.jsx";
 
 export function Toolbox(mapTile) {
     let b = {
-        id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+        id: game.getNextBlockId(),
         name: "Toolbox",
         descr: `Lots of tasks require tools, and you'll need to produce tools of all shapes & sizes`,
         usage: `Holds one type of tool, with a max amount you can decide. Move your tools here to make them accessible to all nearby blocks`,
@@ -31,7 +32,7 @@ export function Toolbox(mapTile) {
             // Search nearby blocks for any tools nearby to collect from them
             if(b.onhand.length===0) {
                 // We haven't collected any tools yet. We can collect anything. Try to pick up something from a neighboring block
-                let neighbors = neighborBlock(b.tileX,b.tileY);
+                let neighbors = game.getNeighbors(b.tileX,b.tileY);
                 neighbors.some(edge => {
                     if(edge.hasItem(['Flint Knife', 'Flint Stabber'])) {
                         b.onhand.push(edge.getItem(['Flint Knife', 'Flint Stabber']));
@@ -42,7 +43,7 @@ export function Toolbox(mapTile) {
             }else{
                 if(b.onhand.length>=5) return; // We dont' need to store too many tools...
                 // We already have one item, we can only collect that type again.
-                let neighbors = neighborBlock(b.tileX,b.tileY);
+                let neighbors = game.getNeighbors(b.tileX,b.tileY);
                 neighbors.some(edge => {
                     if(edge.hasItem([b.onhand[0].name])) {
                         b.onhand.push(edge.getItem([b.onhand[0].name]));
@@ -63,14 +64,5 @@ export function Toolbox(mapTile) {
     return b;
 }
 
-let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
-function neighborBlock(x,y) {
-    // Returns an array holding all neighboring blocks (in cardinal directions)
-    return cardinalDirections.map(dir=>{
-        return buildingList.find(ele=>ele.tileX===x+dir.x && ele.tileY===y+dir.y);
-    }).filter(ele => {
-        return typeof(ele)!=='undefined';
-    });
-}
 

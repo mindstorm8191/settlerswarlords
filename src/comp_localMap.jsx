@@ -3,11 +3,12 @@
 // for the game Settlers & Warlords
 
 import React from "react";
-import { imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
+import { imageURL, PageChoices, buildingList } from "./App.js";
 import { LeanTo } from "./block_leanto.jsx";
 import { ForagePost } from "./block_foragepost.jsx";
 import { RockKnapper } from "./block_rockknapper.jsx";
 import { Toolbox } from "./block_toolbox.jsx";
+import {game} from "./game.jsx";
 //import { DAX } from "./DanAjax.js";
 //import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 //import { DanInput } from "./DanInput.jsx";
@@ -87,11 +88,11 @@ export function LocalMap(props) {
             console.log('Building placement failed: '+ b);
             return;
         }
-        buildingList.push(b);
+        game.blocks.push(b);
         
         // We also need to update the local tiles; updating `selected` won't work here
-        let tile = gameLocalTiles.find(ele=>ele.x===selected.x && ele.y===selected.y);
-        tile.buildid = b.id;
+        let tile = game.tiles.findIndex(ele=>ele.x===selected.x && ele.y===selected.y);
+        game.tiles[tile].buildid = b.id;
 
         // Update the specific tile. We already have a function to help us do that; it accepts any number of updated tiles,
         // swapping out any based on X&Y coordinates
@@ -185,7 +186,7 @@ function LocalTileBuildingDetail(props) {
     // prop fields - functions
     //      onTileUpdate - Allows a single map tile to be updated
     
-    let block = buildingList.find(ele=>ele.id===props.tile.buildid);
+    let block = game.blocks.find(ele=>ele.id===props.tile.buildid);
     if(typeof(block)==='undefined') return <>Block not found by id</>;
 
     return <>

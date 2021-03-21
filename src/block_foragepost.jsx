@@ -4,17 +4,18 @@
 */
 
 import React from "react";
-import {buildingList, imageURL, createItem } from "./App.js";
+import {imageURL } from "./App.js";
 import { DanCommon } from "./DanCommon.js";
+import {game} from "./game.jsx";
 
 export function ForagePost(mapTile) {
     // Check that there are no other forage posts in this area
-    if(buildingList.some(e=>e.name==="Forage Post")) {
+    if(game.blocks.some(e=>e.name==="Forage Post")) {
         console.log('There is already a forage post in this area');
         return 'cannotbuildmore';
     }
     let b = {
-        id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+        id: game.getNextBlockId(),
         name: "Forage Post",
         descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it first.`,
         usage: `Collects edible foods from the surrounding environment.  Local supplies can only support up to 4 workers. Cannot place
@@ -31,7 +32,7 @@ export function ForagePost(mapTile) {
         update: ()=>{
             b.progressBar++;
             if(b.progressBar>=30) {
-                b.onhand.push(createItem(
+                b.onhand.push(game.createItem(
                     b.id,
                     DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'),
                     'food', {liftime: 300}

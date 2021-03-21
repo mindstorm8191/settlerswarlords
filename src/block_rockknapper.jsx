@@ -4,15 +4,16 @@
 */
 
 import React from "react";
-import {buildingList, imageURL} from "./App.js";
+import { imageURL } from "./App.js";
 import {ClickableLabel} from "./comp_localMap.jsx";
+import {game} from "./game.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
     if(mapTile.landtype!==2) return 'wronglandtype';
 
     let b = {
-        id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+        id: game.getNextBlockId(),
         name: "Rock Knapper",
         descr: `Tools are critical to survival, and rocks are your first tool. Knapping is the art of smashing rocks into the shapes you need.`,
         usage: `Knapp rocks to craft either knives or stabbers - you must select one before crafting can begin. Once crafted, place
@@ -43,7 +44,7 @@ export function RockKnapper(mapTile) {
 
             b.progressBar++;
             if(b.progressBar>=20) {
-                b.onhand.push({name:b.currentCraft,group:'tool'});
+                b.onhand.push(game.createItem(b, b.currentCraft, 'tool', {efficiency:1, endurance:30}));
                 b.progressBar=0;
             }
         },

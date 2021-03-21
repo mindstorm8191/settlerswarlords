@@ -4,13 +4,14 @@
 */
 
 import React from "react";
-import {buildingList, imageURL} from "./App.js";
+import {imageURL} from "./App.js";
+import {game} from "./game.jsx";
 
 export function LeanTo(mapTile) {
     // Let's start by creating our object first
     if(mapTile.landtype!==1) return 'wronglandtype';
     let b = {
-        id: (buildingList.length===0)?1:buildingList[buildingList.length-1].id+1,
+        id: game.getNextBlockId(),
             // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
             // This will only work until we prioritize buildings (to use work points correctly)
         name: 'Lean-To',

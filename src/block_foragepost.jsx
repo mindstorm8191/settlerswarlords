@@ -7,6 +7,7 @@ import React from "react";
 import {imageURL } from "./App.js";
 import { DanCommon } from "./DanCommon.js";
 import {game} from "./game.jsx";
+import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 
 export function ForagePost(mapTile) {
     // Check that there are no other forage posts in this area
@@ -15,6 +16,7 @@ export function ForagePost(mapTile) {
         return 'cannotbuildmore';
     }
     let b = {
+        //...blockHasWorkerPriority(),
         id: game.getNextBlockId(),
         name: "Forage Post",
         descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it first.`,
@@ -30,6 +32,8 @@ export function ForagePost(mapTile) {
         hasItem: name => false, // This doesn't return any items at this time
         getItem: name => null,  // This doesn't return any items at this time
         update: ()=>{
+            if(game.workPoints<=0) return;
+            game.workPoints--;
             b.progressBar++;
             if(b.progressBar>=30) {
                 b.onhand.push(game.createItem(
@@ -42,10 +46,11 @@ export function ForagePost(mapTile) {
         },
         SidePanel: ()=>{
             return <>
+                {b.ShowPriority()}
                 <div>Progress: {parseInt((b.progressBar*100)/30)}%</div>
                 <div>Food on hand: {b.onhand.length}</div>
             </>;
         }
     }
-    return b;
+    return Object.assign(b, blockHasWorkerPriority(b));
 }

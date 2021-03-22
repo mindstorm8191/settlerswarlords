@@ -14,6 +14,7 @@ export let game = {
                         // needs to be ironed out though
     updateReact: null,  // This gets updated when the game begins, allowing us to trigger map updates every game tick
     timerLoop: null,    // Handle to the setInterval object, so we can edit this when needed
+    workPoints: 0,      // Set & updated dynamically on every block update pass
 
     getNextBlockId: ()=> {
         if(game.blocks.length===0) return 1;
@@ -36,11 +37,19 @@ export let game = {
         game.items.push(item);
         return item;
     },
+    sortBlocks: (a,b) => {
+        if(typeof(a.priority)==='undefined') {
+            if(typeof(b.priority)==='undefined') return 0;
+            return 1; // B will have priority over A, because it has a value
+        }
+        if(typeof(b.priority)==='undefined') return -1;
+        return a.priority - b.priority;
+    },
     update: ()=>{
         if (!game.isRunning) return;
 
-        // So, from this vantage point, we actually cannot see any of the React useState variables. They're null. However, that
-        // doesn't stop us from setting these values through the respective function calls.
+        // So, from this vantage point (within setInterval, not withing game.jsx), we actually cannot see any of the React useState
+        // variables. They're null. However, that doesn't stop us from setting these values through the respective function calls.
         // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a new copy
         // on every game tick, where everything can be re-rendered
 
@@ -63,6 +72,7 @@ export let game = {
             game.foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
         }
 
+        game.workPoints = game.population;
         game.blocks.forEach((block) => {
             block.update();
             // With this building updated, update the correct tile in gameLocalTiles
@@ -72,6 +82,7 @@ export let game = {
                 tile.progressBarColor = block.progressBarColor;
             }
         });
+        
         // Now plug in the updated gameLocalTiles into React
         game.updateReact([...game.tiles]);
     }

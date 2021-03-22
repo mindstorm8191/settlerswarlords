@@ -124,6 +124,7 @@ function App() {
             setLocalStats(pack.localContent);
             setLocalTiles(mapSet);
             game.tiles = mapSet;
+            game.population = pack.localContent.population;
             game.updateReact = setLocalTiles; // Pass the handle of the function, not its result
             setPage("localmap");
             game.isRunning = true;

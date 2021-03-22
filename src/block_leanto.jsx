@@ -6,11 +6,13 @@
 import React from "react";
 import {imageURL} from "./App.js";
 import {game} from "./game.jsx";
+import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 
 export function LeanTo(mapTile) {
     // Let's start by creating our object first
     if(mapTile.landtype!==1) return 'wronglandtype';
     let b = {
+        //...blockHasWorkerPriority,
         id: game.getNextBlockId(),
             // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
             // This will only work until we prioritize buildings (to use work points correctly)
@@ -30,7 +32,9 @@ export function LeanTo(mapTile) {
         getItem: name => null,  // This doesn't return any items
         update: () => {
             if(b.mode==='building') {
+                if(game.workPoints<=0) return;
                 b.progressBar++;
+                game.workPoints--;
                 if(b.progressBar>=120) {
                     b.mode = 'in use';
                     b.progressBar = 300;
@@ -51,10 +55,11 @@ export function LeanTo(mapTile) {
             return (
                 <>
                     <div>Mode: {b.mode}</div>
+                    {b.ShowPriority()}
                     <div>Counter: {b.progressBar}</div>
                 </>
             );
         }
     }
-    return b;
+    return Object.assign(b, blockHasWorkerPriority(b));
 }

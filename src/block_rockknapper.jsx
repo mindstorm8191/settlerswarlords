@@ -7,6 +7,7 @@ import React from "react";
 import { imageURL } from "./App.js";
 import {ClickableLabel} from "./comp_localMap.jsx";
 import {game} from "./game.jsx";
+import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
@@ -39,9 +40,10 @@ export function RockKnapper(mapTile) {
             return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
         },
         update: ()=>{
-            if(b.currentCraft==='') return;
+            if(b.currentCraft==='') return; // User needs to select something to craft!
             if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here
-
+            if(game.workPoints<=0) return; // we have nobody to work this block
+            game.workPoints--;
             b.progressBar++;
             if(b.progressBar>=20) {
                 b.onhand.push(game.createItem(b, b.currentCraft, 'tool', {efficiency:1, endurance:30}));
@@ -61,6 +63,7 @@ export function RockKnapper(mapTile) {
 
             return (
                 <>
+                    {b.ShowPriority()}
                     On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
                     <div>Choose what to craft</div>
                     <ClickableLabel
@@ -93,6 +96,6 @@ export function RockKnapper(mapTile) {
             );
         }
     }
-    return b;
+    return Object.assign(b, blockHasWorkerPriority(b));
 }
 

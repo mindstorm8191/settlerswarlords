@@ -22,6 +22,7 @@ export function Toolbox(mapTile) {
         descr: `Lots of tasks require tools, and you'll need to produce tools of all shapes & sizes`,
         usage: `Holds one type of tool, with a max amount you can decide. Move your tools here to make them accessible to all nearby blocks`,
         image: imageURL +'toolbox.png',
+        priority: (game.blocks.length===0)?1:game.blocks[game.blocks.length-1].priority+1,
         progressBar: 0,
         progressBarColor: 'orange',
         progressBarMax: 5,
@@ -29,6 +30,7 @@ export function Toolbox(mapTile) {
         tileY: mapTile.y,
         onhand: [],
         update: ()=>{
+            if(game.workPoints<=0) return;
             // Search nearby blocks for any tools nearby to collect from them
             if(b.onhand.length===0) {
                 // We haven't collected any tools yet. We can collect anything. Try to pick up something from a neighboring block
@@ -36,6 +38,7 @@ export function Toolbox(mapTile) {
                 neighbors.some(edge => {
                     if(edge.hasItem(['Flint Knife', 'Flint Stabber'])) {
                         b.onhand.push(edge.getItem(['Flint Knife', 'Flint Stabber']));
+                        game.workPoints--;
                         return true;
                     }
                     return false;
@@ -47,6 +50,7 @@ export function Toolbox(mapTile) {
                 neighbors.some(edge => {
                     if(edge.hasItem([b.onhand[0].name])) {
                         b.onhand.push(edge.getItem([b.onhand[0].name]));
+                        game.workPoints--;
                         return true;
                     }
                     return false;

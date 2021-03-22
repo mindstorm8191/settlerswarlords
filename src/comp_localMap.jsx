@@ -110,10 +110,9 @@ export function LocalMap(props) {
             </div>
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
-                    <img src={imageURL +'leanto.png'} alt="leanto" onClick={()=>placeBuilding('leanto')}/>
-                    <img src={imageURL +'foragepost.png'} alt="forage post" onClick={()=>placeBuilding('foragepost')}/>
-                    <img src={imageURL +'rockKnapper.png'} alt="rock knapper" onClick={()=>placeBuilding('rockknapper')}/>
-                    <img src={imageURL +'toolbox.png'} alt="toolbox" onClick={()=>placeBuilding('toolbox')}/>
+                    {game.blockTypes.filter(e=>e.unlocked==1).map((btype, key) => (
+                        <img key={key} src={imageURL +btype.image} alt={btype.alt} onClick={()=>placeBuilding(btype.name)}/>
+                    ))}
                 </div>
                 <div id="localmapbox">
                     {/* This is the map container, that helps us scroll the whole map at once */}
@@ -146,11 +145,14 @@ export function LocalMap(props) {
                                     ) : (
                                         <>
                                             <img src={tile.buildimage} alt={"building"} style={{ pointerEvents: "none", border:0 }} draggable="false"/>
+                                            {/* If accessible, show the progress bar */}
                                             {typeof(tile.progressBar)==='undefined'? (''):
                                                 <div style={{
+                                                    position: 'absolute',
                                                     backgroundColor: tile.progressBarColor,
+                                                    zIndex: 3,
                                                     bottom:0,
-                                                    height:20,
+                                                    height:6,
                                                     width:tile.progressBar
                                                 }}></div>
                                             }

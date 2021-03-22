@@ -31,12 +31,9 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Figure out how to make the progress bar thicker, so it is more visible
-    2) Keep adding buildings and get the basic game running
-    3) Add a food consumption process that finds food for the colonists to eat
-    4) Update the block ID selection process to consider out-of-order blocks
-    5) Set up block operation restrictions based on worker points
-    6) Allow blocks to be sorted based on priority. Allow blocks to set their priority
+    2) Add a check, when items are made, to allow unlocking new block types
+    2) Keep adding buildings and get the basic game running. Next is the stick maker
+    later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
     later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status
     later: Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
     
@@ -128,6 +125,8 @@ function App() {
             game.updateReact = setLocalTiles; // Pass the handle of the function, not its result
             setPage("localmap");
             game.isRunning = true;
+            // Unlock all starting-game block types
+            game.checkUnlocks("");
         }
     }
 

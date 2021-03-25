@@ -44,9 +44,9 @@ export function ForagePost(mapTile) {
                 b.progressBar = 0;
             }
         },
-        SidePanel: ()=>{
+        SidePanel: hooks=>{
             return <>
-                {b.ShowPriority()}
+                {b.ShowPriority(hooks)}
                 <div>Progress: {parseInt((b.progressBar*100)/30)}%</div>
                 <div>Food on hand: {b.onhand.length}</div>
             </>;

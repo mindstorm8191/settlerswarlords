@@ -70,13 +70,15 @@ export function LocalMap(props) {
         }
     }
 
-    function placeBuilding(buildingName) {
+    function placeBuilding(buildType) {
         // Check that we have a map tile selected, and that there is no building declared here
         if(selected===null) return;
         if(selected.buildid!==0) {
             console.log('There is already building id='+ selected.buildid +' here');
             return;
         }
+        let b = buildType.create(selected);
+        /*
         let b = {};
         switch(buildingName) {
             case 'leanto': b = LeanTo(selected); break;
@@ -84,6 +86,7 @@ export function LocalMap(props) {
             case 'rockknapper': b = RockKnapper(selected); break;
             case 'toolbox': b = Toolbox(selected); break;
         }
+        */
         if(typeof(b)==='string') {
             console.log('Building placement failed: '+ b);
             return;
@@ -111,7 +114,7 @@ export function LocalMap(props) {
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
                     {game.blockTypes.filter(e=>e.unlocked==1).map((btype, key) => (
-                        <img key={key} src={imageURL +btype.image} alt={btype.alt} onClick={()=>placeBuilding(btype.name)}/>
+                        <img key={key} src={imageURL +btype.image} alt={btype.alt} onClick={()=>placeBuilding(btype)}/>
                     ))}
                 </div>
                 <div id="localmapbox">
@@ -187,15 +190,26 @@ function LocalTileBuildingDetail(props) {
     //     tile - object containing all the data about the building to show
     // prop fields - functions
     //      onTileUpdate - Allows a single map tile to be updated
-    
+
     let block = game.blocks.find(ele=>ele.id===props.tile.buildid);
+    
+    // We need to create a list of hooks to use. This list applies to ALL block types, and will be passed to all block types
+    const [newCraft, setNewCraft] = React.useState((typeof(block)==='undefined')?null:block.currentCraft);
+    const [newTool, setNewTool] = React.useState((typeof(block)==='undefined')?null:block.tool);
+    const [curPriority, setCurPriority] = React.useState((typeof(block)==='undefined')?null:block.priority);
+
+    // Note that we cannot check this before creating the hooks; React is picky about us changing the number of hooks in a component
     if(typeof(block)==='undefined') return <>Block not found by id</>;
 
     return <>
         <div style={{width:'100%', align:'center'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
-        {block.SidePanel()}
+        {block.SidePanel([
+            {name:'craft', data:newCraft, call:setNewCraft},
+            {name:'tool', data:newTool, call:setNewTool},
+            {name:'priority', data:curPriority, call:setCurPriority}
+        ])}
     </>;
 }
 

@@ -31,8 +31,7 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    2) Add a check, when items are made, to allow unlocking new block types
-    2) Keep adding buildings and get the basic game running. Next is the stick maker
+    2) Keep adding buildings and get the basic game running. Next is the twine maker
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
     later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status
     later: Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out

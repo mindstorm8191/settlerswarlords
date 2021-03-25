@@ -3,6 +3,13 @@
     For the game Settlers & Warlords
 */
 
+import { LeanTo } from "./block_leanto.jsx";
+import { ForagePost } from "./block_foragepost.jsx";
+import { RockKnapper } from "./block_rockknapper.jsx";
+import { Toolbox } from "./block_toolbox.jsx";
+import { StickMaker } from "./block_stickmaker.jsx";
+
+
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
 export let game = {
@@ -17,11 +24,11 @@ export let game = {
     timerLoop: null,    // Handle to the setInterval object, so we can edit this when needed
     workPoints: 0,      // Set & updated dynamically on every block update pass
     blockTypes: [
-        {name:'leanto',      image:'leanto.png',      alt:'leanto',       prereq:[], unlocked:0, newFeatures:0},
-        {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  prereq:[], unlocked:0, newFeatures:0},
-        {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', prereq:[], unlocked:0, newFeatures:0},
-        {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     prereq:[], unlocked:0, newFeatures:0},
-        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  prereq:[['Flint Stabber']], unlocked:0, newFeatures:0}
+        {name:'leanto',      image:'leanto.png',      alt:'leanto',       create:LeanTo, prereq:[], unlocked:0, newFeatures:0},
+        {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:0},
+        {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:0},
+        {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:0},
+        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:0}
     ],
 
     getNextBlockId: ()=> {

@@ -50,20 +50,20 @@ export function RockKnapper(mapTile) {
                 b.progressBar=0;
             }
         },
-        SidePanel: ()=>{
+        SidePanel: hooks=>{
             let labelOptions = [
                 {name:'selected', bgColor:'green'},
                 {name:'other', bgColor:'red'},
                 {name:'disabled', bgColor:'white'}
             ];
             // Maybe we can still use useState here?
-            const [newMode, setNewMode] = React.useState(b.currentCraft);
-            // This will trigger updates locally, but only for a short duration. Once the game updates again, this will be irrelevant.
-            // But it keeps the interface responsive!
+            //const [newMode, setNewMode] = React.useState(b.currentCraft);
+            // This will trigger updates locally, but it will only matter for a short duration. Once the game updates again, this will be
+            // irrelevant, but it keeps the interface responsive!
 
             return (
                 <>
-                    {b.ShowPriority()}
+                    {b.ShowPriority(hooks)}
                     On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
                     <div>Choose what to craft</div>
                     <ClickableLabel
@@ -71,9 +71,10 @@ export function RockKnapper(mapTile) {
                             if(b.currentCraft===cur) return;
                             b.currentCraft='Flint Knife';
                             b.progressBar=0;
-                            setNewMode('Flint Knife');
+                            hooks.find(e=>e.name==='craft').call('Flint Knife');
                         }}
-                        mode={(newMode==='Flint Knife')?'selected':'other'}
+                        //mode={(newMode==='Flint Knife')?'selected':'other'}
+                        mode={hooks.find(e=>e.name==='craft').data==='Flint Knife'?'selected':'other'}
                         options={labelOptions}
                     >
                         <img src={imageURL +"item_flintKnife.png"} alt="Flint Knife" />
@@ -84,9 +85,9 @@ export function RockKnapper(mapTile) {
                             if(b.currentCraft===cur) return;
                             b.currentCraft='Flint Stabber';
                             b.progressBar=0;
-                            setNewMode('Flint Stabber');
+                            hooks.find(e=>e.name==='craft').call('Flint Stabber');
                         }}
-                        mode={(newMode==='Flint Stabber')?'selected':'other'}
+                        mode={hooks.find(e=>e.name==='craft').data==='Flint Stabber'?'selected':'other'}
                         options={labelOptions}
                     >
                         <img src={imageURL +"item_flintStabber.png"} alt="Flint Stabber" />

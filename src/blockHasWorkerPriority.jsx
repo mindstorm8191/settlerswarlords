@@ -28,8 +28,8 @@ export const blockHasWorkerPriority = state =>({
             blockHasWorkerPriority.priority = newValue
             game.blocks.sort(game.sortBlocks);
         },
-        ShowPriority() {
-            const [curPriority, setCurPriority] = React.useState(state.priority);
+        ShowPriority(hooks) {
+            let priorityHook = hooks.find(e=>e.name==='priority');
             return (
                 <div>
                     Priority:
@@ -37,14 +37,20 @@ export const blockHasWorkerPriority = state =>({
                         src={imageURL+'arrowleft.png'}
                         alt="-1"
                         style={{cursor:'pointer'}}
-                        onClick={()=>{state.changePriority(-1); setCurPriority(curPriority-1);}}
+                        onClick={()=>{
+                            state.changePriority(-1);
+                            priorityHook.call(priorityHook.data-1);
+                        }}
                     />
-                    <span style={{marginLeft:5, marginRight:5}}>{curPriority}</span>
+                    <span style={{marginLeft:5, marginRight:5}}>{priorityHook.data}</span>
                     <img
                         src={imageURL+'arrowright.png'}
                         alt="+1"
                         style={{cursor:'pointer'}}
-                        onClick={()=>{state.changePriority(1); setCurPriority(curPriority+1);}}
+                        onClick={()=>{
+                            state.changePriority(1);
+                            priorityHook.call(priorityHook.data+1);
+                        }}
                     />
                 </div>
             );

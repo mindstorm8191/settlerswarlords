@@ -29,6 +29,18 @@ export function Toolbox(mapTile) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
+        hasItem: nameList =>{
+            // returns true if this block can output any item in the name list
+            return nameList.some(name => {
+                return b.onhand.some(item=>item.name===name);
+            });
+        },
+        getItem: name=>{
+            // Returns an item, removing it from this inventory
+            let slot = b.onhand.find(item => item.name===name);
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
+        },
         update: ()=>{
             if(game.workPoints<=0) return;
             // Search nearby blocks for any tools nearby to collect from them
@@ -57,7 +69,7 @@ export function Toolbox(mapTile) {
                 });
             }
         },
-        SidePanel: ()=>{
+        SidePanel: hooks => {
             return (
                 <>
                     Current holding: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}

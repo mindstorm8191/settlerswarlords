@@ -51,11 +51,11 @@ export function LeanTo(mapTile) {
                 }
             }
         },
-        SidePanel: ()=>{
+        SidePanel: hooks =>{
             return (
                 <>
                     <div>Mode: {b.mode}</div>
-                    {b.ShowPriority()}
+                    {b.ShowPriority(hooks)}
                     <div>Counter: {b.progressBar}</div>
                 </>
             );

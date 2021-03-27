@@ -29,7 +29,8 @@ export const blockHasWorkerPriority = state =>({
             game.blocks.sort(game.sortBlocks);
         },
         ShowPriority(hooks) {
-            let priorityHook = hooks.find(e=>e.name==='priority');
+            // Since this is rendered as a component now (instead of as a function), we can use hooks without issue
+            const [curPriority, setCurPriority] = React.useState(state.priority);
             return (
                 <div>
                     Priority:
@@ -39,17 +40,17 @@ export const blockHasWorkerPriority = state =>({
                         style={{cursor:'pointer'}}
                         onClick={()=>{
                             state.changePriority(-1);
-                            priorityHook.call(priorityHook.data-1);
+                            setCurPriority(Math.max(0, curPriority-1));
                         }}
                     />
-                    <span style={{marginLeft:5, marginRight:5}}>{priorityHook.data}</span>
+                    <span style={{marginLeft:5, marginRight:5}}>{curPriority}</span>
                     <img
                         src={imageURL+'arrowright.png'}
                         alt="+1"
                         style={{cursor:'pointer'}}
                         onClick={()=>{
                             state.changePriority(1);
-                            priorityHook.call(priorityHook.data+1);
+                            setCurPriority(curPriority+1);
                         }}
                     />
                 </div>

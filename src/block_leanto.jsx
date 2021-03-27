@@ -52,10 +52,11 @@ export function LeanTo(mapTile) {
             }
         },
         SidePanel: hooks =>{
+            const Priority = b.ShowPriority;
             return (
                 <>
+                    <Priority />
                     <div>Mode: {b.mode}</div>
-                    {b.ShowPriority(hooks)}
                     <div>Counter: {b.progressBar}</div>
                 </>
             );

@@ -30,6 +30,7 @@ export let game = {
         {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:0},
         {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:0}
     ],
+    travellers: [],     // List of travelling units
 
     getNextBlockId: ()=> {
         if(game.blocks.length===0) return 1;
@@ -56,6 +57,29 @@ export let game = {
             game.checkUnlocks(name);
         } 
         return item;
+    },
+    toolCount: toolName => {
+        // Returns the number of accessible tools found on the local map, when given a tool name
+        return game.blocks.reduce((carry,block) => {
+            if(block.name==='Toolbox') {
+                if(block.onhand.length>0) {
+                    if(block.onhand[0].name===toolName) {
+                        return carry + block.onhand.length;
+                    }
+                }
+            }
+            return carry;
+        }, 0);
+    },
+    toolLocation: (toolName) => {
+        // Returns the block slot holding the desired tool, or -1 if none is found.
+        // This is mainly to allow a status to be easily shown, but can be used to easily request tools
+        return game.blocks.findIndex(block=>{
+            if(block.name==='Toolbox') {
+                return block.onhand.some(item=>item.name===toolName);
+            }
+            return false;
+        });
     },
     sortBlocks: (a,b) => {
         if(typeof(a.priority)==='undefined') {

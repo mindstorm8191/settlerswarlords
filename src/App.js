@@ -31,6 +31,11 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
+    1) Finish the various tasks of the Toolbox (like returning when the tool has been delivered)
+    2) Start streamlining the code for blocks to manage tools. Also have a way to show that the block is waiting to receive the specified
+        tool.
+    3) On the StickMaker, determine what is keeping the craft choice from being highlighted
+    2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks
     2) Keep adding buildings and get the basic game running. Next is the twine maker
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
     later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status

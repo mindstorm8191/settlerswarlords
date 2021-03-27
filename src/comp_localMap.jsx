@@ -164,6 +164,10 @@ export function LocalMap(props) {
                                 </div>
                             );
                         })}
+                        {/*Now, render any 'travellers', where items get transfered between blocks (currently by workers)*/}
+                        {game.travellers.map((user, key)=>(
+                            <img key={key} src={user.image} alt={'traveller'} style={{position:'absolute', zIndex:4, top:user.y*57, left:user.x*57}} />
+                        ))}
                     </div>
                 </div>
                 <div id="localmaprightpane">
@@ -193,23 +197,16 @@ function LocalTileBuildingDetail(props) {
 
     let block = game.blocks.find(ele=>ele.id===props.tile.buildid);
     
-    // We need to create a list of hooks to use. This list applies to ALL block types, and will be passed to all block types
-    const [newCraft, setNewCraft] = React.useState((typeof(block)==='undefined')?null:block.currentCraft);
-    const [newTool, setNewTool] = React.useState((typeof(block)==='undefined')?null:block.tool);
-    const [curPriority, setCurPriority] = React.useState((typeof(block)==='undefined')?null:block.priority);
-
     // Note that we cannot check this before creating the hooks; React is picky about us changing the number of hooks in a component
     if(typeof(block)==='undefined') return <>Block not found by id</>;
+
+    const SidePanel = block.SidePanel;  // THIS allows us to render the block's function as a component!
 
     return <>
         <div style={{width:'100%', align:'center'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
-        {block.SidePanel([
-            {name:'craft', data:newCraft, call:setNewCraft},
-            {name:'tool', data:newTool, call:setNewTool},
-            {name:'priority', data:curPriority, call:setCurPriority}
-        ])}
+        <SidePanel />
     </>;
 }
 

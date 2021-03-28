@@ -8,6 +8,7 @@ import { imageURL } from "./App.js";
 import {ClickableLabel} from "./comp_localMap.jsx";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
+import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
 
 export function StickMaker(mapTile) {
     let b = {
@@ -23,7 +24,14 @@ export function StickMaker(mapTile) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
-        currentCraft: '',
+        craftOptions: [
+            {name:'Short Stick', craftTime:20, qty:1, img:imageURL+"item_ShortStick.png"},
+            {name:'Long Stick', craftTime:20, qty:1, img:imageURL+"item_LongStick.png"}
+        ],
+        //currentCraft: '',
+        toolGroups: [
+            {group:'axe', options: ['Flint Stabber', 'Flint Pickaxe'], loaded:null}
+        ],
         tool: null,
         hasItem: nameList => {
             // Returns true if this block can output an item in the names list
@@ -37,6 +45,7 @@ export function StickMaker(mapTile) {
         },
         receiveTool: tool => {
             b.tool = tool;
+            return true;
         },
         update: ()=>{
             // Before any work can be done here, a tool must be loaded
@@ -45,11 +54,16 @@ export function StickMaker(mapTile) {
             if(b.onhand.length>=5) return; // We can only hold 5 finished items
             if(game.workPoints<=0) return; // Nobody available to work here
             game.workPoints--;
-            b.progressBar++;
-            if(b.progressBar>=20) {
-                b.onhand.push(game.createItem(b, b.currentCraft, 'item', {}));
-                b.progressBar=0;
+            //b.progressBar++;
+            b.tool.endurance--;
+            if(b.tool.endurance<=0) {
+                let toolName = b.tool.name;
+                b.tool = null; // Oh dear, our tool has broken. We need a new one
+                // For now, we'll just request another of the same tool, if there are any available
+                let source = game.toolLocation(toolName);
+                if(source!=-1) game.blocks[source].requestTool(b, toolName);
             }
+            b.progressCraft(1);
         },
         SidePanel: ()=>{
             let toolModes = [
@@ -59,10 +73,6 @@ export function StickMaker(mapTile) {
                 {name:'notused', bgColor:'white'},  // not equipped, but at least one available
                 {name:'disabled', bgColor:'grey'}   // not available for this job
             ];
-            let craftOptions = [
-                {name:'selected', bgColor:'green'},
-                {name:'other', bgColor: 'white'}
-            ];
             let toolName = 'none';
             if(b.tool!==null) {
                 toolName = b.tool.name;
@@ -70,6 +80,7 @@ export function StickMaker(mapTile) {
             const [curTool, setCurTool] = React.useState(toolName);
             const [curCraft, setCurCraft] = React.useState(b.currentCraft);
             const Priority = b.ShowPriority;
+            const CraftOptions = b.ShowCraftOptions;
 
             function setNewCraft(newCraft) {
                 if(b.currentCraft===newCraft) return;
@@ -78,29 +89,44 @@ export function StickMaker(mapTile) {
                 setCurCraft(newCraft);
             }
 
+            let outputList = [];
+            b.onhand.forEach(e=>{
+                let tag = outputList.findIndex(f=>f.name===e.name);
+                if(tag===-1) {
+                    outputList.push({name:e.name, amount:1});
+                }else{
+                    outputList[tag].amount++;
+                }
+            });
+
             return (
                 <>
                     <Priority />
                     <div style={{marginTop:15}}>
-                        On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
+                        On Hand: {(b.onhand.length===0)?'nothing':(
+                            outputList.map((e,key)=>(<p key={key} className="singleline">{e.name} x{e.amount}</p>))
+                        )}
                     </div>
+                    <CraftOptions />
+                    {/*
                     <div style={{marginTop:15}}>
                         <p>Choose what to craft</p>
                         <ClickableLabel
                             options={craftOptions}
                             mode={curCraft==='Short Stick'?'selected':'other'}
-                            onClick={setNewCraft}
+                            onClick={()=>setNewCraft('Short Stick')}
                         >
                             <img src={imageURL+"item_ShortStick.png"} alt="Short Stick" />Short Stick
                         </ClickableLabel>
                         <ClickableLabel
                             options={craftOptions}
                             mode={curCraft==='Long Stick'?'selected':'other'}
-                            onClick={setNewCraft}
+                            onClick={()=>setNewCraft('Long Stick')}
                         >
                             <img src={imageURL+"item_LongStick.png"} alt="Long Stick" />Long Stick
                         </ClickableLabel>
                     </div>
+                    */}
                     <div style={{marginTop:10}}>Select a tool</div>
                     <ClickableLabel
                         options={toolModes}
@@ -130,5 +156,5 @@ export function StickMaker(mapTile) {
             );
         }
     };
-    return Object.assign(b, blockHasWorkerPriority(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b));
 }

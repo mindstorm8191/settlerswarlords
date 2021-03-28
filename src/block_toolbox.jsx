@@ -34,7 +34,7 @@ export function Toolbox(mapTile) {
         progressBarMax: 5,
         tileX: mapTile.x,
         tileY: mapTile.y,
-        targetId: 0,        // This is the block we're currently working to send a tool to. We'd store the block itself, but it'd be only a
+        targetId: -1,       // This is the block we're currently working to send a tool to. We'd store the block itself, but it'd be only a
                             // copy here. We need to access the actual target later on
         carrying: null,     // This is the tool being carried to the other location. It won't remain in this inventory
         mode: 'idle',   
@@ -59,26 +59,11 @@ export function Toolbox(mapTile) {
             // Pass the tool name the block wishes to receive
             // Returns true if the tool will begin travelling to the target block, or false if there was something preventing this
 
-            if(toolName==='') {
-                console.log('Tool request: No tool name was given');
-                return false;               // Nothing was requested... what??
-            }
-            if(block===null) {
-                console.log('Tool request: No block provided');
-                return false;                // No block type provided... huh?
-            }
-            if(b.onhand.length===0) {
-                console.log('Tool request: We have no tools on hand');
-                return false;         // we have nothing here right now
-            }
-            if(b.onhand[0].name!==toolName) {
-                console.log('Tool request: That isnt the tool we have here');
-                return false; // They're requesting the wrong tool (toolboxes can only hold one tool type)
-            }
-            if(b.targetId!==0) {
-                console.log('Tool request: We already have a request for this tool');
-                return false;             // We're already sending a tool somewhere. They'll have to wait
-            }
+            if(toolName==='') { console.log('Tool request: No tool name was given'); return false; }
+            if(block===null)  { console.log('Tool request: No block provided');      return false; }
+            if(b.onhand.length===0) { console.log('Tool request: We have no tools on hand'); return false; }
+            if(b.onhand[0].name!==toolName) { console.log('Tool request: We only have '+ b.onhand[0].name +' here'); return false; }
+            if(b.targetId!==-1) { console.log('Tool request: We already have a request for this tool'); return false; }
 
             // Setup the transfer!
             b.targetId = block.id;
@@ -97,6 +82,8 @@ export function Toolbox(mapTile) {
         },
         update: ()=>{
             if(game.workPoints<=0) return;  // Need workers before we can do anything at all
+            let target = null;
+            let walk = null;
 
             // This block will function in one of several modes
             switch(b.mode) {
@@ -133,15 +120,15 @@ export function Toolbox(mapTile) {
                     game.workPoints--;
                     b.travelCounter++;
                     //console.log('Toolbox: step '+ )
-                    let target = game.blocks.find(e=>e.id===b.targetId);
+                    target = game.blocks.find(e=>e.id===b.targetId);
+                    walk = game.travellers.findIndex(e=>e.blockId===b.id);
                     if(b.travelCounter>=b.travelDistance) {
                         // We've reached our destination! Give the tool to the given block
                         if(target.receiveTool(b.carrying)) {
                             b.carrying = null;
                             b.mode = 'gohome';
                             // Update the plotted walker image
-                            let w = game.travellers.findIndex(e=>e.blockId===b.id);
-                            game.travellers[w].image = imageURL+'movingEmpty.png';
+                            game.travellers[walk].image = imageURL+'movingEmpty.png';
                             b.travelCounter--;
                             return;
                         }
@@ -150,24 +137,49 @@ export function Toolbox(mapTile) {
                         return;
                     }
                     // Update the plotted walker image
-                    let walker = game.travellers.findIndex(e=>e.blockId===b.id);
                     if(b.travelCounter <= Math.abs(b.tileX - target.tileX)) {
                         // Work on moving left (or right) first
                         if(b.tileX > target.tileX) { // target is left of source
-                            game.travellers[walker].x = b.tileX - b.travelCounter;
-                            game.travellers[walker].y = b.tileY;
+                            game.travellers[walk].x = b.tileX - b.travelCounter; game.travellers[walk].y = b.tileY;
                         }else{
-                            game.travellers[walker].x = b.tileX + b.travelCounter;
-                            game.travellers[walker].y = b.tileY;
+                            game.travellers[walk].x = b.tileX + b.travelCounter; game.travellers[walk].y = b.tileY;
                         }
                     }else{
                         // Work on moving up (or down)
                         if(b.tileY > target.tileY) {    // target is north of source
-                            game.travellers[walker].x = target.tileX;
-                            game.travellers[walker].y = target.tileY + (b.travelDistance - b.travelCounter);
+                            game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY + (b.travelDistance - b.travelCounter);
                         }else{
-                            game.travellers[walker].x = target.tileX;
-                            game.travellers[walker].y = target.tileY - (b.travelDistance - b.travelCounter);
+                            game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY - (b.travelDistance - b.travelCounter);
+                        }
+                    }
+                break;
+                case 'gohome':  // Tool delivery was successful, we can now return to the toolbox
+                    game.workPoints--;
+                    b.travelCounter--;
+                    target = game.blocks.find(e=>e.id===b.targetId);
+                    walk = game.travellers.findIndex(e=>e.blockId===b.id);
+                    if(b.travelCounter<=0) {
+                        // We've made it back home. Put settings back to idle
+                        b.mode = 'idle';
+                        game.travellers.splice(walk,1);
+                        b.targetId = -1;
+                        return;
+                    }
+                    if(b.travelCounter > Math.abs(b.tileX - target.tileX)) {
+                        // Still moving down (or up) from target
+                        if(b.tileY > target.tileY) {    // target is north of source
+                            console.log('Toolbox: ['+ target.tileY +','+ b.travelDistance +','+ b.travelCounter +']N');
+                            game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY + (b.travelDistance-b.travelCounter);
+                        }else{
+                            console.log('Toolbox: ['+ target.tileY +','+ b.travelDistance +','+ b.travelCounter +']S');
+                            game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY - (b.travelDistance-b.travelCounter);
+                        }
+                    }else{
+                        // Now moving left (or right)
+                        if(b.tileX > target.tileX) { // target is left of source
+                            game.travellers[walk].x = b.tileX - b.travelCounter; game.travellers[walk].y = b.tileY;
+                        }else{
+                            game.travellers[walk].x = b.tileX + b.travelCounter; game.travellers[walk].y = b.tileY;
                         }
                     }
                 break;

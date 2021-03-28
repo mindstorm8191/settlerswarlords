@@ -72,7 +72,7 @@ export function RockKnapper(mapTile) {
                         mode={curCraft==='Flint Knife'?'selected':'other'}
                         options={labelOptions}
                         onClick={cur=>{
-                            if(b.currentCraft===cur) return;
+                            if(b.currentCraft==='Flint Knife') return;
                             b.currentCraft='Flint Knife';
                             b.progressBar=0;
                             setCurCraft('Flint Knife');
@@ -83,7 +83,7 @@ export function RockKnapper(mapTile) {
                     </ClickableLabel>
                     <ClickableLabel
                         onClick={cur=>{
-                            if(b.currentCraft===cur) return;
+                            if(b.currentCraft==='Flint Stabber') return;
                             b.currentCraft='Flint Stabber';
                             b.progressBar=0;
                             setCurCraft('Flint Stabber');

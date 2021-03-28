@@ -31,12 +31,16 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Finish the various tasks of the Toolbox (like returning when the tool has been delivered)
+    1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
+    1) Toolbox: Allow certain tasks to be queued up. Also have requesting blocks continuously request tools (when they need one)
+    3) Apply blockHasSelectableCrafting to block_flintknapper
     2) Start streamlining the code for blocks to manage tools. Also have a way to show that the block is waiting to receive the specified
         tool.
     3) On the StickMaker, determine what is keeping the craft choice from being highlighted
     2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks
     2) Keep adding buildings and get the basic game running. Next is the twine maker
+    Bug: The stick maker keeps loosing sticks. I don't know why. It is the long sticks being lost, I don't know about the short sticks
+    Later: Complete the other tasks for the toolbox: allowing blocks to pick up tools
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
     later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status
     later: Add a new block to center the display on a selected block. Provide this for any mobile users. Figure out a way to test this out
@@ -51,15 +55,18 @@ import { game } from "./game.jsx";
     https://imgur.com/gallery/3pA5gj5
 
     Project size
-    src/app.js                 src/comp_worldMap.jsx           server/mapbuilder.php
-        src/app.css                 src/comp_admin.jsx             server/usermap.php
-            src/DanAjax.js              ajax.php                       server/process.php
-               src/comp_account.jsx         server/common.php              server/event.php
-                   src/DanInput.jsx             server/DanGlobal.php           server/route_account.php
-                      src/DanCommon.js             server/jsarray.php              server/route_admin.php
-                         src/comp_ErrorOverlay.jsx     server/weightedRandom.php       server/route_localMap.php
-                            src/comp_localMap.jsx          server/globals.php              server/route_worldMap.php
-    384+114+48+208+65+56+68+405+521+428+124+239+37+220+138+132+404+434+388+354+268+198+141+214=5588 lines (3/13/2021)
+    src/app.js                         src/block_foragepost.jsx            server/common.php                      server/route_admin.php
+        src/app.css                       src/block_rockknapper.jsx            server/DanGlobal.php                   server/route_localMap.php
+            src/DanAjax.js                    src/block_toolbox.jsx               server/jsarray.php                      server/route_worldMap.php
+               src/comp_account.jsx               src/block_stickmaker.jsx            server/weightedRandom.php
+                   src/DanInput.jsx                   src/block_twinemaker.jsx            server/globals.php
+                      src/DanCommon.js                   src/blockHasSelectableCrafting.jsx   server/mapbuilder.php
+                         src/comp_ErrorOverlay.jsx          src/blockHasWorkerPriority.jsx        server/usermap.php
+                            src/comp_localMap.jsx              src/comp_worldMap.jsx                  server/proecess.php
+                                src/game.jsx                       src/comp_admin.jsx                     server/event.php
+                                    src/block_leanto.jsx               ajax.php                               server/route_account.php
+    392+126+48+208+65+56+68+231+157+66+57+102+200+163+49+59+60+521+428+126+239+37+221+127+218+402+434+388+354+293+198+141+214=6448 lines (3/27/2021)
+    3/13/2021 = 5588 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

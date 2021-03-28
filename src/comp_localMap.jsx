@@ -4,10 +4,6 @@
 
 import React from "react";
 import { imageURL, PageChoices, buildingList } from "./App.js";
-import { LeanTo } from "./block_leanto.jsx";
-import { ForagePost } from "./block_foragepost.jsx";
-import { RockKnapper } from "./block_rockknapper.jsx";
-import { Toolbox } from "./block_toolbox.jsx";
 import {game} from "./game.jsx";
 //import { DAX } from "./DanAjax.js";
 //import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
@@ -227,7 +223,7 @@ export function ClickableLabel(props) {
     return (
         <span
             style={{margin:1, padding:10, backgroundColor:picked.bgColor, cursor:'pointer', border:'1px black solid', display:'inline-block'}}
-            onClick={()=>props.onClick(props.mode)}
+            onClick={props.onClick}
         >
             {props.children}
         </span>

@@ -33,10 +33,6 @@ import { game } from "./game.jsx";
     Task list
     1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
     1) Toolbox: Allow certain tasks to be queued up. Also have requesting blocks continuously request tools (when they need one)
-    3) Apply blockHasSelectableCrafting to block_flintknapper
-    2) Start streamlining the code for blocks to manage tools. Also have a way to show that the block is waiting to receive the specified
-        tool.
-    3) On the StickMaker, determine what is keeping the craft choice from being highlighted
     2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks
     2) Keep adding buildings and get the basic game running. Next is the twine maker
     Bug: The stick maker keeps loosing sticks. I don't know why. It is the long sticks being lost, I don't know about the short sticks

@@ -8,6 +8,8 @@ import { imageURL } from "./App.js";
 import {ClickableLabel} from "./comp_localMap.jsx";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
+import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
+import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
@@ -26,7 +28,11 @@ export function RockKnapper(mapTile) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
-        currentCraft: '',
+        craftOptions: [
+            {name:'Flint Knife', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+'item_flintKnife.png'},
+            {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficency:1,endurance:30}, img:imageURL+"item_flintStabber.png"}
+        ],
+        //currentCraft: '',
         hasItem: nameList =>{
             // returns true if this block can output any item in the name list
             return nameList.some(name => {
@@ -44,11 +50,13 @@ export function RockKnapper(mapTile) {
             if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here
             if(game.workPoints<=0) return; // we have nobody to work this block
             game.workPoints--;
+            b.progressCraft(1);
+            /*
             b.progressBar++;
             if(b.progressBar>=20) {
                 b.onhand.push(game.createItem(b, b.currentCraft, 'tool', {efficiency:1, endurance:30}));
                 b.progressBar=0;
-            }
+            }*/
         },
         SidePanel: ()=>{
             let labelOptions = [
@@ -62,11 +70,16 @@ export function RockKnapper(mapTile) {
             // irrelevant, but it keeps the interface responsive!
 
             const Priority = b.ShowPriority;
-
+            const ItemOutputs = b.ShowOutputs;
+            const CraftOptions = b.ShowCraftOptions;
+            
             return (
                 <>
                     <Priority />
-                    On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
+                    {/*On Hand: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}*/}
+                    <ItemOutputs />
+                    <CraftOptions />
+                    {/*
                     <div>Choose what to craft</div>
                     <ClickableLabel
                         mode={curCraft==='Flint Knife'?'selected':'other'}
@@ -94,10 +107,11 @@ export function RockKnapper(mapTile) {
                         <img src={imageURL +"item_flintStabber.png"} alt="Flint Stabber" />
                         Flint Stabber
                     </ClickableLabel>
+                    */}
                 </>
             );
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b));
 }
 

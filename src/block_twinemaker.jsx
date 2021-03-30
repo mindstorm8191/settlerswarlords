@@ -5,9 +5,9 @@
 
 import React from "react";
 import {imageURL } from "./App.js";
-import {ClickableLabel} from "./comp_localMap.jsx";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
+import {blockRequiresTools} from "./blockRequiresTools.jsx";
 
 export function TwineMaker(mapTile) {
     let b = {
@@ -16,14 +16,17 @@ export function TwineMaker(mapTile) {
         descr: `Rope is an essential tool for survival, providing hundreds of potential uses to get things done. Twine isn't a very
                 effective rope, but it is available, and will do for now.`,
         usage: `Produces twine from bark and vines in the forest`,
-        image: imageURL +'stickmaker.png',
+        image: imageURL +'twinemaker.png',
         progressBar: 0,
         progressBarColor: 'blue',
         progressBarMax: 20,
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
-        tool: null,
+        toolGroups: [
+            {group:'knife', options: ['Flint Knife'], required:true, selected:'', loaded:null}
+        ],
+        
         hasItem: nameList => {
             // Returns true if this block can output an item in the names list
             return nameList.some(name => b.onhand.some(item=>item.name===name));
@@ -35,15 +38,28 @@ export function TwineMaker(mapTile) {
             return b.onhand.splice(slot, 1)[0]; // splice provides an array of the extracted elements; we only need the one
         },
         update: ()=>{
-            if(b.tool===null) return; // No tool selected (or loaded)
+            if(!b.checkTools()) return; // No tool loaded here (yet)
             if(b.onhand.length>=5) return; // We can only hold 5 finished items
             if(game.workPoints<=0) return; // Nobody available to do work here
             game.workPoints--;
+            b.useTools();
             b.progressBar++;
             if(b.progressBar>=20) {
                 b.onhand.push(game.createItem(b, 'Twine', 'item', {}));
                 b.progressBar = 0;
             }
+        },
+        SidePanel: ()=>{
+            const Priority = b.ShowPriority;
+            const Tools = b.ShowTools;
+            return (
+                <>
+                    <Priority />
+                    <p className="singleline">Items on hand: {b.onhand.length===0?'nothing':'Twine x'+ b.onhand.length}</p>
+                    <Tools />
+                </>
+            );
         }
-    }
+    };
+    return Object.assign(b, blockHasWorkerPriority(b), blockRequiresTools(b));
 }

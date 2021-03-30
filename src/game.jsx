@@ -8,7 +8,7 @@ import { ForagePost } from "./block_foragepost.jsx";
 import { RockKnapper } from "./block_rockknapper.jsx";
 import { Toolbox } from "./block_toolbox.jsx";
 import { StickMaker } from "./block_stickmaker.jsx";
-
+import { TwineMaker } from "./block_twinemaker.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -28,7 +28,8 @@ export let game = {
         {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:0},
         {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:0},
         {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:0},
-        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:0}
+        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:0},
+        {name:'twinemaker',  image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:0}
     ],
     travellers: [],     // List of travelling units
 
@@ -49,6 +50,7 @@ export let game = {
     },
     createItem: (buildingId, name, group, extras) => {
         // Handles creating a new item, while also adding it to the global itemsList structure
+        // This ID only works because this items list never gets sorted or re-ordered
         let item = { id: game.items.length === 0 ? 1 : game.items[game.items.length - 1] + 1, name, group, ...extras };
         game.items.push(item);
         // If this item isn't in the unlockedItems list, add it
@@ -129,14 +131,16 @@ export let game = {
             let foodSlot = Math.floor(Math.random() * foodList.length);
             let food = foodList[foodSlot];
             // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
-            let foundFood = game.blocks.forEach((building) => {
+            let foundFood = game.blocks.some((building) => {
                 if (typeof building.onhand === "undefined") return false;
                 let slot = building.onhand.findIndex((i) => i.id === food.id);
                 if (slot === -1) return false; // Our target food wasn't found in this building block
                 building.onhand.splice(slot, 1);
                 return true;
             });
-            foodList.splice(foodSlot, 1);
+            //game.items.splice(foodSlot, 1);
+            // Splice out one of the items in the global items list
+            game.items.splice(game.items.findIndex(e=>e.id===food.id), 1);
             game.foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
         }
 

@@ -62,7 +62,11 @@ export function Toolbox(mapTile) {
             if(toolName==='') { console.log('Tool request: No tool name was given'); return false; }
             if(block===null)  { console.log('Tool request: No block provided');      return false; }
             if(b.onhand.length===0) { console.log('Tool request: We have no tools on hand'); return false; }
-            if(b.onhand[0].name!==toolName) { console.log('Tool request: We only have '+ b.onhand[0].name +' here'); return false; }
+            if(b.onhand[0].name!==toolName) {
+                console.log('Tool request: Block requested '+ toolName +', we only have '+ b.onhand[0].name +
+                            ' here (did you pass the block handle too?)');
+                return false;
+            }
             if(b.targetId!==-1) { console.log('Tool request: We already have a request for this tool'); return false; }
 
             // Setup the transfer!

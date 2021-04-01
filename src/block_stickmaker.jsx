@@ -13,6 +13,8 @@ import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
 
 export function StickMaker(mapTile) {
+    if(mapTile.landtype!==1) return 'wronglandtype';
+
     let b = {
         id: game.getNextBlockId(),
         name: "Stick Maker",
@@ -42,6 +44,12 @@ export function StickMaker(mapTile) {
         getItem: name => {
             // Returns an item, removing it from this inventory. If the item is not found, this returns null
             let slot = b.onhand.findIndex(item => item.name===name);
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0];
+        },
+        getItemFrom: namesList => {
+            // Returns any item in the names list, if it is here
+            let slot = b.onhand.find(item => namesList.includes(item.name));
             if(slot===-1) return null;
             return b.onhand.splice(slot, 1)[0];
         },

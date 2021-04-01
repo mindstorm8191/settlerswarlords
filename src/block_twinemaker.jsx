@@ -10,6 +10,8 @@ import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
 
 export function TwineMaker(mapTile) {
+    if(mapTile.landtype!==1) return 'wronglandtype';
+
     let b = {
         id: game.getNextBlockId(),
         name: "Twine Maker",
@@ -36,6 +38,12 @@ export function TwineMaker(mapTile) {
             let slot = b.onhand.findIndex(item => item.name===name);
             if(slot===-1) return null;
             return b.onhand.splice(slot, 1)[0]; // splice provides an array of the extracted elements; we only need the one
+        },
+        getItemFrom: namesList => {
+            // Returns any item in the names list, if it is here
+            let slot = b.onhand.find(item => namesList.includes(item.name));
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0];
         },
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded here (yet)

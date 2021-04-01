@@ -31,6 +31,7 @@ export function ForagePost(mapTile) {
         onhand: [],
         hasItem: name => false, // This doesn't return any items at this time
         getItem: name => null,  // This doesn't return any items at this time
+        getItemFrom: list => null, // This doesn't return any items (yet)
         update: ()=>{
             if(game.workPoints<=0) return;
             game.workPoints--;

@@ -17,10 +17,40 @@ export const blockHasSelectableCrafting = state => ({
     //      toolsUsable (optional): If included, will specify which tools can be used to craft this. Any other tools will not be
     //          usable. This is for when lower quality tools are not a fit for producing an item
     //      img (optional): Image to display beside the tool's name, when showing the option on the page
+    //      inputItems: If included, crafting should not start until inItems[] has the needed items. Call hasIngredients() to determine
+    //          if the item can be crafted. If inputItems is empty or doesn't exist, it will still return true.
     // The block will also need an onhand attribute, which is an array of items slated for output. Completed crafted items will be placed here
 
     currentCraft:'',
     nextCraft: '',
+    inItems: [],
+    hasIngredients: (useWorkPoint)=>{
+        // Returns true if this block has all the input items needed for the selected craft target.
+        // If items are missing, this function will search neighbor blocks for what it needs
+        if(state.currentCraft==='') return false;
+        if(useWorkPoint && game.workPoints<=0) return false; // We need a work point, but don't have any available
+        let needsList = state.craftOptions.find(e=>e.name===state.currentCraft);
+        if(typeof(needsList.inputItems)==='undefined') return true; // This item doesn't have any input requirements
+        if(needsList.inputItems.length===0) return true; // There's a list but it's empty... same difference
+
+        needsList = needsList.inputItems.filter(needs=>
+            state.inItems.filter(e=>e.name===needs.name).length<needs.qty
+        ).map(e=>e.name);
+        if(needsList.length===0) return true;
+        // With our needs list, search nearby blocks for any items we can accept
+        let neighbors = game.getNeighbors(state.tileX, state.tileY);
+        return neighbors.some(n=>{
+            // If any neighbor has an item we need, we can return true to stop searching
+            // the hasItem function is helpful, but... only to a certain extent. We could pass our whole list of needed items to it,
+            // but it'd only tell us if we have one of them, but not which one
+            if(typeof(n.onhand)==='undefined') return false; // This block has no output list
+            let slot = needsList.findIndex(e=>n.hasItem([e]));
+            if(slot===-1) return false; // nope, nothing found
+            // We got a hit! Move the item to this block
+            state.inItems.push(n.getItem(needsList[slot]));
+            return true;
+        });
+    },
     progressCraft(efficiency) {
         // Used in block.update. Handles making progress on the currently selected item to craft
         // efficiency: How much progress to make on this. Use 1 if not using tools
@@ -38,7 +68,41 @@ export const blockHasSelectableCrafting = state => ({
                 state.currentCraft = state.nextCraft;
                 state.nextCraft = '';
             }
+            // Now we need to delete the ingredients from inItems, if there are any
+            if(typeof(curCraft.inputItems)!=='undefined') {
+                curCraft.inputItems.forEach(tax=>{
+                    for(let i=0;i<tax.qty;i++) {
+                        let slot = state.inItems.findIndex(s=>s.name===tax.name);
+                        if(slot===-1) console.log('Failed to delete '. tax.name);
+                        state.inItems.splice(slot,1);
+                    }
+                });
+            }            
         }
+    },
+    ShowInputs: ()=>{
+        // Displays all the items that this crafting needs, along with how many of each we currently have
+        // Somehow all this is easier with React...
+        if(state.currentCraft==='') return <p className="singleline" />;
+        // Also determine if this even needs input items or not
+        let needsList = state.craftOptions.find(e=>e.name===state.currentCraft);
+        if(typeof(needsList.inputItems)==='undefined') return <p className="singleline" />;
+        if(needsList.inputItems.length===0) return <p className="singleline" />;
+        
+        return (
+            <>
+                <p className="singleline">Items needed:</p>
+                {state.craftOptions.find(e=>e.name===state.currentCraft).inputItems.map((needs, key)=>{
+                    // Do we have all the items we need here? Get a count, first. Now we can compare needs.qty vs count
+                    let count = state.inItems.filter(f=>f.name===needs.name).length;
+                    return (
+                        <p key={key} className="singleline" style={{backgroundColor:(count>=needs.qty)?'light green':'white'}}>
+                            {needs.name} (have {count} of {needs.qty})
+                        </p>
+                    );
+                })}
+            </>
+        );
     },
     ShowCraftOptions() {
         const [curCraft, setCurCraft] = React.useState(state.currentCraft);
@@ -56,7 +120,12 @@ export const blockHasSelectableCrafting = state => ({
         return (
             <div style={{marginTop:15}}>
                 <p className="singleline">Choose what to craft:</p>
-                {state.craftOptions.map((ele,key) =>{
+                {state.craftOptions.filter(ele=>{
+                    // Check this item for unlocks, to ensure we can view this item
+                    if(typeof(ele.prereq)==='undefined') return true; // If it has no prereqs, just show it
+                    if(ele.prereq.length===0) return true; // There's a prereqs attribute but it's empty
+                    return ele.prereq.every(n=>game.unlockedItems.includes(n));
+                }).map((ele,key) =>{
                     let mode = 'other';
                     if(curCraft===ele.name) mode = 'selected';
                     if(nextCraft===ele.name) mode = 'next';

@@ -30,6 +30,7 @@ export function LeanTo(mapTile) {
         tileY: mapTile.y,
         hasItem: name => false, // This doesn't return any items
         getItem: name => null,  // This doesn't return any items
+        getItemFrom: list => null, // This doesn't return any items
         update: () => {
             if(b.mode==='building') {
                 if(game.workPoints<=0) return;

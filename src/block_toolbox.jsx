@@ -53,6 +53,11 @@ export function Toolbox(mapTile) {
             if(slot===-1) return null;
             return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
         },
+        getItemFrom: namesList =>{
+            let slot = b.onhand.find(item => namesList.includes(item.name));
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0];
+        },
         requestTool: (block, toolName)=>{
             // Allows any block to request a tool. Once requested, this block will work to send the tool to that location
             // When the tool arrives, the block's receiveTool function will be called with the tool
@@ -97,6 +102,7 @@ export function Toolbox(mapTile) {
                         // We haven't collected any tools yet. We can collect anything. Try to pick up something from a neighboring block
                         let neighbors = game.getNeighbors(b.tileX,b.tileY);
                         neighbors.some(edge => {
+                            if(edge.name==="Toolbox") return false; // We don't trade with other tool boxes; it's a pact
                             if(edge.hasItem(['Flint Knife', 'Flint Stabber'])) {
                                 b.onhand.push(edge.getItem(['Flint Knife', 'Flint Stabber']));
                                 game.workPoints--;

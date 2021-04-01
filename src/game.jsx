@@ -9,12 +9,13 @@ import { RockKnapper } from "./block_rockknapper.jsx";
 import { Toolbox } from "./block_toolbox.jsx";
 import { StickMaker } from "./block_stickmaker.jsx";
 import { TwineMaker } from "./block_twinemaker.jsx";
+import { FlintToolMaker } from "./block_flinttoolmaker.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
 export let game = {
     isRunning: false,
-    foodCounter: 180,   // Players start with a 3-minute lead time to get food production going
+    foodCounter: 180,   // Players start with a 3-minute lead time to get food production going... shouldn't be too hard though
     tiles: [],          // all the tiles of the map
     blocks: [],         // All buildings or other structures on the map
     items: [],          // All items that have been generated. This list is kept so that items with decay can decay properly... all this
@@ -24,14 +25,17 @@ export let game = {
     timerLoop: null,    // Handle to the setInterval object, so we can edit this when needed
     workPoints: 0,      // Set & updated dynamically on every block update pass
     blockTypes: [
-        {name:'leanto',      image:'leanto.png',      alt:'leanto',       create:LeanTo, prereq:[], unlocked:0, newFeatures:0},
-        {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:0},
-        {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:0},
-        {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:0},
-        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:0},
-        {name:'twinemaker',  image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:0}
+        {name:'leanto',      image:'leanto.png',      alt:'leanto',       create:LeanTo, prereq:[], unlocked:0, newFeatures:[]},
+        {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:[]},
+        {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:[]},
+        {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:[]},
+        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
+        {name:'twinemaker',  image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
+        {name:'flinttoolmaker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]}
     ],
-    travellers: [],     // List of travelling units
+    // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
+    // The specific features will have to be checked by the block's code
+    travellers: [],     // List of travelling units. Primarily to display workers hauling items about the map
 
     getNextBlockId: ()=> {
         if(game.blocks.length===0) return 1;

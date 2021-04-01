@@ -103,12 +103,16 @@ export function Toolbox(mapTile) {
                         let neighbors = game.getNeighbors(b.tileX,b.tileY);
                         neighbors.some(edge => {
                             if(edge.name==="Toolbox") return false; // We don't trade with other tool boxes; it's a pact
-                            if(edge.hasItem(['Flint Knife', 'Flint Stabber'])) {
-                                b.onhand.push(edge.getItem(['Flint Knife', 'Flint Stabber']));
+                            if(typeof(edge.onhand)==='undefined') return false; // This block doesn't have an outputs array
+                            let slot = edge.onhand.findIndex(e=>e.group==='tool');
+                            if(slot===-1) return false; // This block is holding no tools
+                            //if(edge.hasItem(['Flint Knife', 'Flint Stabber'])) {
+                            //    b.onhand.push(edge.getItem(['Flint Knife', 'Flint Stabber']));
+                            b.onhand.push(edge.onhand.splice(slot,1)[0]);
                                 game.workPoints--;
                                 return true;
-                            }
-                            return false;
+                            //}
+                            //return false;
                         });
                     }else{
                         if(b.onhand.length>=5) return; // We dont' need to store too many tools...

@@ -31,10 +31,21 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
+    1) Allow the toolbox to collect items based on the item's tool property, instead of specific names
+    1) Figure out what needs to be added next.
+        Item hauler: will be vital very soon... just not very easy to code
+        Item storage: We will still need this, but is now more flexible since it won't deal with tools
+        Hunting post: Will unlock meats for population growth... probably making it easier to test. But this also means making the
+            butcher shop, campfire and firewood collector
+        Loggers post: Unlocks lots of wood options, this will be a new feature to test (with things that can't be moved by hand)
+        Farming: With the sickle we can clear grasslands, then with shovels start plowing lands to plant new crops. Need to modify
+            worldgen to include various grain types (while building the clusters)
+        Mad dash to metals: We will need the loggers post first, in order to craft wooden bowls
+    2) Start figuring out how to save (and re-load) the game state. This will help out a LOT when testing later-game features
+
     1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
     1) Toolbox: Allow certain tasks to be queued up. Also have requesting blocks continuously request tools (when they need one)
     2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks
-    2) Keep adding buildings and get the basic game running. Next is the twine maker
     Bug: The stick maker keeps loosing sticks. I don't know why. It is the long sticks being lost, I don't know about the short sticks
     Later: Complete the other tasks for the toolbox: allowing blocks to pick up tools
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset

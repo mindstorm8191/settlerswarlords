@@ -31,7 +31,8 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Allow the toolbox to collect items based on the item's tool property, instead of specific names
+    1) Fix the priority assignments; they're only updating the display when clicking the arrow buttons
+    1) Build the hunting post
     1) Figure out what needs to be added next.
         Item hauler: will be vital very soon... just not very easy to code
         Item storage: We will still need this, but is now more flexible since it won't deal with tools

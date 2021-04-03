@@ -17,6 +17,11 @@ export const blockRequiresTools = state => ({
     //  loaded: holds the currently loaded tool. This can be set to null when building the block
 
     checkTools() {
+        // Before starting, ensure the creator of the block actually made their toolGroups array
+        if(typeof(state.toolGroups)==='undefined') {
+            console.log('Error in block '+ state.name +': Missing toolGroups structure when calling checkTools()');
+            return false;
+        }
         // Used to determine if the given item can be crafted, based on having all the loaded tools. Returns true if work can be done
         return state.toolGroups.every(group=>{
             // Before worrying about if we can work here, attempt to get any tools we may need

@@ -10,6 +10,8 @@ import { Toolbox } from "./block_toolbox.jsx";
 import { StickMaker } from "./block_stickmaker.jsx";
 import { TwineMaker } from "./block_twinemaker.jsx";
 import { FlintToolMaker } from "./block_flinttoolmaker.jsx";
+import { HuntingPost } from "./block_huntingpost.jsx";
+import { ButcherShop } from "./block_butchershop.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -29,9 +31,11 @@ export let game = {
         {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:[]},
         {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:[]},
         {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'stickmaker',  image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
-        {name:'twinemaker',  image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
-        {name:'flinttoolmaker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]}
+        {name:'stickmaker',     image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
+        {name:'twinemaker',     image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
+        {name:'flinttoolmaker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
+        {name:'huntingpost',    image:'huntingpost.png', alt:'Hunting Post', create:HuntingPost, prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
+        {name:'butchershop',    image:'butchershop.png',    alt:'Butcher Shop', create:ButcherShop, prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code

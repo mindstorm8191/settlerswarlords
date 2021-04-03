@@ -51,7 +51,7 @@ export function FlintToolMaker(mapTile) {
         },
         getItemFrom: namesList => {
             // Returns any item in the names list, if it is here
-            let slot = b.onhand.find(item => namesList.includes(item.name));
+            let slot = b.onhand.findIndex(item => namesList.includes(item.name));
             if(slot===-1) return null;
             return b.onhand.splice(slot, 1)[0];
         },

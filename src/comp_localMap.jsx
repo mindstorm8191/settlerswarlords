@@ -109,7 +109,7 @@ export function LocalMap(props) {
             </div>
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
-                    {game.blockTypes.filter(e=>e.unlocked==1).map((btype, key) => (
+                    {game.blockTypes.filter(e=>e.unlocked===1).map((btype, key) => (
                         <img key={key} src={imageURL +btype.image} alt={btype.alt} onClick={()=>placeBuilding(btype)}/>
                     ))}
                 </div>
@@ -197,9 +197,10 @@ function LocalTileBuildingDetail(props) {
     if(typeof(block)==='undefined') return <>Block not found by id</>;
 
     const SidePanel = block.SidePanel;  // THIS allows us to render the block's function as a component!
+    if(typeof(SidePanel)==='undefined') return <>Block missing SidePanel function (is it named wrong?)</>;
 
     return <>
-        <div style={{width:'100%', align:'center'}}>{block.name}</div>
+        <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
         <SidePanel />

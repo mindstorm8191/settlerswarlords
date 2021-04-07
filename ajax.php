@@ -48,7 +48,8 @@
     switch($msg['action']) {
         case 'signup': return route_signup($msg);       // reference server/route_account.php
         case 'login': return route_login($msg);         // reference server/route_account.php
-        case 'autologin': return route_autologin($msg); // reference server/route_account.php
+        case 'autologin': return route_autologin($msg);       // reference server/route_account.php
+        case 'savelocalmap': return route_savelocalmap($msg); // reference server/route_localMap.php
         /*case 'logout': return route_logout($msg);                                 // reference server/route_account.php
         case 'addbuilding': return route_addBuilding($msg);  // reference server/route_localMap.php
         case 'addprocess': return route_addProcess($msg);    // reference server/route_localMap.php

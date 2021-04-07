@@ -76,6 +76,20 @@ export function HuntingPost(mapTile) {
                 <ItemOutputs />
                 <Tools />
             </>);
+        },
+        save: ()=>{
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand,
+                tools: b.toolGroups.map(t=>{
+                    return {
+                        group: t.group,
+                        selected: t.selected,
+                        loaded: t.loaded
+                    }
+                })
+            };
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b), blockRequiresTools(b));

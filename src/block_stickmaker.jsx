@@ -80,6 +80,22 @@ export function StickMaker(mapTile) {
                     <Tools />
                 </>
             );
+        },
+        save: ()=>{
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand,
+                currentCraft: b.currentCraft,
+                nextCraft: b.nextCraft,
+                tools: b.toolGroups.map(t=>{
+                    return {
+                        group: t.group,
+                        selected: t.selected,
+                        loaded: typeof(t.loaded)==='null'?'none':t.loaded
+                    }
+                })
+            };
         }
     };
     return Object.assign(

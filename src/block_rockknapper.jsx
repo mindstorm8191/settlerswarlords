@@ -32,7 +32,6 @@ export function RockKnapper(mapTile) {
             {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
             {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']}
         ],
-        //currentCraft: '',
         hasItem: nameList =>{
             // returns true if this block can output any item in the name list
             return nameList.some(name => {
@@ -69,6 +68,15 @@ export function RockKnapper(mapTile) {
                     <CraftOptions />
                 </>
             );
+        },
+        save: ()=>{
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand,
+                currentCraft: b.currentCraft,
+                nextCraft: b.nextCraft
+            }
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b));

@@ -3,7 +3,8 @@
 // for the game Settlers & Warlords
 
 import React from "react";
-import { imageURL, PageChoices, buildingList } from "./App.js";
+import { imageURL, serverURL, PageChoices } from "./App.js";
+import { DAX } from "./DanAjax.js";
 import {game} from "./game.jsx";
 //import { DAX } from "./DanAjax.js";
 //import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
@@ -74,15 +75,6 @@ export function LocalMap(props) {
             return;
         }
         let b = buildType.create(selected);
-        /*
-        let b = {};
-        switch(buildingName) {
-            case 'leanto': b = LeanTo(selected); break;
-            case 'foragepost': b = ForagePost(selected); break;
-            case 'rockknapper': b = RockKnapper(selected); break;
-            case 'toolbox': b = Toolbox(selected); break;
-        }
-        */
         if(typeof(b)==='string') {
             console.log('Building placement failed: '+ b);
             return;
@@ -98,6 +90,20 @@ export function LocalMap(props) {
         props.onTileUpdate([{...selected, buildid:b.id, buildimage:b.image}]);
     }
 
+    function saveGame() {
+        // Saves the game to the server, so that it can be loaded again later
+        fetch(serverURL, DAX.serverMessage('savelocalmap', {
+            blocks: game.blocks.map(b=>{return {id:b.id, name:b.name, x:b.tileX, y:b.tileY, ...b.save()};}),
+            unlockedItems: game.unlockedItems // This is already a flat list of only strings, so we can pass it as is
+            // Other than the status of each localmap tile (which hasn't been coded yet), that should be everything!
+        }, true))
+            .then(res=>DAX.manageResponseConversion(res))
+            .catch(err=>console.log(err))
+            .then(data => {
+                console.log('Server responded from save: ', data);
+            });
+    }
+
     return (
         <>
             <div style={{display:'flex', width:'100%'}}>
@@ -109,6 +115,9 @@ export function LocalMap(props) {
             </div>
             <div style={{display:'flex', width:'100%'}}>
                 <div style={{width:180}}>
+                    {/* Provide a save button */}
+                    <div><button onClick={saveGame}>Save</button></div>
+                    {/* Show the various building options the player can put down */}
                     {game.blockTypes.filter(e=>e.unlocked===1).map((btype, key) => (
                         <img key={key} src={imageURL +btype.image} alt={btype.alt} onClick={()=>placeBuilding(btype)}/>
                     ))}

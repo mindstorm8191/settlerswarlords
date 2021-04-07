@@ -208,6 +208,19 @@ export function Toolbox(mapTile) {
                     Currently holding: {(b.onhand.length===0)?'nothing':b.onhand[0].name +' x'+ b.onhand.length}
                 </>
             );
+        },
+        save: ()=>{
+            // Saves this block's content to the server
+            // This one could be harder to reload, because of all the extras, plus the moving images
+            return {
+                priority: b.priority,
+                targetId: b.targetId,
+                carrying: (typeof(b.carrying==='null'))?'none':b.carrying,
+                mode: b.mode,
+                travelCounter: b.travelCounter,
+                travelDistance: b.travelDistance,
+                items: b.onhand
+            };
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

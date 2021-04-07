@@ -63,18 +63,20 @@ import { game } from "./game.jsx";
     https://imgur.com/gallery/3pA5gj5
 
     Project size
-    src/app.js                         src/block_foragepost.jsx            server/common.php                      server/route_admin.php
-        src/app.css                       src/block_rockknapper.jsx            server/DanGlobal.php                   server/route_localMap.php
-            src/DanAjax.js                    src/block_toolbox.jsx               server/jsarray.php                      server/route_worldMap.php
-               src/comp_account.jsx               src/block_stickmaker.jsx            server/weightedRandom.php
-                   src/DanInput.jsx                   src/block_twinemaker.jsx            server/globals.php
-                      src/DanCommon.js                   src/blockHasSelectableCrafting.jsx   server/mapbuilder.php
-                         src/comp_ErrorOverlay.jsx          src/blockHasWorkerPriority.jsx        server/usermap.php
-                            src/comp_localMap.jsx              src/comp_worldMap.jsx                  server/proecess.php
-                                src/game.jsx                       src/comp_admin.jsx                     server/event.php
-                                    src/block_leanto.jsx               ajax.php                               server/route_account.php
-    392+126+48+208+65+56+68+231+157+66+57+102+200+163+49+59+60+521+428+126+239+37+221+127+218+402+434+388+354+293+198+141+214=6448 lines (3/27/2021)
+    src/app.js                         src/block_foragepost.jsx         src/blockHasSelectableCrafting.jsx    server/globals.php
+        src/app.css                       src/block_rockknapper.jsx         src/blockHasWorkerPriority.jsx        server/mapbuilder.php
+            src/DanAjax.js                   src/block_toolbox.jsx             src/blockRequiresTools.jsx             server/usermap.php
+               src/comp_account.jsx              src/block_stickmaker.jsx          src/comp_worldMap.jsx                  server/process.php
+                   src/DanInput.jsx                  src/block_twinemaker.jsx          src/comp_admin.jsx                     server/event.php
+                      src/DanCommon.js                  src/block_flinttoolmaker.jsx       ajax.php                               server/route_account.php
+                         src/comp_ErrorOverlay.jsx         src/block_huntingpost.jsx           server/common.php                      server/route_admin.php
+                            src/comp_localMap.jsx             src/block_butchershop.jsx            server/DanGlobal.php                   server/route_localMap.php
+                                src/game.jsx                      src/blockHasMultipleOutputs.jsx     server/jsarray.php                     server/route_worldMap.php
+                                    src/block_leanto.jsx             src/blockHasOutputsPerInput.jsx      server/weightedRandom.php
+    402+126+48+208+65+56+68+234+169+76+65+82+226+107+86+91+95+127+31+44+164+60+138+521+428+127+239+37+221+127+218+402+434+388+354+293+198+16+214=6985 lines (3/27/2021)
     3/13/2021 = 5588 lines
+    3/27/2021 = 6448 lines
+    4/3/2021  = 6985 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

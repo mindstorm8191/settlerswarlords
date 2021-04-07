@@ -169,7 +169,7 @@
                     }
                     return [danescape($key), floatval(danescape($ele))];
                 case 'string':
-                    if(danescape($ele)!=danescape($ele)) {
+                    if(danescape($ele)!=$ele) {
                         reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. danescape($key) .
                                     ' is not equal after conversion. IP='. $_SERVER['REMOTE_ADDR']);
                         ajaxreject('badinput', 'Input error: parameter '. $key .' is not valid');

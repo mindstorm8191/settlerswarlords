@@ -106,6 +106,21 @@ export function ButcherShop(mapTile) {
                 <ItemOutputs />
                 <Tools />
             </>;
+        },
+        save: ()=>{
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand,
+                inputs: b.inItems,
+                tools: b.toolGroups.map(t=>{
+                    return {
+                        group: t.group,
+                        selected: t.selected,
+                        loaded: t.loaded
+                    }
+                })
+            }
         }
     };
 

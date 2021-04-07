@@ -40,7 +40,7 @@ export function ForagePost(mapTile) {
                 b.onhand.push(game.createItem(
                     b.id,
                     DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'),
-                    'food', {liftime: 300}
+                    'food', {lifetime: 300}
                 ));
                 b.progressBar = 0;
             }
@@ -52,6 +52,14 @@ export function ForagePost(mapTile) {
                 <div>Progress: {parseInt((b.progressBar*100)/30)}%</div>
                 <div>Food on hand: {b.onhand.length}</div>
             </>;
+        },
+        save: ()=>{
+            // Saves this block's content to the server
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand,
+            };
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

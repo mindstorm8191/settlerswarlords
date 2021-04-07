@@ -61,6 +61,16 @@ export function LeanTo(mapTile) {
                     <div>Counter: {b.progressBar}</div>
                 </>
             );
+        },
+        save: ()=>{
+            // Saves this block's content to the server
+            // We really only need to store the mode (1 of 2) and progress bar value
+            // Note the block's name & id are already saved
+            return {
+                priority: b.priority,
+                mode: (b.mode==='building')?0:1,
+                progress: b.progressBar
+            };
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

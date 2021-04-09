@@ -81,6 +81,17 @@ export function TwineMaker(mapTile) {
                     }
                 })
             }
+        },
+        load: content=>{
+            b.priority = content.priority;
+            b.progressBar = content.progress;
+            b.onhand      = content.items;
+            b.toolGroups = b.toolGroups.map(group => {
+                let source = content.tools.find(e=>group.group===e.group);
+                group.selected = source.selected;
+                group.loaded = (source.loaded==='none')?null:source.loaded;
+                return group;
+            });
         }
     };
     return Object.assign(b, blockHasWorkerPriority(b), blockRequiresTools(b));

@@ -94,7 +94,9 @@ export function LocalMap(props) {
         // Saves the game to the server, so that it can be loaded again later
         fetch(serverURL, DAX.serverMessage('savelocalmap', {
             blocks: game.blocks.map(b=>{return {id:b.id, name:b.name, x:b.tileX, y:b.tileY, ...b.save()};}),
-            unlockedItems: game.unlockedItems // This is already a flat list of only strings, so we can pass it as is
+            unlockedItems: game.unlockedItems, // This is already a flat list of only strings, so we can pass it as is
+            allItems: game.items,
+            foodCounter: game.foodCounter
             // Other than the status of each localmap tile (which hasn't been coded yet), that should be everything!
         }, true))
             .then(res=>DAX.manageResponseConversion(res))
@@ -200,10 +202,14 @@ function LocalTileBuildingDetail(props) {
     // prop fields - functions
     //      onTileUpdate - Allows a single map tile to be updated
 
-    let block = game.blocks.find(ele=>ele.id===props.tile.buildid);
+    
+    let block = game.blocks.find(ele=>{
+        //console.log('id='+ ele.id);
+        return parseInt(ele.id)===parseInt(props.tile.buildid);
+    });
     
     // Note that we cannot check this before creating the hooks; React is picky about us changing the number of hooks in a component
-    if(typeof(block)==='undefined') return <>Block not found by id</>;
+    if(typeof(block)==='undefined') return <>Block not found by id={props.tile.buildid}</>;
 
     const SidePanel = block.SidePanel;  // THIS allows us to render the block's function as a component!
     if(typeof(SidePanel)==='undefined') return <>Block missing SidePanel function (is it named wrong?)</>;

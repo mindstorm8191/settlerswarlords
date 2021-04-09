@@ -99,7 +99,6 @@
                     $this->cycleList[$i]['amount']--;
                     $grab = $this->cycleList[$i]['name'];
                     if($this->cycleList[$i]['amount']<=0) {
-                        reporterror('server/weightedRandom.php->class WeightedRandom->cyclepull()', 'Cycling has been reset!');
                         array_splice($this->cycleList, $i, 1);
                         if(sizeof($this->cycleList)==0) {
                             $this->cycleList = null;

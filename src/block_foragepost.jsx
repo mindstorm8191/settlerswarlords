@@ -19,7 +19,7 @@ export function ForagePost(mapTile) {
         //...blockHasWorkerPriority(),
         id: game.getNextBlockId(),
         name: "Forage Post",
-        descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it first.`,
+        descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it.`,
         usage: `Collects edible foods from the surrounding environment.  Local supplies can only support up to 4 workers. Cannot place
                 another one in this area`,
         image: imageURL+'foragepost.png',
@@ -39,7 +39,7 @@ export function ForagePost(mapTile) {
             if(b.progressBar>=30) {
                 b.onhand.push(game.createItem(
                     b.id,
-                    DanCommon.getRandomFrom('Apple', 'Berries', 'Tree Nuts', 'Mushrooms'),
+                    DanCommon.getRandomFrom(['Apple', 'Berries', 'Tree Nuts', 'Mushrooms']),
                     'food', {lifetime: 300}
                 ));
                 b.progressBar = 0;
@@ -60,6 +60,15 @@ export function ForagePost(mapTile) {
                 progress: b.progressBar,
                 items: b.onhand,
             };
+        },
+        load: content => {
+            // Sets this block up from the server's content
+            b.priority    = parseInt(content.priority);
+            b.progressBar = parseInt(content.progress);
+            b.onhand      = content.items.map(ele=>{
+                ele.id = parseInt(ele.id);
+                return ele;
+            });
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

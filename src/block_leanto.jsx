@@ -71,6 +71,11 @@ export function LeanTo(mapTile) {
                 mode: (b.mode==='building')?0:1,
                 progress: b.progressBar
             };
+        },
+        load: content =>{
+            b.priority = parseInt(content.priority);
+            b.progressBar = praseInt(content.progress);
+            b.mode = (parseInt(content.priority)===0)?'building':'in use';
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

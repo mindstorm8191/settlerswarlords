@@ -82,10 +82,18 @@ export function FlintToolMaker(mapTile) {
                 priority: b.priority,
                 progress: b.progressBar,
                 items: b.onhand,
-                currentCraft: bcurrentCraft,
+                currentCraft: b.currentCraft,
                 nextCraft: b.nextCraft,
                 inputs: b.inItems,
             }
+        },
+        load: content=>{
+            b.priority     = content.priority;
+            b.progressBar  = content.progress;
+            b.onhand       = content.items;
+            b.currentCraft = content.currentCraft;
+            b.nextCraft    = content.nextCraft;
+            b.inItems      = content.inputs;
         }
     };
     return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b));

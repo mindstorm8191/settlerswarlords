@@ -27,15 +27,15 @@ export let game = {
     timerLoop: null,    // Handle to the setInterval object, so we can edit this when needed
     workPoints: 0,      // Set & updated dynamically on every block update pass
     blockTypes: [
-        {name:'leanto',      image:'leanto.png',      alt:'leanto',       create:LeanTo, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'foragepost',  image:'foragepost.png',  alt:'forage post',  create:ForagePost, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'rockknapper', image:'rockKnapper.png', alt:'rock knapper', create:RockKnapper, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'toolbox',     image:'toolbox.png',     alt:'tool box',     create:Toolbox, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'stickmaker',     image:'stickmaker.png',  alt:'stick maker',  create:StickMaker, prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
-        {name:'twinemaker',     image:'twinemaker.png',  alt:'twine maker',  create:TwineMaker, prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
-        {name:'flinttoolmaker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
-        {name:'huntingpost',    image:'huntingpost.png', alt:'Hunting Post', create:HuntingPost, prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
-        {name:'butchershop',    image:'butchershop.png',    alt:'Butcher Shop', create:ButcherShop, prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
+        {name:'Lean-To',          image:'leanto.png',         alt:'leanto',           create:LeanTo,         prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Forage Post',      image:'foragepost.png',     alt:'forage post',      create:ForagePost,     prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Rock Knapper',     image:'rockKnapper.png',    alt:'rock knapper',     create:RockKnapper,    prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Toolbox',          image:'toolbox.png',        alt:'tool box',         create:Toolbox,        prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Stick Maker',      image:'stickmaker.png',     alt:'stick maker',      create:StickMaker,     prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
+        {name:'Twine Maker',      image:'twinemaker.png',     alt:'twine maker',      create:TwineMaker,     prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
+        {name:'Flint Tool Maker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
+        {name:'Hunting Post',     image:'huntingpost.png',    alt:'Hunting Post',     create:HuntingPost,    prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
+        {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code
@@ -59,13 +59,14 @@ export let game = {
     createItem: (buildingId, name, group, extras) => {
         // Handles creating a new item, while also adding it to the global itemsList structure
         // This ID only works because this items list never gets sorted or re-ordered
-        let item = { id: game.items.length === 0 ? 1 : game.items[game.items.length - 1] + 1, name, group, ...extras };
+        let item = { id: game.items.length === 0 ? 1 : game.items[game.items.length - 1].id + 1, name, group, ...extras };
+
         game.items.push(item);
         // If this item isn't in the unlockedItems list, add it
         if(!game.unlockedItems.some(i=>i===name)) {
             game.unlockedItems.push(name);
             game.checkUnlocks(name);
-        } 
+        }
         return item;
     },
     toolCount: toolName => {
@@ -141,7 +142,11 @@ export let game = {
             // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
             let foundFood = game.blocks.some((building) => {
                 if (typeof building.onhand === "undefined") return false;
-                let slot = building.onhand.findIndex((i) => i.id === food.id);
+                let slot = building.onhand.findIndex((i) =>{
+
+                    return i.id
+                    === food.id;
+                });
                 if (slot === -1) return false; // Our target food wasn't found in this building block
                 building.onhand.splice(slot, 1);
                 return true;

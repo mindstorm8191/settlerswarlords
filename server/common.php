@@ -146,7 +146,7 @@
                     if(!validInt($ele)) {
                         reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. danescape($key) .' is not an int. IP='.
                                     $_SERVER['REMOTE_ADDR']);
-                        ajaxreject('badinput', 'Input error: parameter '. $key .' must be an int');
+                        ajaxreject('badinput', 'Input error: parameter '. $key .' must be an int (got '. $ele .')');
                     }
                     return [danescape($key), intval(danescape($ele))];
                 case 'posint': // accepts any whole number greater than zero. Good for ID fields, years, etc

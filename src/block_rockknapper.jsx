@@ -29,7 +29,7 @@ export function RockKnapper(mapTile) {
         onhand: [],
         craftOptions: [
             {name:'Flint Knife', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+'item_flintKnife.png'},
-            {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
+            {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
             {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']}
         ],
         hasItem: nameList =>{
@@ -76,6 +76,17 @@ export function RockKnapper(mapTile) {
                 items: b.onhand,
                 currentCraft: b.currentCraft,
                 nextCraft: b.nextCraft
+            }
+        },
+        load: content=>{
+            b.priority = content.priority;
+            b.progressBar = content.progress;
+            b.onhand       = content.items;
+            b.currentCraft = content.currentCraft;
+            b.nextCraft = content.nextCraft;
+            // Don't forget to set the progress bar's max value, too, since it's based on the currently crafted item
+            if(b.currentCraft!=='') {
+                b.progressBarMax = b.craftOptions.find(e=>e.name===b.currentCraft).craftTime;
             }
         }
     }

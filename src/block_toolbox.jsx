@@ -32,8 +32,8 @@ export function Toolbox(mapTile) {
         progressBar: 0,
         progressBarColor: 'orange',
         progressBarMax: 5,
-        tileX: mapTile.x,
-        tileY: mapTile.y,
+        tileX: parseInt(mapTile.x),
+        tileY: parseInt(mapTile.y),
         targetId: -1,       // This is the block we're currently working to send a tool to. We'd store the block itself, but it'd be only a
                             // copy here. We need to access the actual target later on
         carrying: null,     // This is the tool being carried to the other location. It won't remain in this inventory
@@ -72,7 +72,7 @@ export function Toolbox(mapTile) {
                             ' here (did you pass the block handle too?)');
                 return false;
             }
-            if(b.targetId!==-1) { console.log('Tool request: We already have a request for this tool'); return false; }
+            if(b.targetId!==-1) return false;
 
             // Setup the transfer!
             b.targetId = block.id;
@@ -132,10 +132,24 @@ export function Toolbox(mapTile) {
                     // Instead of trying to determine where the worker should move next, use a travel counter, then do the math on that
                     // to determine location
                     game.workPoints--;
+                    console.log('y spot:'+ b.tileY);
                     b.travelCounter++;
                     //console.log('Toolbox: step '+ )
                     target = game.blocks.find(e=>e.id===b.targetId);
                     walk = game.travellers.findIndex(e=>e.blockId===b.id);
+                    if(walk===-1) {
+                        // No walker object was found. This can happen when the page content is loaded fresh from the server
+                        // Create the object now. We'll also need the object's ID, which can be calculated
+                        walk = game.travellers.length;
+                        game.travellers.push({
+                            blockId: b.id,
+                            image: imageURL+'movingTool.png',
+                            x:b.tileX,
+                            y:b.tileY
+                        });
+                        b.travelDistance = ManhattanDistance(b.tileX,b.tileY,target.tileX,target.tileY);
+                        console.log('Set distance='+ b.travelDistance);
+                    }
                     if(b.travelCounter>=b.travelDistance) {
                         // We've reached our destination! Give the tool to the given block
                         if(target.receiveTool(b.carrying)) {
@@ -154,14 +168,18 @@ export function Toolbox(mapTile) {
                     if(b.travelCounter <= Math.abs(b.tileX - target.tileX)) {
                         // Work on moving left (or right) first
                         if(b.tileX > target.tileX) { // target is left of source
-                            game.travellers[walk].x = b.tileX - b.travelCounter; game.travellers[walk].y = b.tileY;
+                            game.travellers[walk].x = b.tileX - b.travelCounter;
+                            game.travellers[walk].y = b.tileY;
                         }else{
-                            game.travellers[walk].x = b.tileX + b.travelCounter; game.travellers[walk].y = b.tileY;
+                            game.travellers[walk].x = b.tileX + b.travelCounter;
+                            game.travellers[walk].y = b.tileY;
                         }
                     }else{
                         // Work on moving up (or down)
                         if(b.tileY > target.tileY) {    // target is north of source
-                            game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY + (b.travelDistance - b.travelCounter);
+                            console.log("Y="+ target.tileY +',dist='+ b.travelDistance +',counter='+ b.travelCounter);
+                            game.travellers[walk].x = target.tileX;
+                            game.travellers[walk].y = parseInt(target.tileY) + (b.travelDistance - b.travelCounter);
                         }else{
                             game.travellers[walk].x = target.tileX; game.travellers[walk].y = target.tileY - (b.travelDistance - b.travelCounter);
                         }
@@ -172,6 +190,19 @@ export function Toolbox(mapTile) {
                     b.travelCounter--;
                     target = game.blocks.find(e=>e.id===b.targetId);
                     walk = game.travellers.findIndex(e=>e.blockId===b.id);
+                    if(walk===-1) {
+                        // No walker object was found. This can happen when the page content is loaded fresh from the server
+                        // Create the object now. We'll also need the object's ID, which can be calculated
+                        walk = game.travellers.length;
+                        game.travellers.push({
+                            blockId: b.id,
+                            image: imageURL+'movingEmpty.png',
+                            x:b.tileX,
+                            y:b.tileY
+                        });
+                        b.travelDistance = ManhattanDistance(b.tileX,b.tileY,target.tileX,target.tileY);
+                        console.log('Set travelDistance to '+ b.travelDistance);
+                    }
                     if(b.travelCounter<=0) {
                         // We've made it back home. Put settings back to idle
                         b.mode = 'idle';
@@ -212,15 +243,29 @@ export function Toolbox(mapTile) {
         save: ()=>{
             // Saves this block's content to the server
             // This one could be harder to reload, because of all the extras, plus the moving images
+            console.log('Toolbox: typeOf travelDistance='+ typeof(b.travelDistance));
+            if(isNaN(b.travelDistance)) b.travelDistance = 0;
+            if(typeof(b.travelDistance)==='null') b.travelDistance = 0;
             return {
                 priority: b.priority,
                 targetId: b.targetId,
-                carrying: (typeof(b.carrying==='null'))?'none':b.carrying,
+                carrying: (typeof(b.carrying)==='null')?'none':b.carrying,
                 mode: b.mode,
                 travelCounter: b.travelCounter,
                 travelDistance: b.travelDistance,
                 items: b.onhand
             };
+        },
+        load: content=>{
+            b.priority = content.priority;
+            b.targetId = parseInt(content.targetId);
+            b.carrying = (content.carrying==='none')?null:content.carrying;
+            b.mode           = content.mode;
+            b.travelCounter  = parseInt(content.travelCounter);
+            b.travelDistance = parseInt(content.travelDisance);
+            b.onhand         = content.items;
+
+            // We would work on setting up the Traveller object. Unfortunately, our target block might not be loaded yet
         }
     }
     return Object.assign(b, blockHasWorkerPriority(b));

@@ -51,6 +51,7 @@ export const blockRequiresTools = state => ({
         // Allows a toolbox to put a tool into this block's tools section
         // tool: The tool object (also an item) to accept
 
+        console.log('In receiveTool: received tool:', tool);
         // First, find the tool group that this tool belongs to
         let group = state.toolGroups.findIndex(group => group.options.includes(tool.name));
         if(group===-1) return false;    // No group has this tool type

@@ -121,6 +121,22 @@ export function ButcherShop(mapTile) {
                     }
                 })
             }
+        },
+        load: content=>{
+            b.priority    = content.priority;
+            b.progressBar = content.progress;
+            b.onhand   = content.items;
+            b.inItems  = content.inputs;
+            b.toolGroups = b.toolGroups.map(group => {
+                let source = content.tools.find(e=>group.group===e.group);
+                group.selected = source.selected;
+                group.loaded = (source.loaded==='none')?null:source.loaded;
+                return group;
+            });
+            // Since crafting times can vary based on current operation items, we need to adjust the progress bar range
+            if(b.inItems.length>0) {
+                b.progressBarMax = b.outputItems.find(e=>e.name===b.inItems[0].name).craftTime;
+            }
         }
     };
 

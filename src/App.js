@@ -136,18 +136,46 @@ function App() {
                 return;
             }
 
-            //let mapSet = localMap_fillFromServerData(pack.mapcontent);
+            console.log(pack.localContent);
             console.log(pack.localTiles);
             let mapSet = localMap_fillFromServerData(pack.localTiles);
-            setLocalStats(pack.localContent);
-            setLocalTiles(mapSet);
+
+            // Handle unlocking items. game.checkUnlocks works off the unlockedItems list, not the items that are passed into the function
+            if (pack.unlockedItems !== null) {
+                game.unlockedItems = pack.unlockedItems;
+                game.checkUnlocks("");
+            }
+
+            console.log(pack.blocks);
+            if (pack.blocks !== null) {
+                pack.blocks.forEach((block) => {
+                    // Start by getting the map tile this block should be placed at - from the mapSet
+                    let tile = mapSet.findIndex((e) => e.x === block.x && e.y === block.y);
+                    mapSet[tile].buildid = parseInt(block.id);
+
+                    // Now, generate a new block, passing in the map data... First find the correct building type in game.blockTypes
+                    let buildType = game.blockTypes.find((e) => e.name === block.name);
+                    let built = buildType.create(mapSet[tile]);
+                    mapSet[tile].buildimage = built.image;
+                    built.id = parseInt(block.id); // All blocks need this id set for them; easier to do it here than in each block type
+                    built.load(block);
+                    game.blocks.push(built);
+                });
+            } else {
+                pack.blocks = [];
+            }
             game.tiles = mapSet;
+            game.foodCounter = parseInt(pack.foodCounter);
+
+            game.items = pack.allItems === null ? [] : pack.allItems;
             game.population = pack.localContent.population;
             game.updateReact = setLocalTiles; // Pass the handle of the function, not its result
-            setPage("localmap");
+
             game.isRunning = true;
-            // Unlock all starting-game block types
-            game.checkUnlocks("");
+
+            setLocalStats(pack.localContent);
+            setLocalTiles(mapSet);
+            setPage("localmap"); // This needs to be done last, since it actually updates what is displayed
         }
     }
 

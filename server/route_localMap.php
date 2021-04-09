@@ -13,8 +13,10 @@
         $con = verifyInput($msg, [
             ['name'=>'userid', 'required'=>true, 'format'=>'posint'],
             ['name'=>'access', 'required'=>true, 'format'=>'int'],
-            ['name'=>'blocks', 'required'=>true, 'format'=>'array'],
-            ['name'=>'unlockedItems', 'required'=>true, 'format'=>'array']
+            ['name'=>'blocks',        'required'=>true, 'format'=>'array'],
+            ['name'=>'unlockedItems', 'required'=>true, 'format'=>'array'],
+            ['name'=>'allItems',      'required'=>true, 'format'=>'array'],
+            ['name'=>'foodCounter',   'required'=>true, 'format'=>'int']
         ], 'server/route_localMap.php->route_saveLocalMap()->verify input');
         verifyUser($con);
 
@@ -147,12 +149,16 @@
             }
         }
 
+        // Do the same with the allItems list. VerifyItems() already accepts a list of items, and can handle an empty list
+        verifyItems($con['allItems']);
+
         // With the user data accepted, get the player's coordinates from the player record. We can use that to pick the correct
         // world map block
         $playerCoords = DanDBList("SELECT currentx, currenty FROM sw_player WHERE id=?;", 'i', [$userid],
                                   'server/route_localMap.php->route_saveLocalMap()->get player coords')[0];
-        DanDBList("UPDATE sw_map SET blocks=?, unlockedItems=? WHERE x=? AND y=?;", 'ssii',
-                  [json_encode($con['blocks']), json_encode($con['unlockedItems']), $playerCoords['currentx'], $playerCoords['currenty']],
+        DanDBList("UPDATE sw_map SET blocks=?, unlockedItems=?, allItems=?, foodCounter=? WHERE x=? AND y=?;", 'sssiii',
+                  [json_encode($con['blocks']), json_encode($con['unlockedItems']), json_encode($con['allItems']),
+                  $con['foodCounter'], $playerCoords['currentx'], $playerCoords['currenty']],
                   'server/route_localMap.php->route_saveLocalMap()->save to database');
         
         // Nothing left to do except return a success state
@@ -193,10 +199,12 @@
                     verifyInput($ele, [
                         ['name'=>'id', 'required'=>true, 'format'=>'posint'],
                         ['name'=>'name', 'required'=>true, 'format'=>'stringnotempty'],
-                        ['name'=>'group', 'required'=>true, 'format'=>'stringnotempty']
+                        ['name'=>'group', 'required'=>true, 'format'=>'stringnotempty'],
+                        ['name'=>'lifetime', 'required'=>false, 'format'=>'int']
                     ], 'server/route_localMap.php->verifyItems()->case item');
                 break;
                 case 'food': // This has a lifetime value
+                    reporterror('Debug: server/route_localMap.php->verifyItems()->case food', 'checking '. json_encode($ele));
                     verifyInput($ele, [
                         ['name'=>'id', 'required'=>true, 'format'=>'posint'],
                         ['name'=>'name', 'required'=>true, 'format'=>'stringnotempty'],

@@ -96,6 +96,23 @@ export function StickMaker(mapTile) {
                     }
                 })
             };
+        },
+        load: content=>{
+            b.priority     = content.priority;
+            b.progressBar  = content.progress;
+            b.onhand       = content.items;
+            b.currentCraft = content.currentCraft;
+            b.nextCraft    = content.nextCraft;
+            b.toolGroups   = b.toolGroups.map(group => {
+                let source = content.tools.find(e=>group.group===e.group);
+                group.selected = source.selected;
+                group.loaded = (source.loaded==='none')?null:source.loaded;
+                return group;
+            });
+            // Don't forget to set the progress bar's max value, too, since it's based on the currently crafted item
+            if(b.currentCraft!=='') {
+                b.progressBarMax = b.craftOptions.find(e=>e.name===b.currentCraft).craftTime;
+            }
         }
     };
     return Object.assign(

@@ -17,11 +17,6 @@ import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockMovesWorkers} from "./blockMovesWorkers.jsx";
 
-function ManhattanDistance(x1,y1,x2,y2) {
-    // Computes a manhattan distance between two points
-    return Math.abs(x1-x2) + Math.abs(y1-y2);
-}
-
 export function Toolbox(mapTile) {
     let b = {
         id: game.getNextBlockId(),
@@ -29,18 +24,13 @@ export function Toolbox(mapTile) {
         descr: `Lots of tasks require tools, and you'll need to produce tools of all shapes & sizes`,
         usage: `Holds one type of tool, with a max amount you can decide. Move your tools here to make them accessible to all nearby blocks`,
         image: imageURL +'toolbox.png',
-        priority: (game.blocks.length===0)?1:game.blocks[game.blocks.length-1].priority+1,
         progressBar: 0,
         progressBarColor: 'orange',
         progressBarMax: 5,
         tileX: parseInt(mapTile.x),
         tileY: parseInt(mapTile.y),
-        targetId: -1,       // This is the block we're currently working to send a tool to. We'd store the block itself, but it'd be only a
-                            // copy here. We need to access the actual target later on
         carrying: null,     // This is the tool being carried to the other location. It won't remain in this inventory
         mode: 'idle',   
-        travelCounter: 0,
-        travelDistance: 0,
         onhand: [],
         hasItem: nameList =>{
             // returns true if this block can output any item in the name list

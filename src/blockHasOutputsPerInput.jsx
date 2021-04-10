@@ -49,7 +49,9 @@ export const blockHasOutputsPerInput = state => ({
                         game.createItem(state.id, ele.name, 'item', {})
                     );
                 }
-            })
+            });
+            // Don't forget to delete the input item!
+            state.inItems.splice(0,1);
         }
     }
 })

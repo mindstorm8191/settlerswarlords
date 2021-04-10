@@ -1,0 +1,83 @@
+/*  block_firewoodMaker.jsx
+    Collects loose firewood from forest areas, to burn in fires
+    For the game Settlers & Warlords
+*/
+
+import React from "react";
+import {imageURL} from "./App.js";
+import {game} from "./game.jsx";
+import {DanCommon} from "./DanCommon.js";
+import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
+import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
+
+export function FirewoodMaker(mapTile) {
+    let b = {
+        id: game.getNextBlockId(),
+        name: "Firewood Maker",
+        descr: `Freshly cut trees don't burn well, as it's too wet. Forests generate fallen wood, just not a lot of it.`,
+        usage: `Collects usable firewood from surrounding forests, for use in campfires and other fire-using blocks. Forest areas may build 5
+                of these, non-forest areas only 1. Must be placed in forest areas`,
+        image: imageURL +'firewoodMaker.png',
+        progressBar: 0,
+        progressBarColor: 'orange',
+        progressBarMax: 25,
+        tileX: parseInt(mapTile.x),
+        tileY: parseInt(mapTile.y),
+        onhand: [],
+        hasItem: namesList => {
+            return namesList.some(n => {
+                return b.onhand.some(i=>i.name===n);
+            });
+        },
+        getItem: name=>{
+            let slot = b.onhand.findIndex(i=>i.name===name);
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0];
+        },
+        getItemFrom: namesList =>{
+            let slot = b.onhand.findIndex(i => namesList.includes(i.name));
+            if(slot===-1) return null;
+            return b.onhand.splice(slot, 1)[0];
+        },
+        update: ()=>{
+            // Handles updating this block
+            if(game.workPoints<=0) return; // No workers available for this
+            if(b.onhand.length>5) return;  // No space left
+            game.workPoints--;
+            b.progressBar++;
+            if(b.progressBar>=25) {
+                b.onhand.push(game.createItem(
+                    b.id,
+                    DanCommon.getRandomFrom(['Small Firewood', 'Medium Firewood', 'Large Firewood']),
+                    'item'
+                ));
+                b.progressBar = 0;
+            }
+        },
+        SidePanel: ()=>{
+            const Priority = b.ShowPriority;
+            const Outputs  = b.ShowOutputs;
+            return <>
+                <Priority/>
+                <p className="singleline">Progress: {Math.floor((b.progressBar/25)*100)}%</p>
+                <Outputs />
+            </>;
+        },
+        save: ()=>{
+            return {
+                priority: b.priority,
+                progress: b.progressBar,
+                items: b.onhand
+            };
+        },
+        load: content => {
+            b.priority    = parseInt(content.priority);
+            b.progressBar = parseInt(content.progress);
+            b.onhand      = content.items.map(e=> {
+                e.id = parseInt(e.id);
+                return e;
+            });
+        }
+    }
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b));
+}

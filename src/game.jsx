@@ -12,6 +12,7 @@ import { TwineMaker } from "./block_twinemaker.jsx";
 import { FlintToolMaker } from "./block_flinttoolmaker.jsx";
 import { HuntingPost } from "./block_huntingpost.jsx";
 import { ButcherShop } from "./block_butchershop.jsx";
+import { FirewoodMaker } from "./block_firewoodMaker.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -35,7 +36,8 @@ export let game = {
         {name:'Twine Maker',      image:'twinemaker.png',     alt:'twine maker',      create:TwineMaker,     prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
         {name:'Flint Tool Maker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
         {name:'Hunting Post',     image:'huntingpost.png',    alt:'Hunting Post',     create:HuntingPost,    prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
-        {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
+        {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
+        {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code

@@ -29,11 +29,12 @@ function ManhattanDistance(x1,y1,x2,y2) {
 
 
 export const blockMovesWorkers = state => ({
-    targetId: -1,
-    travelCounter:  0,
-    travelDistance: 0,
-    travelDirection: 0,
-    curImage: '',
+    targetId: -1,       // This is the block we're currently working to send a tool to (or from). We'd store the block itself, but it'd
+                        // be only a copy here. We need to access the actual target later on
+    travelCounter:  0,  // Shows progress of travelling to the other block
+    travelDistance: 0,  // How far we have to go, in total
+    travelDirection: 0, // Either +1 or -1 to decide which way to move
+    curImage: '',       // What image is used on the traveller object. This is kept here only for saving (and loading)
     startMove(targetBlock, fullImage) {
         // Check the data on the input parameters... along with parameters in this block
         if(typeof(state.tileX)!=='number' || isNaN(state.tileX)) {

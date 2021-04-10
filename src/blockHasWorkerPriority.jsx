@@ -24,8 +24,8 @@ export const blockHasWorkerPriority = state =>({
     //return {
         priority: getNextPriority(),
         changePriority(shift) {
-            let newValue = Math.max(0, blockHasWorkerPriority+shift);
-            blockHasWorkerPriority.priority = newValue
+            let newValue = Math.max(0, state.priority+shift);
+            state.priority = newValue
             game.blocks.sort(game.sortBlocks);
         },
         ShowPriority(hooks) {

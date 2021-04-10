@@ -61,22 +61,22 @@ import { game } from "./game.jsx";
   
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
-
     Project size
-    src/app.js                         src/block_foragepost.jsx         src/blockHasSelectableCrafting.jsx    server/globals.php
-        src/app.css                       src/block_rockknapper.jsx         src/blockHasWorkerPriority.jsx        server/mapbuilder.php
-            src/DanAjax.js                   src/block_toolbox.jsx             src/blockRequiresTools.jsx             server/usermap.php
-               src/comp_account.jsx              src/block_stickmaker.jsx          src/comp_worldMap.jsx                  server/process.php
-                   src/DanInput.jsx                  src/block_twinemaker.jsx          src/comp_admin.jsx                     server/event.php
-                      src/DanCommon.js                  src/block_flinttoolmaker.jsx       ajax.php                               server/route_account.php
-                         src/comp_ErrorOverlay.jsx         src/block_huntingpost.jsx           server/common.php                      server/route_admin.php
-                            src/comp_localMap.jsx             src/block_butchershop.jsx            server/DanGlobal.php                   server/route_localMap.php
-                                src/game.jsx                      src/blockHasMultipleOutputs.jsx     server/jsarray.php                     server/route_worldMap.php
-                                    src/block_leanto.jsx             src/blockHasOutputsPerInput.jsx      server/weightedRandom.php
-    402+126+48+208+65+56+68+234+169+76+65+82+226+107+86+91+95+127+31+44+164+60+138+521+428+127+239+37+221+127+218+402+434+388+354+293+198+16+214=6985 lines (3/27/2021)
+    src/app.js                         src/block_foragepost.jsx           src/blockHasSelectableCrafting.jsx    server/weightedRandom.php
+        src/app.css                       src/block_rockknapper.jsx           src/blockHasWorkerPriority.jsx        server/globals.php
+            src/DanAjax.js                   src/block_toolbox.jsx               src/blockMovesWorkers.jsx              server/mapbuilder.php
+               src/comp_account.jsx              src/block_stickmaker.jsx            src/blockRequiresTools.jsx             server/usermap.php
+                   src/DanInput.jsx                  src/block_twinemaker.jsx            src/comp_worldMap.jsx                  server/process.php
+                      src/DanCommon.js                  src/block_flinttoolmaker.jsx         src/comp_admin.jsx                     server/event.php
+                         src/comp_ErrorOverlay.jsx          src/block_huntingpost.jsx            ajax.php                               server/route_account.php
+                            src/comp_localMap.jsx               src/block_butchershop.jsx            server/common.php                      server/route_admin.php
+                                src/game.jsx                        src/blockHasMultipleOutputs.jsx      server/DanGlobal.php                   server/route_localMap.php
+                                    src/block_leanto.jsx               src/blockHasOutputsPerInput.jsx      server/jsarray.php                      server/route_worldMap.php
+    435+126+48+208+65+56+68+247+174+82+75+94+215+125+98+100+108+144+31+44+164+60+206+137+521+428+127+239+37+221+127+218+402+434+388+354+297+198+229+214=7544 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
+    4/10/2021 = 7544 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
@@ -164,6 +164,11 @@ function App() {
             } else {
                 pack.blocks = [];
             }
+            // Even with all blocks built, some blocks are dependent upon others to function, and it is a good possibility that
+            // one block won't exist when the other is made. So we need a second loading operation for certain blocks
+            game.blocks.forEach((block) => {
+                if (typeof block.finishLoad !== "undefined") block.finishLoad();
+            });
             game.tiles = mapSet;
             game.foodCounter = parseInt(pack.foodCounter);
 

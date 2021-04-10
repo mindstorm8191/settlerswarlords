@@ -8,8 +8,6 @@ import {game} from "./game.jsx";
 import {ClickableLabel} from "./comp_localMap.jsx";
 import {imageURL} from "./App.js";
 
-
-
 export const blockRequiresTools = state => ({
     // This object requires the target block to have a toolGroups attribute, which is an array of objects containing
     //  group: general name of this group

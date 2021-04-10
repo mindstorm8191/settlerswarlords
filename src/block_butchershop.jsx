@@ -22,8 +22,8 @@ export function ButcherShop(mapTile) {
         progressBar: 0,
         progressBarColor: 'blue',
         progressBarMax: 35,
-        tilex: mapTile.x,
-        tiley: mapTile.y,
+        tileX: mapTile.x,
+        tileY: mapTile.y,
         onhand: [],
         toolGroups: [
             {group:'knife', options: ['Flint Knife'], required:true, selected:'', loaded:null}

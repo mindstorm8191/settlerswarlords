@@ -102,7 +102,8 @@ export function ButcherShop(mapTile) {
             const ItemOutputs = b.ShowOutputs;
             return <>
                 <Priority />
-                <p className="singleline">Progress: {parseInt((b.progressBar*100)/30)}%</p>
+                <p className="singleLine">Currenty Working: {b.inItems.length===0?'none':b.inItems[0].name}</p>
+                <p className="singleline">Progress: {b.getCraftPercent()}%</p>
                 <ItemOutputs />
                 <Tools />
             </>;

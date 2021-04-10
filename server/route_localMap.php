@@ -68,8 +68,10 @@
                         ['name'=>'carrying',       'required'=>true, 'format'=>($ele['carrying']==='none')?'string':'array'],
                         ['name'=>'mode',           'required'=>true, 'format'=>'stringnotempty'],
                         ['name'=>'travelCounter',  'required'=>true, 'format'=>'int'],
-                        ['name'=>'travelDistance', 'required'=>true, 'format'=>'posint'],
-                        ['name'=>'items',          'required'=>true, 'format'=>'array']
+                        ['name'=>'travelDistance',  'required'=>true, 'format'=>'posint'],
+                        ['name'=>'travelDirection', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'curImage',        'required'=>true, 'format'=>'string'],
+                        ['name'=>'items',           'required'=>true, 'format'=>'array']
                     ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case toolbox');
                     verifyItems($ele['items']);
                     if($ele['carrying']!=='none') verifyItems([$ele['carrying']]);

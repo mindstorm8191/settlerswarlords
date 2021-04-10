@@ -18,6 +18,16 @@ export const blockHasOutputsPerInput = state => ({
             return true;
         });
     },
+    getCraftPercent() {
+        // Returns the percent of crafting that is completed for the current task
+        if(state.inItems.length===0) return 0;
+        let stats = state.outputItems.find(e=>e.name===state.inItems[0].name);
+        if(typeof(stats)==='undefined') {
+            console.log('block '+ state.name +' in blockHasOutputsPerInput->getCraftPercent(): item '+ state.inItems[0].name +' not handled');
+            return 0;
+        }
+        return Math.floor((state.progressBar / stats.craftTime)*100);
+    },
     processCraft(efficiency) {
         // Updates to handle crafting the selected item
         if(state.inItems.length===0) return;    // We have nothing to work on...
@@ -30,7 +40,8 @@ export const blockHasOutputsPerInput = state => ({
         // Now we can progress the crafting
         state.progressBarMax = stats.craftTime;
         state.progressBar += efficiency;
-        if(state.progressBar>=state.progressBarMax) {
+
+        if(state.progressBar>=stats.craftTime) {
             state.progressBar -= state.progressBarMax;
             stats.output.forEach(ele=>{
                 for(let i=0; i<ele.qty; i++) {

@@ -89,6 +89,17 @@ export const blockMovesWorkers = state => ({
             return;
         }
         game.travellers.splice(walk, 1);
+        // This was one... there could be more that was created for this. We need to clear out any others that may have been generated
+        walk = game.travellers.findIndex(ele=>ele.blockId===state.id);
+        let extras = 0;
+        while(walk!=-1) {
+            extras++;
+            game.travellers.splice(walk,1);
+            walk = game.travellers.findIndex(ele=>ele.blockId===state.id);
+        }
+        if(extras>0) {
+            console.log('Warning in BlockMovesWorkers->endMove(): Removed '+ extras +' extra mover objects');
+        }
         state.targetId = -1;
         state.travelCounter = 0;
         state.travelDistance = 0;

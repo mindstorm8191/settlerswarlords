@@ -73,6 +73,7 @@ export function Toolbox(mapTile) {
                             ' here (did you pass the block handle too?)');
                 return false;
             }
+            if(b.mode!=='idle') return false;
 
             // Setup the transfer!
             b.carrying = b.onhand.splice(0,1)[0];

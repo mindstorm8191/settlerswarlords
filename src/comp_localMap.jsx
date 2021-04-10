@@ -173,7 +173,7 @@ export function LocalMap(props) {
                         })}
                         {/*Now, render any 'travellers', where items get transfered between blocks (currently by workers)*/}
                         {game.travellers.map((user, key)=>(
-                            <img key={key} src={user.image} alt={'traveller'} style={{position:'absolute', zIndex:4, top:user.y*57, left:user.x*57}} />
+                            <img key={key} src={user.image} alt={'traveller'} style={{position:'absolute', zIndex:4, top:user.y*57, left:user.x*57, pointerEvents:'none'}} />
                         ))}
                     </div>
                 </div>

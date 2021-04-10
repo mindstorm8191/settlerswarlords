@@ -49,7 +49,6 @@ export const blockRequiresTools = state => ({
         // Allows a toolbox to put a tool into this block's tools section
         // tool: The tool object (also an item) to accept
 
-        console.log('In receiveTool: received tool:', tool);
         // First, find the tool group that this tool belongs to
         let group = state.toolGroups.findIndex(group => group.options.includes(tool.name));
         if(group===-1) return false;    // No group has this tool type
@@ -112,12 +111,6 @@ export const blockRequiresTools = state => ({
                                         options={toolModes}
                                         mode={toolMode}
                                         onClick={cur=>{
-                                            // Find a tool in a nearby toolbox.
-                                            //let slot = game.toolLocation(choice);
-                                            //if(slot===-1) return;  // We didn't find the tool here
-                                            //game.blocks[slot].requestTool(state, choice);
-                                            // The tool has been requested... now we just have to wait for it to arrive
-                                            console.log('Setting group.selected to '+ choice);
                                             group.selected = choice;
                                         }}
                                     >

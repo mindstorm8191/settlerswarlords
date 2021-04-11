@@ -12,7 +12,8 @@ import { TwineMaker } from "./block_twinemaker.jsx";
 import { FlintToolMaker } from "./block_flinttoolmaker.jsx";
 import { HuntingPost } from "./block_huntingpost.jsx";
 import { ButcherShop } from "./block_butchershop.jsx";
-import { FirewoodMaker } from "./block_firewoodMaker.jsx";
+import { FirewoodMaker } from "./block_firewoodmaker.jsx";
+import { Campfire } from "./block_campfire.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -37,7 +38,8 @@ export let game = {
         {name:'Flint Tool Maker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
         {name:'Hunting Post',     image:'huntingpost.png',    alt:'Hunting Post',     create:HuntingPost,    prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
         {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
-        {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
+        {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
+        {name:'Campfire',         image:'campfire.png',       alt:'Campfire',         create:Campfire,       prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code
@@ -89,7 +91,13 @@ export let game = {
         // This is mainly to allow a status to be easily shown, but can be used to easily request tools
         return game.blocks.findIndex(block=>{
             if(block.name==='Toolbox') {
-                return block.onhand.some(item=>item.name===toolName);
+                return block.onhand.some(item=>{
+                    if(item===null) {
+                        console.log('Error in game.toolLocation: toolbox id='+ block.id +' has null item');
+                        return false;
+                    }
+                    return item.name===toolName
+                });
             }
             return false;
         });

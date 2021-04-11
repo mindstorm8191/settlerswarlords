@@ -132,6 +132,30 @@
                     verifyItems($ele['inputs']);
                     verifyTools($ele['tools']);
                     return true;
+                case 'Firewood Maker': // Collects loose dead wood for fires
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'items',    'required'=>true, 'format'=>'array'],
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Firewood Maker');
+                    verifyItems($ele['items']);
+                    return true;
+                case 'Campfire': // Cooks foods (mostly meats)
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'inFuel',   'required'=>true, 'format'=>'array'],
+                        ['name'=>'inItems',      'required'=>true, 'format'=>'array'],
+                        ['name'=>'items',        'required'=>true, 'format'=>'array'],
+                        ['name'=>'overFire',     'required'=>true, 'format'=>($ele['carrying']==='none')?'string':'array'],
+                        ['name'=>'cookProgress', 'required'=>true, 'format'=>'float'],
+                        ['name'=>'fireTemp',     'required'=>true, 'format'=>'float'],
+                        ['name'=>'fuelTime',     'required'=>true, 'format'=>'float']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Campfire');
+                    verifyItems($ele['inFuel']);
+                    verifyItems($ele['inItems']);
+                    verifyItems($ele['items']);
+                    return true;
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');

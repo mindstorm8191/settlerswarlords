@@ -16,6 +16,7 @@ import {imageURL} from "./App.js";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockMovesWorkers} from "./blockMovesWorkers.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function Toolbox(mapTile) {
     let b = {
@@ -32,23 +33,6 @@ export function Toolbox(mapTile) {
         carrying: null,     // This is the tool being carried to the other location. It won't remain in this inventory
         mode: 'idle',   
         onhand: [],
-        hasItem: nameList =>{
-            // returns true if this block can output any item in the name list
-            return nameList.some(name => {
-                return b.onhand.some(item=>item.name===name);
-            });
-        },
-        getItem: name=>{
-            // Returns an item, removing it from this inventory
-            let slot = b.onhand.find(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
-        },
-        getItemFrom: namesList =>{
-            let slot = b.onhand.find(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         requestTool: (block, toolName)=>{
             // Allows any block to request a tool. Once requested, this block will work to send the tool to that location
             // When the tool arrives, the block's receiveTool function will be called with the tool
@@ -96,7 +80,7 @@ export function Toolbox(mapTile) {
                         let neighbors = game.getNeighbors(b.tileX,b.tileY);
                         neighbors.some(edge => {
                             if(edge.hasItem([b.onhand[0].name])) {
-                                b.onhand.push(edge.getItem([b.onhand[0].name]));
+                                b.onhand.push(edge.getItem(b.onhand[0].name));
                                 game.workPoints--;
                                 return true;
                             }
@@ -185,7 +169,7 @@ export function Toolbox(mapTile) {
             b.workers_finishLoad();
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b), blockMovesWorkers(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockMovesWorkers(b), blockSharesOutputs(b));
 }
 
 

@@ -9,7 +9,7 @@ import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
-//import {blockNeedsMultipleItems} from "./blockNeedsMultipleItems.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function FlintToolMaker(mapTile) {
     //...we're gonna need another block module!
@@ -37,24 +37,6 @@ export function FlintToolMaker(mapTile) {
                 inputItems: [{name:'Flint Spear Head', qty:1},{name:'Long Stick', qty:1},{name:'Twine', qty:1}]
             }
         ],
-        hasItem: nameList => {
-            // Returns true if this block has any of the items in the names list
-            return nameList.some(name => {
-                return b.onhand.some(item=>item.name===name);
-            });
-        },
-        getItem: name=>{
-            // Returns an item, removing it from this inventory, or null if none by that name is found
-            let slot = b.onhand.find(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0]; // splice returns an array, we just need the item
-        },
-        getItemFrom: namesList => {
-            // Returns any item in the names list, if it is here
-            let slot = b.onhand.findIndex(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             if(b.currentCraft==='')      return; // Nothing selected to craft
             if(b.onhand.length>=3)       return; // Outputs need to go somewhere
@@ -96,5 +78,5 @@ export function FlintToolMaker(mapTile) {
             b.inItems      = content.inputs;
         }
     };
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b), blockSharesOutputs(b));
 }

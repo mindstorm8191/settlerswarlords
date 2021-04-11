@@ -31,8 +31,6 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Fix the priority assignments; they're only updating the display when clicking the arrow buttons
-    1) Build the hunting post
     1) Figure out what needs to be added next.
         Item hauler: will be vital very soon... just not very easy to code
         Item storage: We will still need this, but is now more flexible since it won't deal with tools
@@ -42,11 +40,11 @@ import { game } from "./game.jsx";
         Farming: With the sickle we can clear grasslands, then with shovels start plowing lands to plant new crops. Need to modify
             worldgen to include various grain types (while building the clusters)
         Mad dash to metals: We will need the loggers post first, in order to craft wooden bowls
-    2) Start figuring out how to save (and re-load) the game state. This will help out a LOT when testing later-game features
-
     1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
     1) Toolbox: Allow certain tasks to be queued up. Also have requesting blocks continuously request tools (when they need one)
-    2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks
+    2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks.
+        Something similar that can be built is SharesOutputsWithNeighbors, which might take care of most of our output management functions
+        of most blocks
     Bug: The stick maker keeps loosing sticks. I don't know why. It is the long sticks being lost, I don't know about the short sticks
     Later: Complete the other tasks for the toolbox: allowing blocks to pick up tools
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
@@ -62,17 +60,17 @@ import { game } from "./game.jsx";
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
     Project size
-    src/app.js                         src/block_foragepost.jsx           src/blockHasSelectableCrafting.jsx    server/weightedRandom.php
-        src/app.css                       src/block_rockknapper.jsx           src/blockHasWorkerPriority.jsx        server/globals.php
-            src/DanAjax.js                   src/block_toolbox.jsx               src/blockMovesWorkers.jsx              server/mapbuilder.php
-               src/comp_account.jsx              src/block_stickmaker.jsx            src/blockRequiresTools.jsx             server/usermap.php
-                   src/DanInput.jsx                  src/block_twinemaker.jsx            src/comp_worldMap.jsx                  server/process.php
-                      src/DanCommon.js                  src/block_flinttoolmaker.jsx         src/comp_admin.jsx                     server/event.php
-                         src/comp_ErrorOverlay.jsx          src/block_huntingpost.jsx            ajax.php                               server/route_account.php
-                            src/comp_localMap.jsx               src/block_butchershop.jsx            server/common.php                      server/route_admin.php
-                                src/game.jsx                        src/blockHasMultipleOutputs.jsx      server/DanGlobal.php                   server/route_localMap.php
-                                    src/block_leanto.jsx               src/blockHasOutputsPerInput.jsx      server/jsarray.php                      server/route_worldMap.php
-    435+126+48+208+65+56+68+247+174+82+75+94+215+125+98+100+108+144+31+44+164+60+206+137+521+428+127+239+37+221+127+218+402+434+388+354+297+198+229+214=7544 lines
+    src/app.js                         src/block_foragepost.jsx           src/blockHasOutputsPerInput.jsx      server/jsarray.php                      server/route_worldMap.php
+        src/app.css                       src/block_rockknapper.jsx          src/blockHasSelectableCrafting.jsx    server/weightedRandom.php
+            src/DanAjax.js                   src/block_toolbox.jsx               src/blockHasWorkerPriority.jsx        server/globals.php
+               src/comp_account.jsx              src/block_stickmaker.jsx           src/blockMovesWorkers.jsx              server/mapbuilder.php
+                   src/DanInput.jsx                  src/block_twinemaker.jsx           src/blockRequiresTools.jsx             server/usermap.php
+                      src/DanCommon.js                  src/block_flinttoolmaker.jsx        src/comp_worldMap.jsx                  server/process.php
+                         src/comp_ErrorOverlay.jsx          src/block_huntingpost.jsx           src/comp_admin.jsx                     server/event.php
+                            src/comp_localMap.jsx               src/block_butchershop.jsx           ajax.php                               server/route_account.php
+                                src/game.jsx                        src/block_firewoodmaker.jsx         server/common.php                      server/route_admin.php
+                                    src/block_leanto.jsx               src/blockHasMultipleOutputs.jsx      server/DanGlobal.php                   server/route_localMap.php
+    435+126+48+208+65+56+68+247+174+82+75+94+215+125+98+100+108+144+83+31+44+164+60+219+137+521+428+127+239+37+221+127+218+402+434+388+354+297+198+229+214=7544 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
@@ -402,11 +400,18 @@ function HomePage(props) {
 export default App;
 
 /*          Functions, components & their locations
-    component AccountBox - src/comp_account.jsx
-    component App - src/App.js
-    const cardinalDirections (array of object) - src/comp_worldMap.jsx
-    function DanCommon.flatten - src/DanCommon.js
-    function DanCommon.getRandomFrom - src/DanCommon.js
+    component       AccountBox                      - src/comp_account.jsx
+    component       App                             - src/App.js
+    Object          blockHasMultipleOutputs         - blockHasMultipleOutputs.jsx
+    Object          blockHasOutputsPerInput         - blockHasOutputsPerInput.jsx
+    Object          blockHasSelectableCrafting      - blockHasSelectableCrafting.jsx
+    Object          blockHasWorkerPriority          - blockHasWorkerPriority.jsx
+    Object          blockMovesWorkers               - blockMovesWorkers.jsx
+    Object          ButcherShop                     - block_butchershop.jsx
+    array of object cardinalDirections              - src/comp_worldMap.jsx
+    component       ClickableLabel                  - src/comp_localMap.jsx
+    function        DanCommon.flatten               - src/DanCommon.js
+    function        DanCommon.getRandomFrom         - src/DanCommon.js
     function DanCommon.hasAny - src/DanCommon.js
     function DanCommon.manhattanDist - src/DanCommon.js
     function DanCommon.multiRelace - src/DanCommon.js
@@ -415,20 +420,49 @@ export default App;
     component DanInput - src/DanInput.jsx
     function DAX.manageResponseConversion - src/DanAjax.js
     function DAX.sendError - src/DanAjax.js
-    function DAX.serverMessage - src/DanAjax.js
-    component EmptyLandShowBuildChoices - src/comp_localMap.jsx
-    component HomePage - src/App.js
-    const imageURL (string) - src/App.js
-    component InventoryPage - src/App.js
-    component LocalMap - src/comp_localMap.jsx
-    function localMap_fillFromServerData() - src/comp_localMap.jsx
+    function        DAX.serverMessage               - src/DanAjax.js
+    component       ErrorOverlay                    - src/comp_ErrorOverlay.jsx
+    Object          FirewoodMaker                   - src/block_firewoodmaker.jsx
+    Object          FlintToolMaker                  - src/block_flinttoolmaker.jsx
+    Object          ForagePost                      - src/block_foragepost.jsx
+    Object          game                            - src/game.jsx
+    array of object game.blocks                     - src/game.jsx
+    array of object game.blockTypes                 - src/game.jsx
+    function        game.checkUnlocks               - src/game.jsx
+    function        game.createItem                 - src/game.jsx
+    Int             game.foodCounter                - src/game.jsx
+    function        game.getNeighbors               - src/game.jsx
+    function        game.getNextBlockId             - src/game.jsx
+    Bool            game.isRunning                  - src/game.jsx
+    array of object game.items                      - src/game.jsx
+    function        game.sortBlocks                 - src/game.jsx
+    (array of object) game.tiles           - src/game.jsx
+    object          game.timerLoop                  - src/game.jsx
+    function        game.toolCount                  - src/game.jsx
+    function        game.toolLocation               - src/game.jsx
+    array of object game.travellers                 - src/game.jsx
+    array of string game.unlockedItems              - src/game.jsx
+    function        game.update                     - src/game.jsx
+    function        game.updateReact                - src/game.jsx
+    float           game.workPoints                 - src/game.jsx
+    component       HomePage                        - src/App.js
+    Object          HuntingPost                     - src/block_huntingpost.jsx
+    const (string)    imageURL             - src/App.js
+    component         InventoryPage        - src/App.js
+    object            LeanTo                        - src/block_leanto.jsx
+    component         LocalMap                      - src/comp_localMap.jsx
+    function          localMap_fillFromServerData() - src/comp_localMap.jsx
     component LocalTileBuildingDetail - src/comp_localMap.jsx
     function manDist (int) - src/comp_worldMap.jsx
     component PageChoices - src/App.js
     component PagePicker - src/App.js
-    component RegisterForm - src/comp_account.js
-    const serverURL (string) - src/App.js
-    component WorldActionDetail - src/comp_worldMap.jsx
+    component       RegisterForm                    - src/comp_account.js
+    Object          RockKnapper                     - src/block_rockknapper.jsx
+    String          serverURL                       - src/App.js
+    Object          StickMaker                      - src/block_stickmaker.jsx
+    Object          Toolbox                         - src/block_toolbox.jsx
+    Object          TwineMaker                      - src/block_twinemaker.jsx
+    component       WorldActionDetail               - src/comp_worldMap.jsx
     component Worldmap - src/comp_worldMap.jsx
     const worldMapTile (array of object) - src/comp_worldMap.jsx
     function worldMap_fillFromServerData (array of object) - src/comp_worldMap.jsx

@@ -9,6 +9,7 @@ import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
@@ -32,24 +33,6 @@ export function RockKnapper(mapTile) {
             {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
             {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']}
         ],
-        hasItem: nameList =>{
-            // returns true if this block can output any item in the name list
-            return nameList.some(name => {
-                return b.onhand.some(item=>item.name===name);
-            });
-        },
-        getItem: name=>{
-            // Returns an item, removing it from this inventory
-            let slot = b.onhand.find(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0]; // splice returns an array of all deleted items; we only need the one item
-        },
-        getItemFrom: namesList => {
-            // Returns any item that is in the names list
-            let slot = b.onhand.find(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             if(b.currentCraft==='') return; // User needs to select something to craft!
             if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here
@@ -90,6 +73,6 @@ export function RockKnapper(mapTile) {
             }
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b), blockSharesOutputs(b));
 }
 

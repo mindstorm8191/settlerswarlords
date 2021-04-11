@@ -8,6 +8,7 @@ import {imageURL } from "./App.js";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function TwineMaker(mapTile) {
     if(mapTile.landtype!==1) return 'wronglandtype';
@@ -28,23 +29,6 @@ export function TwineMaker(mapTile) {
         toolGroups: [
             {group:'knife', options: ['Flint Knife'], required:true, selected:'', loaded:null}
         ],
-        
-        hasItem: nameList => {
-            // Returns true if this block can output an item in the names list
-            return nameList.some(name => b.onhand.some(item=>item.name===name));
-        },
-        getItem: name => {
-            // Returns an item, removing it from this inventory. If the item is not found, this returns null
-            let slot = b.onhand.findIndex(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0]; // splice provides an array of the extracted elements; we only need the one
-        },
-        getItemFrom: namesList => {
-            // Returns any item in the names list, if it is here
-            let slot = b.onhand.find(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded here (yet)
             if(b.onhand.length>=5) return; // We can only hold 5 finished items
@@ -94,5 +78,5 @@ export function TwineMaker(mapTile) {
             });
         }
     };
-    return Object.assign(b, blockHasWorkerPriority(b), blockRequiresTools(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockRequiresTools(b), blockSharesOutputs(b));
 }

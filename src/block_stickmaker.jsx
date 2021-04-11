@@ -11,6 +11,7 @@ import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function StickMaker(mapTile) {
     if(mapTile.landtype!==1) return 'wronglandtype';
@@ -32,31 +33,9 @@ export function StickMaker(mapTile) {
             {name:'Short Stick', craftTime:20, qty:1, itemType: 'item', itemExtras: {}, img:imageURL+"item_ShortStick.png"},
             {name:'Long Stick', craftTime:20, qty:1, itemType: 'item', itemExtras: {}, img:imageURL+"item_LongStick.png"}
         ],
-        //currentCraft: '',
         toolGroups: [
             {group:'axe', options: ['Flint Stabber', 'Flint Pickaxe'], required:true, selected:'', loaded:null}
         ],
-        tool: null,
-        hasItem: nameList => {
-            // Returns true if this block can output an item in the names list
-            return nameList.some(name => b.onhand.some(item=>item.name===name));
-        },
-        getItem: name => {
-            // Returns an item, removing it from this inventory. If the item is not found, this returns null
-            let slot = b.onhand.findIndex(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
-        getItemFrom: namesList => {
-            // Returns any item in the names list, if it is here
-            let slot = b.onhand.find(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
-        receiveTool: tool => {
-            b.tool = tool;
-            return true;
-        },
         update: ()=>{
             // Before any work can be done here, a tool must be loaded
             if(!b.checkTools()) return; // No tool selected
@@ -120,6 +99,7 @@ export function StickMaker(mapTile) {
         blockHasWorkerPriority(b),
         blockHasSelectableCrafting(b),
         blockHasMultipleOutputs(b),
-        blockRequiresTools(b)
+        blockRequiresTools(b),
+        blockSharesOutputs(b)
     );
 }

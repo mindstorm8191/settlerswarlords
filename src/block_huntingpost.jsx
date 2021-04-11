@@ -10,6 +10,7 @@ import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function HuntingPost(mapTile) {
     // Check that there are no other hunting posts in this area
@@ -34,24 +35,6 @@ export function HuntingPost(mapTile) {
         toolGroups: [
             {group:'weapon', options: ['Flint Spear'], required:true, selected:'', loaded:null}
         ],
-        hasItem: nameList => {
-            // Returns true if this block has any of the items in the names list
-            return nameList.some(name => {
-                return b.onhand.some(item=>item.name===name);
-            });
-        },
-        getItem: name=>{
-            // Returns an item, removing it from this inventory, or null if no items by that name is found
-            let slot = b.onhand.findIndex(item => item.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0]; // splice returns an array, we just need the item
-        },
-        getItemFrom: namesList => {
-            // Returns any item in the names list, if it is here
-            let slot = b.onhand.findIndex(item => namesList.includes(item.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             if(b.onhand.length>=5) return; // Outputs need to go somewhere; can't eat raw food here
             if(!b.checkTools()) return; // No tools loaded here
@@ -104,5 +87,5 @@ export function HuntingPost(mapTile) {
             });
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b), blockRequiresTools(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b), blockRequiresTools(b), blockSharesOutputs(b));
 }

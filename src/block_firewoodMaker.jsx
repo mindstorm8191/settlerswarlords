@@ -9,8 +9,11 @@ import {game} from "./game.jsx";
 import {DanCommon} from "./DanCommon.js";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function FirewoodMaker(mapTile) {
+    if(mapTile.landtype!==1) return 'wronglandtype';
+    
     let b = {
         id: game.getNextBlockId(),
         name: "Firewood Maker",
@@ -20,32 +23,17 @@ export function FirewoodMaker(mapTile) {
         image: imageURL +'firewoodMaker.png',
         progressBar: 0,
         progressBarColor: 'orange',
-        progressBarMax: 25,
+        progressBarMax: 10,
         tileX: parseInt(mapTile.x),
         tileY: parseInt(mapTile.y),
         onhand: [],
-        hasItem: namesList => {
-            return namesList.some(n => {
-                return b.onhand.some(i=>i.name===n);
-            });
-        },
-        getItem: name=>{
-            let slot = b.onhand.findIndex(i=>i.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
-        getItemFrom: namesList =>{
-            let slot = b.onhand.findIndex(i => namesList.includes(i.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             // Handles updating this block
             if(game.workPoints<=0) return; // No workers available for this
             if(b.onhand.length>5) return;  // No space left
             game.workPoints--;
             b.progressBar++;
-            if(b.progressBar>=25) {
+            if(b.progressBar>=10) {
                 b.onhand.push(game.createItem(
                     b.id,
                     DanCommon.getRandomFrom(['Small Firewood', 'Medium Firewood', 'Large Firewood']),
@@ -79,5 +67,5 @@ export function FirewoodMaker(mapTile) {
             });
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b));
+    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b), blockSharesOutputs(b));
 }

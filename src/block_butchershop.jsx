@@ -10,6 +10,7 @@ import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockHasOutputsPerInput} from "./blockHasOutputsPerInput.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
+import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function ButcherShop(mapTile) {
     let b = {
@@ -66,25 +67,10 @@ export function ButcherShop(mapTile) {
                 ]
             }
         ],
-        hasItem: namesList => {
-            return namesList.some(n => {
-                return b.onhand.some(i=>i.name===n);
-            });
-        },
-        getItem: name=>{
-            let slot = b.onhand.findIndex(i=>i.name===name);
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
-        getItemFrom: namesList =>{
-            let slot = b.onhand.findIndex(i => namesList.includes(i.name));
-            if(slot===-1) return null;
-            return b.onhand.splice(slot, 1)[0];
-        },
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded to work here
             if(game.workPoints<=0) return; // nobody available to work here
-            if(b.inItems.length===0) {
+            if(b.inItems.length===0||b.inItems.length>5) {
                 if(b.searchForItems()) {
                     game.workPoints--;
                     return;
@@ -92,6 +78,7 @@ export function ButcherShop(mapTile) {
                 // Couldn't find any items anyway
                 return;
             }
+            if(b.onhand.length>20) return; // We already have a lot of outputs here
             // Wellll, that should be all we need before doing work
             b.useTools();
             b.processCraft(1);
@@ -141,5 +128,12 @@ export function ButcherShop(mapTile) {
         }
     };
 
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasMultipleOutputs(b), blockRequiresTools(b), blockHasOutputsPerInput(b));
+    return Object.assign(
+        b,
+        blockHasWorkerPriority(b),
+        blockHasMultipleOutputs(b),
+        blockRequiresTools(b),
+        blockHasOutputsPerInput(b),
+        blockSharesOutputs(b)
+    );
 }

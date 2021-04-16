@@ -52,7 +52,7 @@ export function ButcherShop(mapTile) {
                 name: "Dead Boar",
                 craftTime: 40,
                 output: [
-                    {name: 'Raw Boar meat', qty: 6},
+                    {name: 'Raw Boar Meat', qty: 6},
                     {name: 'Bone', qty: 3},
                     {name: 'Fur', qty: 3}
                 ]
@@ -67,6 +67,24 @@ export function ButcherShop(mapTile) {
                 ]
             }
         ],
+        possibleOutputs: ()=>{
+            let outs = [];
+            b.outputItems.forEach(group=>group.output.forEach(ele=>{
+                if(!outs.includes(ele.name)) outs.push(ele.name);
+            }));
+            return outs;
+        },
+        willAccept: item =>{
+            // Returns true if this block will accept this item
+            // Check that the item is one of the input items, and also that the inItems slot isn't full
+            return b.outputItems.some(e=>e.name===item.name) && b.inItems.length<5;
+        },
+        takeItem: item =>{
+            if(b.inItems.length>=5) return false;
+            if(!b.outputItems.some(e=>e.name===item.name)) return false;
+            b.inItems.push(item);
+            return true;
+        },
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded to work here
             if(game.workPoints<=0) return; // nobody available to work here

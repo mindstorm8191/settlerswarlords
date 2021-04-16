@@ -27,15 +27,14 @@ export const blockHasSelectableCrafting = state => ({
     hasIngredients: (useWorkPoint)=>{
         // Returns true if this block has all the input items needed for the selected craft target.
         // If items are missing, this function will search neighbor blocks for what it needs
-        if(state.currentCraft==='') return false;
+        
         if(useWorkPoint && game.workPoints<=0) return false; // We need a work point, but don't have any available
+        if(state.currentCraft==='') return false;
         let needsList = state.craftOptions.find(e=>e.name===state.currentCraft);
         if(typeof(needsList.inputItems)==='undefined') return true; // This item doesn't have any input requirements
         if(needsList.inputItems.length===0) return true; // There's a list but it's empty... same difference
-
-        needsList = needsList.inputItems.filter(needs=>
-            state.inItems.filter(e=>e.name===needs.name).length<needs.qty
-        ).map(e=>e.name);
+        
+        needsList = state.needsList();
         if(needsList.length===0) return true;
         // With our needs list, search nearby blocks for any items we can accept
         let neighbors = game.getNeighbors(state.tileX, state.tileY);
@@ -50,6 +49,16 @@ export const blockHasSelectableCrafting = state => ({
             state.inItems.push(n.getItem(needsList[slot]));
             return true;
         });
+    },
+    needsList: () =>{
+        // Mostly an internal function, returns a list of items needed to craft the current item. If the block has
+        // all the needed items, this will return an empty array
+        if(state.currentCraft==='') return [];
+        let needsList = state.craftOptions.find(e=>e.name===state.currentCraft);
+
+        return needsList.inputItems.filter(needs=>
+            state.inItems.filter(e=>e.name===needs.name).length<needs.qty
+        ).map(e=>e.name);
     },
     progressCraft(efficiency) {
         // Used in block.update. Handles making progress on the currently selected item to craft
@@ -73,7 +82,7 @@ export const blockHasSelectableCrafting = state => ({
                 curCraft.inputItems.forEach(tax=>{
                     for(let i=0;i<tax.qty;i++) {
                         let slot = state.inItems.findIndex(s=>s.name===tax.name);
-                        if(slot===-1) console.log('Failed to delete '. tax.name);
+                        if(slot===-1) console.log('Failed to delete '+ tax.name);
                         state.inItems.splice(slot,1);
                     }
                 });

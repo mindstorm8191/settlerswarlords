@@ -28,9 +28,13 @@ export function LeanTo(mapTile) {
         progressBarColor: 'brown',
         tileX: mapTile.x,
         tileY: mapTile.y,
+        possibleOutputs: ()=> [],  // This has no outputs
+        willOutput: n => false,
         hasItem: name => false, // This doesn't return any items
         getItem: name => null,  // This doesn't return any items
         getItemFrom: list => null, // This doesn't return any items
+        willAccept: item=>false,
+        takeItem: o => false,
         update: () => {
             if(b.mode==='building') {
                 if(game.workPoints<=0) return;
@@ -74,7 +78,7 @@ export function LeanTo(mapTile) {
         },
         load: content =>{
             b.priority = parseInt(content.priority);
-            b.progressBar = praseInt(content.progress);
+            b.progressBar = parseInt(content.progress);
             b.mode = (parseInt(content.priority)===0)?'building':'in use';
         }
     }

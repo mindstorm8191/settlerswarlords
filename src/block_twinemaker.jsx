@@ -29,6 +29,9 @@ export function TwineMaker(mapTile) {
         toolGroups: [
             {group:'knife', options: ['Flint Knife'], required:true, selected:'', loaded:null}
         ],
+        possibleOutputs: ()=> ['Twine'],
+        willAccept: item=>false, // This block doesn't accept any input items
+        takeItem: item=>false,
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded here (yet)
             if(b.onhand.length>=5) return; // We can only hold 5 finished items

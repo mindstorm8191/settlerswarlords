@@ -35,6 +35,9 @@ export function HuntingPost(mapTile) {
         toolGroups: [
             {group:'weapon', options: ['Flint Spear'], required:true, selected:'', loaded:null}
         ],
+        possibleOutputs: ()=>['Dead Deer', 'Dead Wolf', 'Dead Boar', 'Dead Chicken'],
+        willAccept: item=>false,    // This block doesn't accept any input items
+        takeItem: item=>false,
         update: ()=>{
             if(b.onhand.length>=5) return; // Outputs need to go somewhere; can't eat raw food here
             if(!b.checkTools()) return; // No tools loaded here

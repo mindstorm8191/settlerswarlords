@@ -37,6 +37,23 @@ export function FlintToolMaker(mapTile) {
                 inputItems: [{name:'Flint Spear Head', qty:1},{name:'Long Stick', qty:1},{name:'Twine', qty:1}]
             }
         ],
+        possibleOutputs: ()=>{
+            // Returns an array of possible outputs of this block.
+            // We need to exclude any items that haven't been unlocked yet
+            return b.craftOptions.filter(ele=> {
+                if(typeof(ele.prereq)==='undefined') return true;
+                return ele.prereq.every(name=>game.unlockedItems.includes(name));
+            }).map(e=>e.name);
+        },
+        willAccept: item => {
+            // Returns true if this block can accept the specified item
+            return b.needsList.includes(item.name);
+        },
+        takeItem: item => {
+            // Accepts an item. Returns true if successful, or false if not.
+            b.inItems.push(item);   // Well, we could just accept it...
+            return true;
+        },
         update: ()=>{
             if(b.currentCraft==='')      return; // Nothing selected to craft
             if(b.onhand.length>=3)       return; // Outputs need to go somewhere

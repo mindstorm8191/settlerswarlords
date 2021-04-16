@@ -14,7 +14,8 @@ import { game } from "./game.jsx";
 /*  Version 6?!?
     Version 5 was a success, on the aspect of managing resources. We had (almost) everything of that working the way we wanted,
     and it was much faster than before. The problem, however, was that the game was becoming very much not like DanIdle, and
-    this game is to be a conceptual expansion of DanIdle.
+    this game is to be a conceptual expansion of DanIdle. For the current trajectory of Settlers & Warlords, producing
+    resources was... boring.
     There are challenges to make this game be more like DanIdle. With DanIdle, all the processing takes place on the client side.
     If players are offline for any amount of time, client-side processing won't happen, and to do step-wise processing on the server
     just wouldn't work. But, is client-side processing really that bad? So here's the plan:
@@ -60,21 +61,21 @@ import { game } from "./game.jsx";
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
     Project size
-    src/app.js                         src/block_foragepost.jsx           src/blockHasOutputsPerInput.jsx      server/jsarray.php                      server/route_worldMap.php
-        src/app.css                       src/block_rockknapper.jsx          src/blockHasSelectableCrafting.jsx    server/weightedRandom.php
-            src/DanAjax.js                   src/block_toolbox.jsx               src/blockHasWorkerPriority.jsx        server/globals.php
-               src/comp_account.jsx              src/block_stickmaker.jsx           src/blockMovesWorkers.jsx              server/mapbuilder.php
-                   src/DanInput.jsx                  src/block_twinemaker.jsx           src/blockRequiresTools.jsx             server/usermap.php
-                      src/DanCommon.js                  src/block_flinttoolmaker.jsx        src/comp_worldMap.jsx                  server/process.php
-                         src/comp_ErrorOverlay.jsx          src/block_huntingpost.jsx           src/comp_admin.jsx                     server/event.php
-                            src/comp_localMap.jsx               src/block_butchershop.jsx           ajax.php                               server/route_account.php
-                                src/game.jsx                        src/block_firewoodmaker.jsx         server/common.php                      server/route_admin.php
-                                    src/block_leanto.jsx               src/blockHasMultipleOutputs.jsx      server/DanGlobal.php                   server/route_localMap.php
-    435+126+48+208+65+56+68+247+174+82+75+94+215+125+98+100+108+144+83+31+44+164+60+219+137+521+428+127+239+37+221+127+218+402+434+388+354+297+198+229+214=7544 lines
+    src/app.js                         src/block_foragepost.jsx          src/block_hauler.jsx                src/comp_admin.jsx                     server/event.php
+        src/app.css                       src/block_rockknapper.jsx          src/blockHasMultipleOutputs.jsx     ajax.php                               server/route_account.php
+            src/DanAjax.js                   src/block_toolbox.jsx              src/blockHasOutputsPerInput.jsx      server/common.php                      server/route_admin.php
+               src/comp_account.jsx              src/block_stickmaker.jsx          src/blockHasSelectableCrafting.jsx    server/DanGlobal.php                   server/route_localMap.php
+                   src/DanInput.jsx                  src/block_twinemaker.jsx          src/blockHasWorkerPriority.jsx       server/jsarray.php                      server/route_worldMap.php
+                      src/DanCommon.js                  src/block_flinttoolmaker.jsx      src/blockMovesWorkers.jsx             server/weightedRandom.php
+                         src/comp_ErrorOverlay.jsx         src/block_huntingpost.jsx          src/blockRequiresTools.jsx            server/globals.php
+                            src/comp_localMap.jsx             src/block_butchershop.jsx           src/blockRunsFire.jsx                 server/mapbuilder.php
+                                src/game.jsx                      src/block_firewoodmaker.jsx         src/blockSharesOutputs.jsx            server/usermap.php
+                                    src/block_leanto.jsx             src/block_campfire.jsx              src/comp_worldMap.jsx                  server/process.php
+    470+126+48+208+65+56+68+247+184+82+75+77+173+105+82+82+91+139+71+113+101+31+57+164+58+219+130+152+42+521+428+127+239+37+221+127+218+402+434+388+354+297+198+255+214=7885 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
-    4/10/2021 = 7544 lines
+    4/11/2021 = 7885 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

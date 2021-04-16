@@ -10,6 +10,11 @@ export const blockSharesOutputs = state => ({
     // and are willing to provide that output to any nearby blocks needing such items. This will be the default behavior for
     // those blocks
 
+    willOutput: iName => {
+        // Returns true if this block will output the item specified
+        // For blocks using blockSharesOutputs, any output item may be output
+        return state.onhand.some(i=>i.name===iName);
+    },
     hasItem: namesList => {
         // Returns true or false if this block has any items in the names list (just pass an array of item names)
         return namesList.some(n => {

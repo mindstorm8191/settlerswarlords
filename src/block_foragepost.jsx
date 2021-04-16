@@ -29,9 +29,13 @@ export function ForagePost(mapTile) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
-        hasItem: name => false, // This doesn't return any items at this time
-        getItem: name => null,  // This doesn't return any items at this time
-        getItemFrom: list => null, // This doesn't return any items (yet)
+        possibleOutputs: ()=>[], // This block has no inputs or outputs (at this time)
+        willOutput: n=> false,
+        hasItem: name => false,
+        getItem: name => null,
+        getItemFrom: list => null,
+        willAccept: item=> false,
+        takeItem: o=>false,
         update: ()=>{
             if(game.workPoints<=0) return;
             game.workPoints--;

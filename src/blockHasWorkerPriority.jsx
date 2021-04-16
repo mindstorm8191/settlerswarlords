@@ -21,40 +21,38 @@ function getNextPriority() {
 }
 
 export const blockHasWorkerPriority = state =>({
-    //return {
-        priority: getNextPriority(),
-        changePriority(shift) {
-            let newValue = Math.max(0, state.priority+shift);
-            state.priority = newValue
-            game.blocks.sort(game.sortBlocks);
-        },
-        ShowPriority(hooks) {
-            // Since this is rendered as a component now (instead of as a function), we can use hooks without issue
-            const [curPriority, setCurPriority] = React.useState(state.priority);
-            return (
-                <div>
-                    Priority:
-                    <img
-                        src={imageURL+'arrowleft.png'}
-                        alt="-1"
-                        style={{cursor:'pointer'}}
-                        onClick={()=>{
-                            state.changePriority(-1);
-                            setCurPriority(Math.max(0, curPriority-1));
-                        }}
-                    />
-                    <span style={{marginLeft:5, marginRight:5}}>{curPriority}</span>
-                    <img
-                        src={imageURL+'arrowright.png'}
-                        alt="+1"
-                        style={{cursor:'pointer'}}
-                        onClick={()=>{
-                            state.changePriority(1);
-                            setCurPriority(curPriority+1);
-                        }}
-                    />
-                </div>
-            );
-        }
-    //}
+    priority: getNextPriority(),
+    changePriority(shift) {
+        let newValue = Math.max(0, state.priority+shift);
+        state.priority = newValue
+        game.blocks.sort(game.sortBlocks);
+    },
+    ShowPriority(hooks) {
+        // Since this is rendered as a component now (instead of as a function), we can use hooks without issue
+        const [curPriority, setCurPriority] = React.useState(state.priority);
+        return (
+            <div>
+                Priority:
+                <img
+                    src={imageURL+'arrowleft.png'}
+                    alt="-1"
+                    style={{cursor:'pointer'}}
+                    onClick={()=>{
+                        state.changePriority(-1);
+                        setCurPriority(Math.max(0, curPriority-1));
+                    }}
+                />
+                <span style={{marginLeft:5, marginRight:5}}>{curPriority}</span>
+                <img
+                    src={imageURL+'arrowright.png'}
+                    alt="+1"
+                    style={{cursor:'pointer'}}
+                    onClick={()=>{
+                        state.changePriority(1);
+                        setCurPriority(curPriority+1);
+                    }}
+                />
+            </div>
+        );
+    }
 });

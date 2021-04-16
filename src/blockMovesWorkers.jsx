@@ -189,6 +189,11 @@ export const blockMovesWorkers = state => ({
 
         return false;
     },
+    distanceTo(block) {
+        // Returns the distance to the other block. If the block provided is undefined, this returns 99
+        if(typeof(block)==='undefined') return 99;
+        return ManhattanDistance(state.tileX, state.tileY, block.tileX, block.tileY);
+    },
     workers_finishLoad() {
         // This needs to be called within the block's finishLoad function
         if(state.targetId!=-1) {

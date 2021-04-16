@@ -33,6 +33,16 @@ export function RockKnapper(mapTile) {
             {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
             {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']}
         ],
+        possibleOutputs: ()=>{
+            // Returns an array of possible outputs of this block.
+            // We need to exclude any items that haven't been unlocked yet
+            return b.craftOptions.filter(ele=> {
+                if(typeof(ele.prereq)==='undefined') return true;
+                return ele.prereq.every(name=>game.unlockedItems.includes(name));
+            }).map(e=>e.name);
+        },
+        willAccept: item=>false, // This block doesn't accept any inputs
+        takeItem: o=>false, 
         update: ()=>{
             if(b.currentCraft==='') return; // User needs to select something to craft!
             if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here

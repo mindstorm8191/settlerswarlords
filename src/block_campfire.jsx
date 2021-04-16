@@ -50,6 +50,33 @@ export function Campfire(mapTile) {
         fuelMax: 8, // Max number of fuel items to hold at a time
         fireDecay: 3,   // How much heath the fire looses per tick (with fuel or not)
         outputMax: 20, // This is higher because additional food can allow greater population to arrive
+        possibleOutputs: ()=>{
+            let out = [];
+            b.cookChoices.forEach(e=>{
+                if(!out.includes(e.outItem)) out.push(e.outItem);
+            });
+            return out;
+        },
+        willAccept: item=>{
+            // Returns true if this block will accept the given item
+            // This one is a bit more complex, because it can be accepted either as fuel or product
+            return (b.inFuel.length<b.fuelMax && b.fuelChoices.some(e=>e.name===item.name)) ||
+                   (b.inItems.length<5 && b.cookChoices.some(e=>e.name===item.name));
+        },
+        takeItem: item=>{
+            // Accepts a new item as input for this block
+            // First, figure out which input group this should go into
+            if(b.fuelChoices.some(e=>e.name===item.name)) {
+                b.inFuel.push(item);
+                return true;
+            }
+            if(b.cookChoices.some(e=>e.name===item.name)) {
+                b.inItems.push(item);
+                return true;
+            }
+            // This didn't fit into either. Reject the item
+            return false;
+        },
         update: ()=>{
             b.manageFire(); // This happens whether the colonists interact with this or not
             if(game.workPoints<=0) return; // Nobody left to manage this block

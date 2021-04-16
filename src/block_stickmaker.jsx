@@ -5,7 +5,6 @@
 
 import React from "react";
 import { imageURL } from "./App.js";
-import {ClickableLabel} from "./comp_localMap.jsx";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
@@ -36,6 +35,12 @@ export function StickMaker(mapTile) {
         toolGroups: [
             {group:'axe', options: ['Flint Stabber', 'Flint Pickaxe'], required:true, selected:'', loaded:null}
         ],
+        possibleOutputs: ()=>{
+            // We don't have any items with prerequisites - yet. If we do, we can borrow the same code from the Rock Knapper
+            return b.craftOptions.map(e=>e.name);
+        },
+        willAccept: item=>false,    // This block doesn't have any inputs (besides tools - that's handled differently)
+        takeItem: item=>false,
         update: ()=>{
             // Before any work can be done here, a tool must be loaded
             if(!b.checkTools()) return; // No tool selected

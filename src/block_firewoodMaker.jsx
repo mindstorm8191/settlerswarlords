@@ -27,6 +27,9 @@ export function FirewoodMaker(mapTile) {
         tileX: parseInt(mapTile.x),
         tileY: parseInt(mapTile.y),
         onhand: [],
+        possibleOutputs: ()=>['Small Firewood', 'Medium Firewood', 'Large Firewood'],
+        willAccept: item=>false, // this block doesn't have any inputs
+        takeItem: item=>false,
         update: ()=>{
             // Handles updating this block
             if(game.workPoints<=0) return; // No workers available for this

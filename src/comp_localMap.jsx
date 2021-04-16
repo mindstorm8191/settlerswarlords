@@ -148,7 +148,20 @@ export function LocalMap(props) {
                                         border: (tile===selected)?'1px solid black':'1px solid green'
                                     }}
                                     key={key}
-                                    onClick={() => setSelected(tile)}
+                                    onClick={() => {
+                                        console.log("pickmode="+ game.pickMode);
+                                        if(!game.pickMode) return setSelected(tile);  // behave as normal
+
+                                        
+                                        // Find the index of the selected block in the game's block list
+                                        // We have selected (as a useState variable) that has the hauler object
+                                        // We also have tile (defined above) that has the building ID
+                                        let haulerSlot = game.blocks.findIndex(e=>e.id===selected.buildid);
+                                        if(haulerSlot===-1) return console.log('Error - did not find slot of hauler');
+                                        if(game.blocks[haulerSlot].name!=='Hauler') return console.log('Error - working block is not a hauler');
+                                        game.blocks[haulerSlot].receiveTarget(tile.buildid);
+                                        game.pickMode = false;
+                                    }}
                                 >
                                     {parseInt(tile.buildid) === 0 ? (
                                         ""

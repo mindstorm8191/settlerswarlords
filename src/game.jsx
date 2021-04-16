@@ -7,6 +7,7 @@ import { LeanTo } from "./block_leanto.jsx";
 import { ForagePost } from "./block_foragepost.jsx";
 import { RockKnapper } from "./block_rockknapper.jsx";
 import { Toolbox } from "./block_toolbox.jsx";
+import { Hauler } from "./block_hauler.jsx";
 import { StickMaker } from "./block_stickmaker.jsx";
 import { TwineMaker } from "./block_twinemaker.jsx";
 import { FlintToolMaker } from "./block_flinttoolmaker.jsx";
@@ -28,11 +29,13 @@ export let game = {
     updateReact: null,  // This gets updated when the game begins, allowing us to trigger map updates every game tick
     timerLoop: null,    // Handle to the setInterval object, so we can edit this when needed
     workPoints: 0,      // Set & updated dynamically on every block update pass
+    pickMode: false,    // Set to true if the currently selected block type is working to pick another file from the map
     blockTypes: [
         {name:'Lean-To',          image:'leanto.png',         alt:'leanto',           create:LeanTo,         prereq:[], unlocked:0, newFeatures:[]},
         {name:'Forage Post',      image:'foragepost.png',     alt:'forage post',      create:ForagePost,     prereq:[], unlocked:0, newFeatures:[]},
         {name:'Rock Knapper',     image:'rockKnapper.png',    alt:'rock knapper',     create:RockKnapper,    prereq:[], unlocked:0, newFeatures:[]},
         {name:'Toolbox',          image:'toolbox.png',        alt:'tool box',         create:Toolbox,        prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Hauler',           image:'hauler.png',         alt:'hauler',           create:Hauler,         prereq:[], unlocked:0, newFeatures:[]},
         {name:'Stick Maker',      image:'stickmaker.png',     alt:'stick maker',      create:StickMaker,     prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
         {name:'Twine Maker',      image:'twinemaker.png',     alt:'twine maker',      create:TwineMaker,     prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
         {name:'Flint Tool Maker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']], unlocked:0, newFeatures:[]},
@@ -54,6 +57,14 @@ export let game = {
     },
     getNeighbors: (x,y) => {
         // Returns an array holding all neighboring blocks (in cardinal directions)
+        if(typeof(x)==='undefined') {
+            console.log('Error in game.getNeighbors: called function w/o X or Y value; these are required');
+            return;
+        }
+        if(typeof(y)==='undefined') {
+            console.log('Error in game.getNeighbors: called function w/o Y value; this is required');
+            return;
+        }
         return cardinalDirections.map(dir=>{
             return game.blocks.find(ele=>ele.tileX===x+dir.x && ele.tileY===y+dir.y);
         }).filter(ele => {

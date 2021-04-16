@@ -31,8 +31,30 @@ export function Toolbox(mapTile) {
         tileX: parseInt(mapTile.x),
         tileY: parseInt(mapTile.y),
         carrying: null,     // This is the tool being carried to the other location. It won't remain in this inventory
-        mode: 'idle',   
+        mode: 'idle',
         onhand: [],
+        possibleOutputs: ()=>{
+            // This block will only output a tool type it has. If it has none, there are no outputs
+            if(b.onhand.length===0) return [];
+            return [b.onhand[0].name];
+        },
+        willAccept: item=> {
+            if(b.onhand.length===0) return (item.group==='tool'); // This will only accept a tool
+            if(b.onhand.length>5) return false; // Make sure we have room for it
+            return (b.onhand[0].name===item.name);  // Only accept the same kind of tool
+        },
+        takeItem: item => {
+            // This will only accept a tool
+            if(b.onhand.length===0) {
+                if(item.group!=='tool') return false;
+                b.onhand.push(item);
+                return true;
+            }
+            if(b.onhand.length>5) return false; // No more room to accept items
+            if(b.onhand[0].name!==item.name) return false;
+            b.onhand.push(item);
+            return true;
+        },
         requestTool: (block, toolName)=>{
             // Allows any block to request a tool. Once requested, this block will work to send the tool to that location
             // When the tool arrives, the block's receiveTool function will be called with the tool

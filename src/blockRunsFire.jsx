@@ -28,10 +28,12 @@ export const blockRunsFire = state => ({
     cookProgress: 0, // How much time has been made on cooking this item
     fuelTime: 0,    // How many game ticks this fire has until it starts cooling
     fireTemp: 0,    // Zero is normal 'room' temperature, most fires get up to 100. Cooking can start at 50
+    fireBoost: 0,   // Current temp boost provided by the currently burning fuel. This is reset each time a new fuel item is added
     manageFire: ()=>{
         // Handles updating the fire state, even if there are no workers available
         state.fireTemp = Math.max(0, state.fireTemp-state.fireDecay);
         if(state.fuelTime>0) {
+            //console.log()
             state.fuelTime--;
             state.fireTemp += state.fuelBoost;
         }
@@ -60,25 +62,35 @@ export const blockRunsFire = state => ({
         // Before adding fuel to the fire, first determine if there's anything to cook. Don't leave a fire burning fuel
         // if there's no work to be done
         if(state.inItems.length!==0) {
-            if(state.fuelTime<0 && state.inFuel.length>0) {
-                // Toss the next item onto the fire
-                let picked = null;
-                while(picked===null) {
-                    if(state.inFuel.length===0) {
-                        // All options failed
-                        console.log('Error in blockRunsFire: ran out of possible fuel options. Aborting');
-                        return false;
-                    }
-                    picked = state.fuelChoices.find(p=>p.name===state.inFuel[0].name);
-                    if(picked===null) {
-                        console.log('Warning in blockRunsFire: item picked is not an accepted fuel type');
-                        state.inFuel.splice(0,1);
-                    }
+            if(state.fuelTime<=0 && state.inFuel.length>0 && state.overFire!==null) {
+                // Also check if the fire is already hot enough for our current item. We want to keep the fire at around the item's
+                // maximum cooking temperature. If it's already there, we can hold off on adding more fuel (for now)
+                let choice = state.cookChoices.find(e=>e.name===state.overFire.name);
+                if(typeof(choice)==='undefined') {
+                    console.log('Error in blockRunsFire->manageFuel: current cooking item ('+ state.overFire.name +') not found in cook Choices');
+                    return;
                 }
-                state.fuelBoost = picked.fuelBoost;
-                state.fuelTime  = picked.fuelTime;
-                state.inFuel.splice(0,1);
-                return true;
+                if(state.fireTemp<choice.maxTemp) {
+
+                    // Toss the next item onto the fire
+                    let picked = null;
+                    while(picked===null) {
+                        picked = state.fuelChoices.find(p=>p.name===state.inFuel[0].name);
+                        if(picked===null) {
+                            console.log('Warning in blockRunsFire: item picked is not an accepted fuel type');
+                            state.inFuel.splice(0,1);
+                        }
+                        if(state.inFuel.length===0) {
+                            // All options failed
+                            console.log('Error in blockRunsFire: ran out of possible fuel options. Aborting');
+                            return false;
+                        }
+                    }
+                    state.fuelBoost = picked.fuelBoost;
+                    state.fuelTime  = picked.fuelTime;
+                    state.inFuel.splice(0,1);
+                    return true;
+                }
             }
         }
 
@@ -114,6 +126,7 @@ export const blockRunsFire = state => ({
             if(state.cookProgress>=source.cookTime+source.burnTime) {
                 state.onhand.push(game.createItem(state.id, source.burnItem, 'item', {}));
                 state.overFire = null;
+                state.cookProgress = 0;
                 return true;
             }
             if(state.cookProgress>=source.cookTime) {
@@ -121,6 +134,7 @@ export const blockRunsFire = state => ({
                     state.onhand.push(game.createItem(state.id, source.outItem, source.outGroup, source.outExtras));
                 }
                 state.overFire = null;
+                state.cookProgress -= source.cookTime;
                 return true;
             }
         }
@@ -142,7 +156,7 @@ export const blockRunsFire = state => ({
         }
         return false;
     },
-    cookProgress() {
+    showCookProgress() {
         // Returns a value between 0 and 100, representing the cooking progress of the current item
         if(state.overFire===null) return 0;
         let source = state.cookChoices.find(e=>e.name===state.overFire.name);

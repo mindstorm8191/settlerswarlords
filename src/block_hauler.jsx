@@ -47,7 +47,7 @@ export function Hauler(mapTile) {
                         let found = game.getNeighbors(b.tileX, b.tileY).find(n=>{
                             return n.willOutput(targ.itemName);
                         });
-                        if(found===null) return false; // welp, no blocks will output this right now
+                        if(typeof(found)==='undefined') return false;   // Note: array.find() returns undefined when it gets no match - not null
                         
                         // Next, see if the destination block will accept this item
                         let destSlot = game.blocks.findIndex(block=>block.id===targ.destId);

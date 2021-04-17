@@ -32,8 +32,11 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
+    1) Allow the population to grow when there's enough food around (we'll worry about housing limits later)
+    2) Adjust the displayed population to show idle workers (coupled with population). This will need to be updated every game tick
+    3) Allow blocks to drop items. This will be an option in blockHasMultipleOutputs. This needs to be something that can be toggled,
+        and still displayed afterwards
     1) Figure out what needs to be added next.
-        Item hauler: will be vital very soon... just not very easy to code
         Item storage: We will still need this, but is now more flexible since it won't deal with tools
         Hunting post: Will unlock meats for population growth... probably making it easier to test. But this also means making the
             butcher shop, campfire and firewood collector
@@ -46,7 +49,6 @@ import { game } from "./game.jsx";
     2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks.
         Something similar that can be built is SharesOutputsWithNeighbors, which might take care of most of our output management functions
         of most blocks
-    Bug: The stick maker keeps loosing sticks. I don't know why. It is the long sticks being lost, I don't know about the short sticks
     Later: Complete the other tasks for the toolbox: allowing blocks to pick up tools
     later: Add a solution for when food runs completely out. The population should go down some, and the food counter be reset
     later: Add a status field to all blocks. Use this to show an icon on the top left of each block, to show the status

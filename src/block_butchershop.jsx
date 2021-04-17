@@ -88,7 +88,28 @@ export function ButcherShop(mapTile) {
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded to work here
             if(game.workPoints<=0) return; // nobody available to work here
-            if(b.inItems.length===0||b.inItems.length>5) {
+            if(b.onhand.length>20) { // We're holding too many output items
+                // First, see if we can drop any, that are on the dropList
+                
+                for(let i=0; i<b.dropList.length;i++) {
+                    let remSlot = b.onhand.findIndex(e=>e.name===b.dropList[i]);
+
+                    if(remSlot!==-1) {  // We found something to remove
+                        console.log('Dropping item '+ b.onhand[remSlot].name +'='+ b.dropList[i]);
+                        b.onhand.splice(remSlot,1);
+                        game.workPoints--;
+                        return;
+                    }
+                }
+                // If we didn't find anything to remove, we can at least pick something up... right?
+                if(b.inItems.length<5) {
+                    if(b.searchForItems()) {
+                        game.workPoints--;
+                    }
+                }
+                return;
+            }
+            if(b.inItems.length===0) { // Start by searching for items we can pick up
                 if(b.searchForItems()) {
                     game.workPoints--;
                     return;
@@ -96,7 +117,6 @@ export function ButcherShop(mapTile) {
                 // Couldn't find any items anyway
                 return;
             }
-            if(b.onhand.length>20) return; // We already have a lot of outputs here
             // Wellll, that should be all we need before doing work
             b.useTools();
             b.processCraft(1);
@@ -109,7 +129,7 @@ export function ButcherShop(mapTile) {
                 <Priority />
                 <p className="singleLine">Currenty Working: {b.inItems.length===0?'none':b.inItems[0].name}</p>
                 <p className="singleline">Progress: {b.getCraftPercent()}%</p>
-                <ItemOutputs />
+                <ItemOutputs canDrop={true}/>
                 <Tools />
             </>;
         },

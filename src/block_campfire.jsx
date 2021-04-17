@@ -32,9 +32,9 @@ export function Campfire(mapTile) {
         tileY: parseInt(mapTile.y),
         inItems: [],
         fuelChoices: [
-            {name: 'Small Firewood', fireBoost:6, fuelTime:10},
-            {name: 'Medium Firewood', fireBoost:6, fuelTime:15},
-            {name: 'Large Firewood', fireBoost:6, fuelTime:23}
+            {name: 'Small Firewood', fuelBoost:6, fuelTime:10},
+            {name: 'Medium Firewood', fuelBoost:6, fuelTime:15},
+            {name: 'Large Firewood', fuelBoost:6, fuelTime:23}
         ],
         cookChoices: [
             {name: 'Dead Deer',     cookTime: 120, burnTime: 50, minTemp: 50, maxTemp: 80,  outItem: 'Deer Meat', outGroup:'food', outExtras:{'lifetime':300}, outQty: 5, burnItem:'Burnt Meat'},
@@ -98,7 +98,7 @@ export function Campfire(mapTile) {
                 <Priority />
                 <p className="singleline">Fuel on hand: {b.inFuel.length}</p>
                 <p className="singleline">Fire temp: {b.fireTemp}</p>
-                <p className="singleline">Progress: {b.cookProgress()}</p>
+                <p className="singleline">Progress: {b.showCookProgress()}%</p>
                 <p className="singleline">Currently cooking {(b.overFire===null)?'nothing':b.overFire.name}</p>
                 <ItemOutputs />
             </>;

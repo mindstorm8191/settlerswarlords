@@ -85,6 +85,37 @@ export function ButcherShop(mapTile) {
             b.inItems.push(item);
             return true;
         },
+        fetchItem: itemId =>{
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            item = b.inItems.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            // Also check the tool slot
+            for(let i=0;i<b.toolGroups.length;i++) {
+                if(b.toolGroups[i].loaded!==null) {
+                    if(b.toolGroups[i].loaded.id===itemId) return b.toolGroups[i].loaded;
+                }
+            }
+            return null;
+        },
+        deleteItem: itemId =>{
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot!==-1) {
+                b.onhand.splice(slot,1);
+                return true;
+            }
+            slot = b.inItems.findIndex(e=>e.id===itemId);
+            if(slot!==-1) {
+                b.inItems.splice(slot,1);
+                return true;
+            }
+            return b.toolGroups.some(t=>{
+                if(t.loaded===null) return false;
+                if(t.loaded.id!==itemId) return false;
+                t.loaded = null;
+                return true;
+            });
+        },
         update: ()=>{
             if(!b.checkTools()) return; // No tool loaded to work here
             if(game.workPoints<=0) return; // nobody available to work here
@@ -96,6 +127,7 @@ export function ButcherShop(mapTile) {
 
                     if(remSlot!==-1) {  // We found something to remove
                         console.log('Dropping item '+ b.onhand[remSlot].name +'='+ b.dropList[i]);
+                        game.deleteItem(b.onhand[remSlot].id);
                         b.onhand.splice(remSlot,1);
                         game.workPoints--;
                         return;

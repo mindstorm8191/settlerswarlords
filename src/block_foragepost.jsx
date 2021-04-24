@@ -36,6 +36,17 @@ export function ForagePost(mapTile) {
         getItemFrom: list => null,
         willAccept: item=> false,
         takeItem: o=>false,
+        fetchItem: itemId=>{
+            let item = b.onhand.find(i=>i.id===itemId);
+            if(typeof(item)==='undefined') return null;
+            return item;
+        },
+        destroyItem: itemId=>{
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot===-1) return false;
+            b.onhand.splice(slot,1);    // We can leave Game to delete the item, since all they need is the id
+            return true;
+        },
         update: ()=>{
             if(game.workPoints<=0) return;
             game.workPoints--;

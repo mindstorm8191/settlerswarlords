@@ -80,7 +80,11 @@ export const blockMovesWorkers = state => ({
         state.curImage = newImage;
         // Also find the walker instance to update that, or else the change will never be displayed
         let walk = game.travellers.findIndex(ele=>ele.blockId===state.id);
-
+        if(walk===-1) {
+            console.log('Error in BlockMovesWorker->changeMoverImage(): Did not find walker object');
+            return;
+        }
+        game.travellers[walk].image = newImage;
     },
     endMove() {
         // Removes the walker object when the user is finished with it

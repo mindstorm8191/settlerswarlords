@@ -42,7 +42,21 @@ export function RockKnapper(mapTile) {
             }).map(e=>e.name);
         },
         willAccept: item=>false, // This block doesn't accept any inputs
-        takeItem: o=>false, 
+        takeItem: o=>false,
+        fetchItem: itemId=>{
+            // Returns an item, if this block has it, or null if it was not found. This is primarily used in the game
+            // object to manage food and updating other item stats
+            // Since this only has outputs, we can locate the item in our onhand list
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)==='undefined') return null;
+            return item; // We're not deleting this item here, merely providing it
+        },
+        destroyItem: itemId=>{
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot===-1) return false;
+            b.onhand.splice(slot,1);    // We can leave Game to delete the item, since all they need is the id
+            return true;
+        },
         update: ()=>{
             if(b.currentCraft==='') return; // User needs to select something to craft!
             if(b.onhand.length>=3) return;  // we can only hold 3 finished tools here

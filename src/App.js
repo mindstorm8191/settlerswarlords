@@ -73,11 +73,12 @@ import { game } from "./game.jsx";
                             src/comp_localMap.jsx             src/block_butchershop.jsx           src/blockRunsFire.jsx                 server/mapbuilder.php
                                 src/game.jsx                      src/block_firewoodmaker.jsx         src/blockSharesOutputs.jsx            server/usermap.php
                                     src/block_leanto.jsx             src/block_campfire.jsx              src/comp_worldMap.jsx                  server/process.php
-    470+126+48+208+65+56+68+247+184+82+75+77+173+105+82+82+91+139+71+113+101+31+57+164+58+219+130+152+42+521+428+127+239+37+221+127+218+402+434+388+354+297+198+255+214=7885 lines
+    473+126+48+208+65+56+68+260+195+86+79+87+195+110+85+99+94+177+74+140+211+58+57+173+58+224+130+166+47+521+428+127+239+37+221+127+218+402+434+388+354+297+198+274+214=8328 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
     4/11/2021 = 7885 lines
+    4/17/2021 = 8328 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
@@ -137,6 +138,10 @@ function App() {
                 return;
             }
 
+            let testFloats = 0.5;
+            testFloats--;
+            console.log("Floats test: " + testFloats);
+
             console.log(pack.localContent);
             console.log(pack.localTiles);
             let mapSet = localMap_fillFromServerData(pack.localTiles);
@@ -144,8 +149,8 @@ function App() {
             // Handle unlocking items. game.checkUnlocks works off the unlockedItems list, not the items that are passed into the function
             if (pack.unlockedItems !== null) {
                 game.unlockedItems = pack.unlockedItems;
-                game.checkUnlocks("");
             }
+            game.checkUnlocks("");
 
             console.log(pack.blocks);
             if (pack.blocks !== null) {

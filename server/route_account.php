@@ -53,21 +53,8 @@
         // We also need to update the map location to show that the user owns this land
         // Now is also a good time to add beginner items (just bread) and set the resource time balance of this block,
         // as food consumption depends on it
-        DanDBList("UPDATE sw_map SET owner=?, population=4, resourceTime=NOW(), items=?, processes=? WHERE x=? and y=?;", 'issii',
-                  [ $uid,
-                    json_encode([['name'=>'Bread', 'amount'=>50, 'isFood'=>1]]),
-                    json_encode([[
-                        'id'=>'1',
-                        'name'=>'ConsumeFood',
-                        'buildingId'=>0,
-                        'actionId'=>7,
-                        'workers'=>0,
-                        'priority'=>0,
-                        'inputGroup'=>[],
-                        'outputGroup'=>[]
-                    ]]),
-                    $playerx, $playery
-                  ], 'ajax.php->action signup->update map with new user');
+        DanDBList("UPDATE sw_map SET owner=?, population=4 WHERE x=? and y=?;", 'iii',
+                  [ $uid, $playerx, $playery], 'ajax.php->action signup->update map with new user');
         
         // Update the player's known map now to show that they're aware of their own starting land
         worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);

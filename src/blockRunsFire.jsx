@@ -28,8 +28,16 @@ export const blockRunsFire = state => ({
     cookProgress: 0, // How much time has been made on cooking this item
     fuelTime: 0,    // How many game ticks this fire has until it starts cooling
     fireTemp: 0,    // Zero is normal 'room' temperature, most fires get up to 100. Cooking can start at 50
-    fireBoost: 0,   // Current temp boost provided by the currently burning fuel. This is reset each time a new fuel item is added
+    fuelBoost: 0,   // Current temp boost provided by the currently burning fuel. This is reset each time a new fuel item is added
     manageFire: ()=>{
+        if(isNaN(state.fireTemp)) {
+            console.log('Error: fireTemp set to NaN. Resetting fire');
+            state.fireTemp = 0;
+        }
+        if(isNaN(state.fuelBoost) || typeof(state.fuelBoost)==='undefined') {
+            console.log('Error: fuelBoost set to invalid number. Resetting boost');
+            state.fuelBoost = 1;
+        }
         // Handles updating the fire state, even if there are no workers available
         state.fireTemp = Math.max(0, state.fireTemp-state.fireDecay);
         if(state.fuelTime>0) {
@@ -78,6 +86,7 @@ export const blockRunsFire = state => ({
                         picked = state.fuelChoices.find(p=>p.name===state.inFuel[0].name);
                         if(picked===null) {
                             console.log('Warning in blockRunsFire: item picked is not an accepted fuel type');
+                            game.deleteItem(state.inFuel[0].id);
                             state.inFuel.splice(0,1);
                         }
                         if(state.inFuel.length===0) {
@@ -88,6 +97,7 @@ export const blockRunsFire = state => ({
                     }
                     state.fuelBoost = picked.fuelBoost;
                     state.fuelTime  = picked.fuelTime;
+                    game.deleteItem(state.inFuel[0].id);
                     state.inFuel.splice(0,1);
                     return true;
                 }
@@ -106,6 +116,7 @@ export const blockRunsFire = state => ({
             if(pickup===null) return false;
             // We got a hit! Put it in our fuel inventory
             state.inFuel.push(pickup);
+            game.moveItem(pickup.id, state.id);
             return true;
         });
     },
@@ -125,6 +136,7 @@ export const blockRunsFire = state => ({
             // First, see if this item burned
             if(state.cookProgress>=source.cookTime+source.burnTime) {
                 state.onhand.push(game.createItem(state.id, source.burnItem, 'item', {}));
+                game.deleteItem(state.overFire.id);
                 state.overFire = null;
                 state.cookProgress = 0;
                 return true;
@@ -133,6 +145,7 @@ export const blockRunsFire = state => ({
                 for(let i=0;i<source.outQty;i++) {
                     state.onhand.push(game.createItem(state.id, source.outItem, source.outGroup, source.outExtras));
                 }
+                game.deleteItem(state.overFire.id);
                 state.overFire = null;
                 state.cookProgress -= source.cookTime;
                 return true;
@@ -142,9 +155,7 @@ export const blockRunsFire = state => ({
         // Figure out if we have anything on hand to cook next
         if(state.inItems.length!==0 && state.overFire===null) {
             // Toss the next item onto the fire!
-            state.overFire = state.inItems[0];
-            console.log('Adding to fire:', state.overFire);
-            state.inItems.splice(0,1);
+            state.overFire = state.inItems.splice(0,1)[0];  // Splice returns the item that was removed from the array... as an array, though
             return true;
         }
 
@@ -152,6 +163,7 @@ export const blockRunsFire = state => ({
         let pickup = state.findItems(state.cookChoices.map(e=>e.name));
         if(pickup!==null) {
             state.inItems.push(pickup);
+            game.moveItem(pickup.id, state.id);
             return true;
         }
         return false;

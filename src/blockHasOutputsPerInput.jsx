@@ -13,7 +13,8 @@ export const blockHasOutputsPerInput = state => ({
         // Looks for items in neighboring blocks to put here. Returns true if one was loaded (the block can then use work points), or false if not
         return game.getNeighbors(state.tileX,state.tileY).some(edge => {
             let collect = edge.getItemFrom(state.outputItems.map(e=>e.name));
-            if(typeof(collect)==='undefined') return false;
+            if(typeof(collect)==='undefined' || collect===null) return false;
+            game.moveItem(collect.id, state.id);
             state.inItems.push(collect);
             return true;
         });
@@ -51,6 +52,7 @@ export const blockHasOutputsPerInput = state => ({
                 }
             });
             // Don't forget to delete the input item!
+            game.deleteItem(state.inItems[0].id);
             state.inItems.splice(0,1);
         }
     }

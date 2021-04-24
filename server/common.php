@@ -15,7 +15,21 @@
 
     function validFloat($value) {
         // Returns true if the string $value is a valid float (and nothing but a float), or false if not.
-        return (strval(floatval($value))==$value);
+        
+        // Checking for a valid float is quite a bit harder. If this is a string representing a float,
+        // there are no easy ways to confirm that it is a float, since a string holding not-a-float still
+        // converts to a valid float, and A equals A
+        switch(gettype($value)) {
+            case 'integer': case 'float': case 'double': return true;
+            case 'string':
+                return JSEvery(str_split($value), function($char) {
+                    // With the single character, check that it is one of the valid characters
+                    return JSSome(str_split('0123456789.'), function($i) use ($char) {
+                        return $i===$char;
+                    });
+                });
+            default: return false; // Any other data type will be rejected
+        }
     }
 
     function danescape($rawstring) {
@@ -165,7 +179,7 @@
                     if(!validFloat($ele)) {
                         reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. danescape($key) .' is not a float. IP='.
                                     $_SERVER['REMOTE_ADDR']);
-                        ajaxreject('badinput', 'Input error: parameter '. $key .' must be a float');
+                        ajaxreject('badinput', 'Input error: parameter '. $key .' must be a float (got '. $ele .') (type'. gettype($ele) .')');
                     }
                     return [danescape($key), floatval(danescape($ele))];
                 case 'string':

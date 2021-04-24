@@ -30,11 +30,13 @@ export function LeanTo(mapTile) {
         tileY: mapTile.y,
         possibleOutputs: ()=> [],  // This has no outputs
         willOutput: n => false,
-        hasItem: name => false, // This doesn't return any items
-        getItem: name => null,  // This doesn't return any items
-        getItemFrom: list => null, // This doesn't return any items
+        hasItem: name => false, // This doesn't return any items... so none of these functions will do anything
+        getItem: name => null,  
+        getItemFrom: list => null,
         willAccept: item=>false,
         takeItem: o => false,
+        fetchItem: itemId=>null,
+        destroyItem: itemId=>false,
         update: () => {
             if(b.mode==='building') {
                 if(game.workPoints<=0) return;

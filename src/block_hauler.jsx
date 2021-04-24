@@ -36,6 +36,24 @@ export function Hauler(mapTile) {
         getItemFrom: list => null,    // This doesn't return any items
         willAccept: item=>false,
         takeItem: item=>false,
+        fetchItem: itemId=>{
+            // This block handles this much differently. We only have a carrying slot, and nothing else
+            if(b.carrying===null) return null;
+            if(b.carrying.id===itemId) return b.carrying;
+            return null;
+        },
+        destroyItem: itemId=>{
+            if(b.carrying===null) return false;
+            if(b.carrying.id!==itemId) return false;
+            b.carrying = null;
+            // This one gets a bit more complicated, if we were carrying something somewhere
+            if(b.mode==='send') {
+                b.changeMoverDirection();
+                b.changeMoverImage(imageURL+'movingEmpty.png');
+                b.mode = 'gohome';
+            }
+            return true;
+        },
         update: ()=>{
             if(game.workPoints<=0) return; // Can't do anything here without work points
             switch(b.mode) {
@@ -61,6 +79,7 @@ export function Hauler(mapTile) {
                         // This transfer is acceptable. Let's begin!
                         game.workPoints--;
                         b.carrying = found.getItem(targ.itemName);
+                        game.moveItem(b.carrying.id, b.id);
                         b.receivedId = found.id;
                         b.mode = 'send';
                         b.startMove(game.blocks[destSlot], imageURL+'movingItem.png');
@@ -77,6 +96,7 @@ export function Hauler(mapTile) {
                             console.log('Error in block_hauler: target block doesnt exist (was it deleted?)');
                         }else{
                             if(game.blocks[blockSlot].takeItem(b.carrying)) {
+                                game.moveItem(b.carrying.id, game.blocks[blockSlot].id);
                                 b.carrying = null;
                                 b.changeMoverImage(imageURL+'movingEmpty.png');
                             }else{
@@ -98,6 +118,7 @@ export function Hauler(mapTile) {
                                 console.log('Error in block_hauler: rejected item has no home block. Item will be lost');
                             }else{
                                 game.blocks[sourSlot].onhand.push(b.carrying);
+                                game.moveItem(b.carrying.id, game.blocks[sourSlot].id);
                             }
                             b.carrying = null;
                         }

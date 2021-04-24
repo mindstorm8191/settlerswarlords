@@ -54,6 +54,27 @@ export function FlintToolMaker(mapTile) {
             b.inItems.push(item);   // Well, we could just accept it...
             return true;
         },
+        fetchItem: itemId => {
+            // Returns an item that is stored in this block, anywhere
+            // Start with checking the outputs
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            // Next, check the input array
+            item = b.inItems.find(e=>e.id===itemId);
+            if(typeof(item)==='undefined') return null;
+            return item;
+        },
+        deleteItem: itemId => {
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot!==-1) {
+                b.onhand.splice(slot, 1);
+                return true;
+            }
+            slot = b.inItems.findIndex(e=>e.id===itemId);
+            if(slot===-1) return false;
+            b.inItems.splice(slot,1);
+            return true;
+        },
         update: ()=>{
             if(b.currentCraft==='')      return; // Nothing selected to craft
             if(b.onhand.length>=3)       return; // Outputs need to go somewhere

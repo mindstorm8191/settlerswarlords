@@ -30,6 +30,17 @@ export function FirewoodMaker(mapTile) {
         possibleOutputs: ()=>['Small Firewood', 'Medium Firewood', 'Large Firewood'],
         willAccept: item=>false, // this block doesn't have any inputs
         takeItem: item=>false,
+        fetchItem: itemId=>{
+            let item = b.onhand.find(i=>i.id===itemId);
+            if(typeof(item)==='undefined') return null;
+            return item;
+        },
+        destroyItem: itemId=>{
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot===-1) return false;
+            b.onhand.splice(slot,1);    // We can leave Game to delete the item, since all they need is the id
+            return true;
+        },
         update: ()=>{
             // Handles updating this block
             if(game.workPoints<=0) return; // No workers available for this

@@ -46,7 +46,9 @@ export const blockHasSelectableCrafting = state => ({
             let slot = needsList.findIndex(e=>n.hasItem([e]));
             if(slot===-1) return false; // nope, nothing found
             // We got a hit! Move the item to this block
-            state.inItems.push(n.getItem(needsList[slot]));
+            let pickup = n.getItem(needsList[slot]);
+            state.inItems.push(pickup);
+            game.moveItem(pickup.id, state.id);
             return true;
         });
     },
@@ -72,7 +74,7 @@ export const blockHasSelectableCrafting = state => ({
         state.progressBar += efficiency;
         if(state.progressBar>=state.progressBarMax) {
             state.progressBar -= curCraft.craftTime;
-            state.onhand.push(game.createItem(state, curCraft.name, curCraft.itemType, curCraft.itemExtras));
+            state.onhand.push(game.createItem(state.id, curCraft.name, curCraft.itemType, curCraft.itemExtras));
             if(state.nextCraft!=='') {
                 state.currentCraft = state.nextCraft;
                 state.nextCraft = '';
@@ -83,6 +85,7 @@ export const blockHasSelectableCrafting = state => ({
                     for(let i=0;i<tax.qty;i++) {
                         let slot = state.inItems.findIndex(s=>s.name===tax.name);
                         if(slot===-1) console.log('Failed to delete '+ tax.name);
+                        game.deleteItem(state.inItems[slot].id);
                         state.inItems.splice(slot,1);
                     }
                 });

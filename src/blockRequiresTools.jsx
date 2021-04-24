@@ -41,7 +41,10 @@ export const blockRequiresTools = state => ({
         state.toolGroups.forEach(group => {
             if(group.loaded!==null) {
                 group.loaded.endurance--;
-                if(group.loaded.endurance<=0) group.loaded = null;
+                if(group.loaded.endurance<=0) {
+                    game.deleteItem(group.loaded.id);
+                    group.loaded = null;
+                }
             }
         });
     },
@@ -54,6 +57,7 @@ export const blockRequiresTools = state => ({
         if(group===-1) return false;    // No group has this tool type
         if(state.toolGroups[group].loaded!==null) return false; // We already have a tool here; don't need another (yet)
         state.toolGroups[group].loaded = tool;
+        game.moveItem(tool.id, state.id);
         return true;
     },
     ShowTools() {

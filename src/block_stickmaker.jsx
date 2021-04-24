@@ -41,6 +41,35 @@ export function StickMaker(mapTile) {
         },
         willAccept: item=>false,    // This block doesn't have any inputs (besides tools - that's handled differently)
         takeItem: item=>false,
+        fetchItem: itemId=>{
+            // Returns an item, if this block has it, or null if it was not found. This is primarily used in the game
+            // object to manage food and updating other item stats
+            // Since this only has outputs, we can locate the item in our onhand list
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            
+            // We didn't find the item in our onhand list. We might still find it in the tools list
+            for(let i=0;i<b.toolGroups.length;i++) {
+                if(b.toolGroups[i].loaded!==null) {
+                    if(b.toolGroups[i].loaded.id===itemId) return b.toolGroups[i].loaded;
+                }
+            }
+            return null;
+        },
+        destroyItem: itemId=>{
+            let slot = b.onhand.findIndex(e=>e.id===itemId);
+            if(slot!==-1) {
+                b.onhand.splice(slot,1);    // We can leave Game to delete the item, since all they need is the id
+                return true;
+            }
+            // Now check the tools structure
+            return b.toolGroups.some(ele=>{
+                if(ele.loaded===null) return false;
+                if(ele.loaded.id!==itemId) return false;
+                ele.loaded = null;
+                return true;
+            });
+        },
         update: ()=>{
             // Before any work can be done here, a tool must be loaded
             if(!b.checkTools()) return; // No tool selected

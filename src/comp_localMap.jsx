@@ -111,7 +111,7 @@ export function LocalMap(props) {
             <div style={{display:'flex', width:'100%'}}>
                 <div>
                     <span className="haslinespacing">Biome: {props.localStats.biome}</span>
-                    <span className="haslinespacing">Population: {props.localStats.population}</span>
+                    <span className="haslinespacing">Idle population: {game.workPoints} / {game.population}</span>
                     <PageChoices selected={"localmap"} onPagePick={props.setPage} />
                 </div>
             </div>

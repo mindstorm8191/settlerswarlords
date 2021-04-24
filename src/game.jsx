@@ -20,6 +20,7 @@ let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
 export let game = {
     isRunning: false,
+    population: 4,      // This will be updated when the game starts
     foodCounter: 180,   // Players start with a 3-minute lead time to get food production going... shouldn't be too hard though
     tiles: [],          // all the tiles of the map
     blocks: [],         // All buildings or other structures on the map
@@ -74,15 +75,33 @@ export let game = {
     createItem: (buildingId, name, group, extras) => {
         // Handles creating a new item, while also adding it to the global itemsList structure
         // This ID only works because this items list never gets sorted or re-ordered
-        let item = { id: game.items.length === 0 ? 1 : game.items[game.items.length - 1].id + 1, name, group, ...extras };
+        if(typeof(buildingId)!=='number') console.log('Error: new item ('+ name +') gave us a building (type='+ typeof(buildingId) +')');
+        let id = (game.items.length===0)?1:game.items[game.items.length-1].id+1;
 
-        game.items.push(item);
+        game.items.push({buildId: buildingId, id:id, group:group});
         // If this item isn't in the unlockedItems list, add it
         if(!game.unlockedItems.some(i=>i===name)) {
             game.unlockedItems.push(name);
             game.checkUnlocks(name);
         }
-        return item;
+        return {
+            id: id,
+            name: name,
+            group: group,
+            ...extras
+        };
+    },
+    moveItem: (itemId, newBlockId) =>{
+        // Reports moving an item to a new block
+        // First, find the slot in the items list
+        let slot = game.items.findIndex(e=>e.id===itemId);
+        if(slot===-1) return console.log('Error in game.moveItem: did not find item id='+ itemId);
+        game.items[slot].buildId = newBlockId;
+    },
+    deleteItem: (itemId) =>{
+        let slot = game.items.findIndex(e=>e.id===itemId);
+        if(slot===-1) return console.log('Error in game.deleteItem: did not find item id='+ itemId);
+        game.items.splice(slot,1);
     },
     toolCount: toolName => {
         // Returns the number of accessible tools found on the local map, when given a tool name
@@ -148,26 +167,47 @@ export let game = {
     update: ()=>{
         if (!game.isRunning) return;
 
-        // So, from this vantage point (within setInterval, not withing game.jsx), we actually cannot see any of the React useState
+        // So, from this vantage point (within setInterval, not within game.jsx), we actually cannot see any of the React useState
         // variables. They're null. However, that doesn't stop us from setting these values through the respective function calls.
         // So to do this effectively, we need to keep the primary data structure away from React. React will be provided a new copy
         // on every game tick, where everything can be re-rendered
 
         // Start with managing food consumption
         game.foodCounter--;
-        if (game.foodCounter <= 0) {
+        while(game.foodCounter <= 0) {
             // Find a suitable food item to consume
             let foodList = game.items.filter((ele) => ele.group === "food");
-            let foodSlot = Math.floor(Math.random() * foodList.length);
-            let food = foodList[foodSlot];
+            if(foodList.length>0) {
+                let foodSlot = Math.floor(Math.random() * foodList.length);
+                let foodStat = foodList[foodSlot];
+                // With the new item management code, we can take this item and delete it from the correct block
+                let targetBlock = game.blocks.find(b=>b.id===foodStat.buildId);
+                if(typeof(targetBlock)!=='undefined') {
+                    if(targetBlock.destroyItem(foodStat.id)) {
+                        // Deleting the target food item was successful. Increase the food counter
+                        game.items.splice(game.items.findIndex(i=>i.id===foodStat.id), 1);
+                        game.foodCounter += 120.0 / game.population;
+                        // With that handled, determine if we can increase the population. We can only increase the population
+                        // if there is more than double the food than population
+                        console.log('foodList.length='+ foodList.length);
+                        if(game.foodCounter > 0 && (foodList.length-1) > game.population*2) {
+                            game.population++;
+                        }
+                    }
+                }
+            }else{
+                // Oh dear, we have run out of food. We need to reduce the population now
+                game.population--;
+                // Also reset the food counter, so the colony can continue to function
+                game.foodCounter = 120;
+                if(game.population===0) game.population = 1; // can't continue playing if there's nobody around
+            }
+/*
+            //let food = foodList[foodSlot];
             // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
             let foundFood = game.blocks.some((building) => {
                 if (typeof building.onhand === "undefined") return false;
-                let slot = building.onhand.findIndex((i) =>{
-
-                    return i.id
-                    === food.id;
-                });
+                let slot = building.onhand.findIndex((i) =>i.id===food.id);
                 if (slot === -1) return false; // Our target food wasn't found in this building block
                 building.onhand.splice(slot, 1);
                 return true;
@@ -176,6 +216,7 @@ export let game = {
             // Splice out one of the items in the global items list
             game.items.splice(game.items.findIndex(e=>e.id===food.id), 1);
             game.foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
+            */
         }
 
         game.workPoints = game.population;

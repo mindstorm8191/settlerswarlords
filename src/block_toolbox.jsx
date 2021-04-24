@@ -55,6 +55,29 @@ export function Toolbox(mapTile) {
             b.onhand.push(item);
             return true;
         },
+        fetchItem: itemId=>{
+            if(b.carrying!==null) {
+                if(b.carrying.id===itemId) return b.carrying;
+            }
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)==='undefined') return null;
+            return item;
+        },
+        destroyItem: itemId => {
+            if(b.carrying!==null) {
+                if(b.carrying.id===itemId) {
+                    b.carrying = null;
+                    if(b.mode==='send') {
+                        // If we were carrying something, chances are we were planning to deliver it somewhere. Well, no point in
+                        // continuing that way. Time to turn around
+                        b.changeMoverDirection();
+                        b.changeMoverImage(imageURL+'movingEmpty.png');
+                        b.mode = 'gohome';
+                    }
+                    return true;
+                }
+            }
+        },
         requestTool: (block, toolName)=>{
             // Allows any block to request a tool. Once requested, this block will work to send the tool to that location
             // When the tool arrives, the block's receiveTool function will be called with the tool
@@ -92,7 +115,9 @@ export function Toolbox(mapTile) {
                             let slot = edge.onhand.findIndex(e=>e.group==='tool');
                             if(slot===-1) return false; // This block is holding no tools
                             
-                            b.onhand.push(edge.onhand.splice(slot,1)[0]);
+                            let itemCatch = edge.onhand.splice(slot,1)[0];
+                            b.onhand.push(itemCatch);
+                            game.moveItem(itemCatch.id, b.id);
                             game.workPoints--;
                             return true;
                         });
@@ -102,7 +127,9 @@ export function Toolbox(mapTile) {
                         let neighbors = game.getNeighbors(b.tileX,b.tileY);
                         neighbors.some(edge => {
                             if(edge.hasItem([b.onhand[0].name])) {
-                                b.onhand.push(edge.getItem(b.onhand[0].name));
+                                let catchItem = edge.getItem(b.onhand[0].name)
+                                b.onhand.push(catchItem);
+                                game.moveItem(catchItem.id, b.id);
                                 game.workPoints--;
                                 return true;
                             }

@@ -77,6 +77,29 @@ export function Campfire(mapTile) {
             // This didn't fit into either. Reject the item
             return false;
         },
+        fetchItem: itemId=>{
+            // Here, we have 3 arrays to check (inItems, inFuel, onhand) plus the overFire slot
+            let item = b.onhand.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            item = b.inItems.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            item = b.inFuel.find(e=>e.id===itemId);
+            if(typeof(item)!=='undefined') return item;
+            if(b.overFire===null) return null;
+            if(b.overFire.id===itemId) return b.overFire;
+            return null;
+        },
+        destroyItem: itemId=>{
+            let slot = b.onhand.find(e=>e.id===itemId);
+            if(slot!==-1) { b.onhand.splice(slot,1); return true;}
+            slot = b.inItems.find(e=>e.id===itemId);
+            if(slot!==-1) { b.inItems.splice(slot,1); return true;}
+            slot = b.inFuel.find(e=>e.id===itemId);
+            if(slot!==-1) { b.inFuel.splice(slot,1); return true;}
+            if(b.overFire===null) return false;
+            if(b.overFire.id===itemId) { b.overFire = null; return true;}
+            return false;
+        },
         update: ()=>{
             b.manageFire(); // This happens whether the colonists interact with this or not
             if(game.workPoints<=0) return; // Nobody left to manage this block
@@ -113,7 +136,8 @@ export function Campfire(mapTile) {
                 overFire: (b.overFire===null)?'none':b.overFire,
                 cookProgress: b.cookProgress,
                 fireTemp: b.fireTemp,
-                fuelTime: b.fuelTime
+                fuelTime: b.fuelTime,
+                fuelBoost: b.fuelBoost
             };
         },
         load: content=>{
@@ -126,6 +150,9 @@ export function Campfire(mapTile) {
             b.cookProgress = content.cookProgress;
             b.fireTemp     = content.fireTemp;
             b.fuelTime     = content.fuelTime;
+            b.fuelBoost    = content.fuelBoost;
+            if(isNaN(b.fireTemp) || typeof(content.fireTemp)==='undefined') b.fireTemp = 0;
+            if(isNaN(b.fuelBoost) || typeof(content.fuelBoost)==='undefined') b.fuelBoost = 6;
         }
     };
     

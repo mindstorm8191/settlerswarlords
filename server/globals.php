@@ -80,7 +80,11 @@
                 ['name'=>'ork tribe', 'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'grass', 'amount'=>25],
+                ['name'=>'wheat', 'amount'=>5],  // golden, especially when ripe
+                ['name'=>'oat',   'amount'=>5],  // whiter color, more pale
+                ['name'=>'rye',   'amount'=>5],  // leans more orange than golden
+                ['name'=>'barley','amount'=>5],  // a greenish yellow
+                ['name'=>'millet','amount'=>5],  // two-tone pale white & green
                 ['name'=>'trees', 'amount'=>5],
                 ['name'=>'water', 'amount'=>2],
                 ['name'=>'rock', 'amount'=>2]
@@ -104,7 +108,11 @@
             ]),
             'localTiles'=> new WeightedRandom([
                 ['name'=>'trees', 'amount'=>25],
-                ['name'=>'grass', 'amount'=>5],
+                ['name'=>'wheat', 'amount'=>1],
+                ['name'=>'oat',   'amount'=>1],
+                ['name'=>'rye',   'amount'=>1],
+                ['name'=>'barley','amount'=>1],
+                ['name'=>'millet','amount'=>1],
                 ['name'=>'water', 'amount'=>5],
                 ['name'=>'rock', 'amount'=>2]
             ])
@@ -123,10 +131,14 @@
                 ['name'=>'ork tribe', 'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'sands', 'amount'=>25],
-                ['name'=>'rock', 'amount'=>5],
-                ['name'=>'grass', 'amount'=>3],
-                ['name'=>'water', 'amount'=>1]
+                ['name'=>'sands', 'amount'=>125],
+                ['name'=>'rock', 'amount'=>25],
+                ['name'=>'wheat', 'amount'=>3],
+                ['name'=>'oat',   'amount'=>3],
+                ['name'=>'rye',   'amount'=>3],
+                ['name'=>'barley','amount'=>3],
+                ['name'=>'millet','amount'=>3],
+                ['name'=>'water', 'amount'=>5]
             ])
         ],[
             'biome'=>'swamp',
@@ -142,11 +154,14 @@
                 ['name'=>'ork tribe', 'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water', 'amount'=>20],
-                ['name'=>'grass', 'amount'=>12],
-                ['name'=>'trees', 'amount'=>8],
-                ['name'=>'rock', 'amount'=>3]//,
-                //['name'=>'jungle', 'amount'=>20]
+                ['name'=>'water', 'amount'=>100],
+                ['name'=>'wheat', 'amount'=>12],
+                ['name'=>'oat',   'amount'=>12],
+                ['name'=>'rye',   'amount'=>12],
+                ['name'=>'barley','amount'=>12],
+                ['name'=>'millet','amount'=>12],
+                ['name'=>'trees', 'amount'=>40],
+                ['name'=>'rock', 'amount'=>15]
             ])
         ],[
             'biome'=>'water',
@@ -171,15 +186,21 @@
                 ['name'=>'ork tribe', 'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water', 'amount'=>10],
-                ['name'=>'trees', 'amount'=>16],
-                ['name'=>'grass', 'amount'=>4],
-                ['name'=>'rock', 'amount'=>1]
+                ['name'=>'water', 'amount'=>50],
+                ['name'=>'trees', 'amount'=>80],
+                ['name'=>'wheat', 'amount'=>4],
+                ['name'=>'oat',   'amount'=>4],
+                ['name'=>'rye',   'amount'=>4],
+                ['name'=>'barley','amount'=>4],
+                ['name'=>'millet','amount'=>4],
+                ['name'=>'rock', 'amount'=>5]
             ])
         ]
     ];
 
-    $localTileNames = ['grass', 'trees', 'rock', 'sands', 'water', 'lava', 'ice', 'snow'];
+    //                  0         1      2       3          4        5       6       7        8        9      10      11
+    $localTileNames = ['wheat', 'oat', 'rye', 'barley', 'millet', 'trees', 'rock', 'sands', 'water', 'lava', 'ice', 'snow'];
+    // Are we just going to stick with one type of tree land? No way! But we're just not 'there' yet. Gotta keep at it!
 
     define('x', 'x');
     define('y', 'y');

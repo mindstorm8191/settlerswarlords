@@ -5,9 +5,6 @@
 
     require_once("jsarray.php");
 
-    $db = mysqli_connect('localhost:3306', 'tucker', 'starburst', 'settlerswarlords');
-
-
     function validInt($value) {
         // Returns true if the string $value is a valid int (and only an int), or false if not.
         return (strval(intval($value))==$value);
@@ -59,13 +56,48 @@
                    danescape((string)$codespot) ."','". danescape((string) $errordesc) . "');");
     }
 
+    function DanMultiDB($query, $varList, $varSet, $codeSection) {
+        // Executes multiple mysql queries, without a return value. Use this for bulk inserts, updates or delete commands
+        // $query - SQL query to run
+        // $varList - List of variable types we are providing to the database, for each data set. Cannot be empty
+        // $varSet - A 2D array, the 2nd layer containing the variables to pass into the query
+        // $codeSection - location of the code where this was called, for error reporting
+
+        global $db;
+        if(sizeof($varSet)===0) return;
+        if($varList==='') {
+            reporterror($codeSection .'->DanMultiDB()', '$varList provided is empty');
+            return;
+        }
+
+        $comm = $db->prepare($query);
+        if(!$comm) {
+            reporterror($codeSection .'->DanMultiDB()', 'Statement prepare failed. Used query {'. $query .'} MySQL response: '.
+                        mysqli_error($db));
+            return;
+        }
+
+        foreach($varSet as $vars) {
+            if(!$comm->bind_param($varList, ...$vars)) {
+                reporterror($codeSection .'->DanMultiDB()', 'Parameter binding failed. Used query {'. $query .'} & params '.
+                            json_encode($vars) .'. MySQL says '. myqsli_error($db));
+                return;
+            }
+            if(!$comm->execute()) {
+                reporterror($codeSection .'->DanMultiDB()', 'Query execution failed. Used query {'. $query .'} & params '.
+                            json_encode($vars) .'. Mysql says '. mysqli_error($db));
+                return;
+            }
+        }
+    }
+
     function DanDBList($query, $varList, $vars, $codeSection) {
         // Executes a mysql query and returns the resulting data structure. A simple wrapper for the $db->query call, but includes
         // error management
         // $query - SQL query to send to the database
         // $varList - List of variable types we are providing to the database
         // $vars - array of variables to provide with the query
-        // $codesection - location of the code where this was called. Instead of using line numbers, I recommend using a
+        // $codeSection - location of the code where this was called. Instead of using line numbers, I recommend using a
         //                generalized path. For example, ajax.php->DanDBList()->function header
 
         global $db;

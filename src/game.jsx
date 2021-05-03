@@ -15,6 +15,7 @@ import { HuntingPost } from "./block_huntingpost.jsx";
 import { ButcherShop } from "./block_butchershop.jsx";
 import { FirewoodMaker } from "./block_firewoodmaker.jsx";
 import { Campfire } from "./block_campfire.jsx";
+import { Harvester } from "./block_harvester.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -43,7 +44,8 @@ export let game = {
         {name:'Hunting Post',     image:'huntingpost.png',    alt:'Hunting Post',     create:HuntingPost,    prereq:[['Flint Spear']], unlocked:0, newFeatures:[]},
         {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
         {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
-        {name:'Campfire',         image:'campfire.png',       alt:'Campfire',         create:Campfire,       prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]}
+        {name:'Campfire',         image:'campfire.png',       alt:'Campfire',         create:Campfire,       prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
+        {name:'Harvester',        image:'harvester.png',      alt:'Harvester',        create:Harvester,      prereq:[['Flint Scythe']], unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code
@@ -202,21 +204,6 @@ export let game = {
                 game.foodCounter = 120;
                 if(game.population===0) game.population = 1; // can't continue playing if there's nobody around
             }
-/*
-            //let food = foodList[foodSlot];
-            // With the food picked up from the food list, we also need to find (and remove) it from the block it's in
-            let foundFood = game.blocks.some((building) => {
-                if (typeof building.onhand === "undefined") return false;
-                let slot = building.onhand.findIndex((i) =>i.id===food.id);
-                if (slot === -1) return false; // Our target food wasn't found in this building block
-                building.onhand.splice(slot, 1);
-                return true;
-            });
-            //game.items.splice(foodSlot, 1);
-            // Splice out one of the items in the global items list
-            game.items.splice(game.items.findIndex(e=>e.id===food.id), 1);
-            game.foodCounter += 120 / 4; // 4 is our population... we need to make population accessible from this setInterval location
-            */
         }
 
         game.workPoints = game.population;

@@ -7,6 +7,7 @@
     //Let's die using a syntax error. But just in case...
     //die();
 
+    include_once("server/config.php");
     include_once("server/common.php");
 
     DanDBList("DELETE FROM sw_error;", '', [], 'resetgame.php->clear all errors');
@@ -16,8 +17,6 @@
     DanDBList("DELETE FROM sw_map;", '', [], 'resetgame.php->clear all map tiles');
     DanDBList("DELETE FROM sw_minimap;", '', [], 'resetgame.php->clear all mini-map tiles');
     DanDBList("DELETE FROM sw_player;", '', [], 'resetgame.php->clear all players');
-    DanDBList("DELETE FROM sw_process;", '', [], 'resetgame.php->clear all processes');
-    DanDBList("DELETE FROM sw_structure;", '', [], 'resetgame.php->clear all structures');
     echo('All is done');
 
 /*

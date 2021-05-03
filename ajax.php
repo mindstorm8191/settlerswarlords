@@ -4,6 +4,7 @@
         for the project Settlers & Warlords
     */
 
+    require_once("server/config.php");
     require_once("server/common.php");
     require_once('server/DanGlobal.php');
     require_once('server/jsarray.php');

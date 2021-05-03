@@ -216,6 +216,7 @@ export function Hauler(mapTile) {
                 priority: b.priority,
                 mode: b.mode,
                 carrying: (b.carrying===null)?'none':b.carrying,
+                targetId:   b.targetId,
                 receivedId: b.receivedId,
                 targetList: b.targetList
             };
@@ -223,6 +224,7 @@ export function Hauler(mapTile) {
         load:content=>{
             b.priority   = content.priority;
             b.mode       = content.mode;
+            b.targetId   = content.targetId;
             b.carrying   = (content.carrying==='none')?null:content.carrying;
             b.receivedId = content.receivedId;
             b.targetList = content.targetList;

@@ -171,6 +171,7 @@ export function ButcherShop(mapTile) {
                 progress: b.progressBar,
                 items: b.onhand,
                 inputs: b.inItems,
+                dropList: b.dropList,       // This contains only a set of item names
                 tools: b.toolGroups.map(t=>{
                     return {
                         group: t.group,
@@ -185,6 +186,7 @@ export function ButcherShop(mapTile) {
             b.progressBar = content.progress;
             b.onhand   = content.items;
             b.inItems  = content.inputs;
+            b.dropList = content.dropList; if(typeof(b.dropList)==='undefined') b.dropList = [];
             b.toolGroups = b.toolGroups.map(group => {
                 let source = content.tools.find(e=>group.group===e.group);
                 group.selected = source.selected;

@@ -6,8 +6,6 @@ import React from "react";
 import { imageURL, serverURL, PageChoices } from "./App.js";
 import { DAX } from "./DanAjax.js";
 import {game} from "./game.jsx";
-//import { DAX } from "./DanAjax.js";
-//import { serverURL, imageURL, PageChoices, buildingList, gameLocalTiles } from "./App.js";
 //import { DanInput } from "./DanInput.jsx";
 //import { ErrorOverlay} from "./comp_ErrorOverlay.jsx";
 
@@ -19,6 +17,8 @@ export function localMap_fillFromServerData(mapContent) {
     return mapContent.map(tile => {
         // Right now, we only need to make sure all tiles have a buildid field. Since we get no buildings from the server, this should be simple
         tile.buildid = 0;
+        // Also, if the new land type is -1, set it to the default land type
+        if(tile.newlandtype===-1) tile.newlandtype = tile.landtype;
         return tile;
     });
 }
@@ -33,7 +33,11 @@ export function LocalMap(props) {
     //      onTileUpdate - handles any map tiles that have been updated
 
     // minimap images could be global later, but for now we only need them here
-    const minimapImages = ["emptygrass.jpg", "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "basicrock.jpg", "basicore.jpg"];
+    const minimapImages = [
+        "wheatgrass.png", "oatgrass.png", "ryegrass.png", "barleygrass.png", "milletgrass.png",
+        "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "lava.png", "ice.png", "snow.png",
+        "emptygrass.jpg"
+    ];
     const [selected, setSelected] = React.useState(null); // which square is selected to show details on the right
     const [scrollPos, setScrollPos] = React.useState({moveState:false,x:0,y:0});
 
@@ -54,15 +58,20 @@ export function LocalMap(props) {
         // Provides a basic description of the land on this selected tile
         // landType - ID of the land type. This should be provided by props.landType
 
-        switch (selected.landtype) {
-            case 0: return <p>Grassland. Excellent for new construction and farming</p>;
-            case 1: return <p>Forest. Best source of wood and other materials</p>;
-            case 2: return <p>Barren rock. Easy source of stone materials and building on</p>;
-            case 3: return <p>Desert. Hot and hard to build on</p>;
-            case 4: return <p>Open water. A vital resource for life</p>;
-            case 5: return <p>Hot lava! Very dangerous, even from a distance</p>;
-            case 6: return <p>Slick ice. Very cold</p>;
-            case 7: return <p>Snowed-over ground. Very cold</p>;
+        switch (selected.newlandtype) {
+            case 0: return <p>Wheat. Tasteful grains for a variety of uses</p>;
+            case 1: return <p>Oat. Hearty grains for many purposes</p>;
+            case 2: return <p>Rye. Makes a sour tasting bread</p>;
+            case 3: return <p>Barley. A nutty grain</p>;
+            case 4: return <p>Millet. It's good for you</p>;
+            case 5: return <p>Forest. Best source of wood and other materials</p>;
+            case 6: return <p>Barren rock. Easy source of stone materials and building on</p>;
+            case 7: return <p>Desert. Hot and hard to build on</p>;
+            case 8: return <p>Open water. A vital resource for life</p>;
+            case 9: return <p>Hot lava! Very dangerous, even from a distance</p>;
+            case 10: return <p>Slick ice. Very cold</p>;
+            case 11: return <p>Snowed-over ground. Very cold</p>;
+            case 12: return <p>Low-cut grasses. Good for growing things on, or doing other work</p>;
             default: return <p>Land type {props.landId} has not been coded yet</p>;
         }
     }
@@ -94,10 +103,12 @@ export function LocalMap(props) {
         // Saves the game to the server, so that it can be loaded again later
         fetch(serverURL, DAX.serverMessage('savelocalmap', {
             blocks: game.blocks.map(b=>{return {id:b.id, name:b.name, x:b.tileX, y:b.tileY, ...b.save()};}),
+            tiles: game.tiles.filter(e=>e.landtype!==e.newlandtype),    // We don't need to send back any tiles that aren't a new land type
             unlockedItems: game.unlockedItems, // This is already a flat list of only strings, so we can pass it as is
             allItems: game.items,
-            foodCounter: game.foodCounter
-            // Other than the status of each localmap tile (which hasn't been coded yet), that should be everything!
+            foodCounter: game.foodCounter,
+            population: game.population
+            // So far, that's everything
         }, true))
             .then(res=>DAX.manageResponseConversion(res))
             .catch(err=>console.log(err))
@@ -142,7 +153,7 @@ export function LocalMap(props) {
                                         height: 55,
                                         top: tile.y * 57,
                                         left: tile.x * 57,
-                                        backgroundImage: "url(" + imageURL + minimapImages[tile.landtype] + ")",
+                                        backgroundImage: "url(" + imageURL + minimapImages[tile.newlandtype] + ")",
                                         backgroundColor: 'green',
                                         cursor: "pointer",
                                         border: (tile===selected)?'1px solid black':'1px solid green'

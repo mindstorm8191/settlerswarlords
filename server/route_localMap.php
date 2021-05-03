@@ -14,9 +14,11 @@
             ['name'=>'userid', 'required'=>true, 'format'=>'posint'],
             ['name'=>'access', 'required'=>true, 'format'=>'int'],
             ['name'=>'blocks',        'required'=>true, 'format'=>'array'],
+            ['name'=>'tiles',         'required'=>true, 'format'=>'array'],
             ['name'=>'unlockedItems', 'required'=>true, 'format'=>'array'],
             ['name'=>'allItems',      'required'=>true, 'format'=>'array'],
-            ['name'=>'foodCounter',   'required'=>true, 'format'=>'int']
+            ['name'=>'foodCounter',   'required'=>true, 'format'=>'float'],
+            ['name'=>'population',    'required'=>true, 'format'=>'int']
         ], 'server/route_localMap.php->route_saveLocalMap()->verify input');
         verifyUser($con);
 
@@ -126,10 +128,18 @@
                         ['name'=>'progress', 'required'=>true, 'format'=>'int'],
                         ['name'=>'items',    'required'=>true, 'format'=>'array'],
                         ['name'=>'inputs',   'required'=>true, 'format'=>'array'],
+                        ['name'=>'dropList', 'required'=>true, 'format'=>'array'],
                         ['name'=>'tools',    'required'=>true, 'format'=>'array']
                     ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case butchershop');
                     verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case butcher shop (output)');
                     verifyItems($ele['inputs'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case butcher shop (input)');
+                    if(sizeof($ele['dropList'])>0) {
+                        if(!JSEvery($ele['dropList'], function($ele) {
+                            return $ele===danescape($ele);
+                        })) {
+                            ajaxreject('badinput', 'Input error: items in dropList is not valid (part of Butcher Shop');
+                        }
+                    }
                     verifyTools($ele['tools'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case butcher shop');
                     return true;
                 case 'Firewood Maker': // Collects loose dead wood for fires
@@ -158,12 +168,13 @@
                     verifyItems($ele['inItems'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case campfire (inputs)');
                     verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case campfire (outputs)');
                     return true;
-                case 'Hauler':
+                case 'Hauler': // Carries items to other blocks
                     verifyInput($ele, array_merge($blockBasics, [
                         ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
                         ['name'=>'mode',       'required'=>true, 'format'=>'stringnotempty'],
                         ['name'=>'carrying',   'required'=>true, 'format'=>($ele['carrying']==='none')?'string':'array'],
                         ['name'=>'receivedId', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'targetId',   'required'=>true, 'format'=>'posint'],
                         ['name'=>'targetList', 'required'=>true, 'format'=>'array']
                     ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Hauler');
                     if($ele['carrying']!=='none') verifyItems([$ele['carrying']], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case hauler (carrying)');
@@ -171,11 +182,23 @@
                     if(sizeof($ele['targetList'])===0) return true;
                     return JSEvery($ele['targetList'], function($inner) {
                         verifyInput($inner, [
-                            ['name'=>'sourId', 'required'=>true, 'format'=>'posint'],
                             ['name'=>'destId', 'required'=>true, 'format'=>'posint'],
                             ['name'=>'itemName', 'required'=>true, 'format'=>'stringnotempty']
                         ], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Hauler targetList');
                     });
+                case 'Harvester': // Collects wild grains and straw in the area
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress',  'required'=>true, 'format'=>'int'],
+                        ['name'=>'items',     'required'=>true, 'format'=>'array'],
+                        ['name'=>'hasTarget', 'required'=>true, 'format'=>'stringnotempty'],
+                        ['name'=>'targetX',   'required'=>true, 'format'=>'int'],
+                        ['name'=>'targetY',   'required'=>true, 'format'=>'int'],
+                        ['name'=>'tools',     'required'=>true, 'format'=>'array']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Harvester');
+                    verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Harvester');
+                    verifyTools($ele['tools'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Harvester');
+                    return true;
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');
@@ -186,7 +209,21 @@
             // Buuuut if something fails, verifyInput() will use ajaxreject, so this will never be reached anyway. Oh well
         }
 
-        // We also need to check that each of the item names in the unlockedItems are valid
+        // With blocks done, we also need to scan any map tiles that have gotten updated
+        if(sizeof($con['tiles'])!==0) {
+            JSEvery($con['tiles'], function($ele) {
+                verifyInput($ele, [
+                    ['name'=>'x',        'required'=>true, 'format'=>'int'],
+                    ['name'=>'y',        'required'=>true, 'format'=>'int'],
+                    ['name'=>'landtype', 'required'=>true, 'format'=>'int'],
+                    ['name'=>'buildid',  'required'=>true, 'format'=>'int'],
+                    ['name'=>'newlandtype', 'required'=>true, 'format'=>'int']
+                ], 'server/route_localMap.php->route_saveLocalMap()->verify local tiles');
+                return true;
+            });
+        }
+
+        // Next, check that each of the item names in the unlockedItems are valid
         if(sizeof($con['unlockedItems'])!==0) {
             if(!JSEvery($con['unlockedItems'], function($ele) {
                 return $ele===danescape($ele);
@@ -211,10 +248,19 @@
         // world map block
         $playerCoords = DanDBList("SELECT currentx, currenty FROM sw_player WHERE id=?;", 'i', [$userid],
                                   'server/route_localMap.php->route_saveLocalMap()->get player coords')[0];
-        DanDBList("UPDATE sw_map SET blocks=?, unlockedItems=?, allItems=?, foodCounter=? WHERE x=? AND y=?;", 'sssiii',
+        DanDBList("UPDATE sw_map SET blocks=?, unlockedItems=?, allItems=?, foodCounter=?, population=? WHERE x=? AND y=?;", 'sssiiii',
                   [json_encode($con['blocks']), json_encode($con['unlockedItems']), json_encode($con['allItems']),
-                  $con['foodCounter'], $playerCoords['currentx'], $playerCoords['currenty']],
+                  $con['foodCounter'], $con['population'], $playerCoords['currentx'], $playerCoords['currenty']],
                   'server/route_localMap.php->route_saveLocalMap()->save to database');
+        
+        // Also save the changed map tiles (if there are any)
+        if(sizeof($con['tiles'])) {
+            DanMultiDB("UPDATE sw_minimap SET newlandtype=? WHERE x=? AND y=?;", 'iii',
+                       array_map(function($ele) {
+                           return [$ele['newlandtype'], $ele['x'], $ele['y']]; // Note this sets the correct order, too
+                       }, $con['tiles']),
+                       'server/route_localMap.php->route_saveLocalMap()->save local tiles to database');
+        }
         
         // Nothing left to do except return a success state
         die(json_encode(['result'=>'success']));

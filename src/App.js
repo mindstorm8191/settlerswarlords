@@ -32,18 +32,13 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
-    1) Allow the population to grow when there's enough food around (we'll worry about housing limits later)
-    2) Adjust the displayed population to show idle workers (coupled with population). This will need to be updated every game tick
-    3) Allow blocks to drop items. This will be an option in blockHasMultipleOutputs. This needs to be something that can be toggled,
-        and still displayed afterwards
     1) Figure out what needs to be added next.
         Item storage: We will still need this, but is now more flexible since it won't deal with tools
-        Hunting post: Will unlock meats for population growth... probably making it easier to test. But this also means making the
-            butcher shop, campfire and firewood collector
         Loggers post: Unlocks lots of wood options, this will be a new feature to test (with things that can't be moved by hand)
         Farming: With the sickle we can clear grasslands, then with shovels start plowing lands to plant new crops. Need to modify
             worldgen to include various grain types (while building the clusters)
         Mad dash to metals: We will need the loggers post first, in order to craft wooden bowls
+    1) Toolbox: Apply the new saveTools and loadTools functions
     1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
     1) Toolbox: Allow certain tasks to be queued up. Also have requesting blocks continuously request tools (when they need one)
     2) Build an AcceptsItemsFromNeighbors add-on component, so that we can streamline the process of receiving items from nearby blocks.
@@ -59,26 +54,36 @@ import { game } from "./game.jsx";
     Any blocks needing a specific tool can get tools from that box. If a block is out of range of a toolbox, the user will be told that
     there are no tools within range. Each toolbox block can only hold a single tool type
     Farmer's post will work in a similar fashion: Any farmable blocks in its range needing work will get work from this block 
+
+    Hosting options
+    1) Heroku with a Docker instance (need to figure out both systems for this)
+        https://github.com/heroku/php-getting-started
+    2) Find another hosting service that has more flexibility
+    3) Switch the back end to node.js and see if that'll work for hosting
+    4) Promote the game as a downloadable app that people can try on their own PC
+    5) Find someone willing to host the game for free
+    6) Generate the world map on my own PC, then import the map onto the remote host
   
     Exotic fantasy creatures
     https://imgur.com/gallery/3pA5gj5
     Project size
-    src/app.js                         src/block_foragepost.jsx          src/block_hauler.jsx                src/comp_admin.jsx                     server/event.php
-        src/app.css                       src/block_rockknapper.jsx          src/blockHasMultipleOutputs.jsx     ajax.php                               server/route_account.php
-            src/DanAjax.js                   src/block_toolbox.jsx              src/blockHasOutputsPerInput.jsx      server/common.php                      server/route_admin.php
-               src/comp_account.jsx              src/block_stickmaker.jsx          src/blockHasSelectableCrafting.jsx    server/DanGlobal.php                   server/route_localMap.php
-                   src/DanInput.jsx                  src/block_twinemaker.jsx          src/blockHasWorkerPriority.jsx       server/jsarray.php                      server/route_worldMap.php
-                      src/DanCommon.js                  src/block_flinttoolmaker.jsx      src/blockMovesWorkers.jsx             server/weightedRandom.php
-                         src/comp_ErrorOverlay.jsx         src/block_huntingpost.jsx          src/blockRequiresTools.jsx            server/globals.php
-                            src/comp_localMap.jsx             src/block_butchershop.jsx           src/blockRunsFire.jsx                 server/mapbuilder.php
-                                src/game.jsx                      src/block_firewoodmaker.jsx         src/blockSharesOutputs.jsx            server/usermap.php
-                                    src/block_leanto.jsx             src/block_campfire.jsx              src/comp_worldMap.jsx                  server/process.php
-    473+126+48+208+65+56+68+260+195+86+79+87+195+110+85+99+94+177+74+140+211+58+57+173+58+224+130+166+47+521+428+127+239+37+221+127+218+402+434+388+354+297+198+274+214=8328 lines
+    src/app.js                         src/block_foragepost.jsx              src/block_hauler.jsx               src/blockSharesOutputs.jsx          server/mapbuilder.php
+        src/app.css                       src/block_rockknapper.jsx              src/block_farmerspost.jsx         src/comp_worldMap.jsx                server/usermap.php
+            src/DanAjax.js                    src/block_toolbox.jsx                 src/block_harvester.jsx            src/comp_admin.jsx                   server/process.php
+               src/comp_account.jsx               src/block_stickmaker.jsx             src/blockHasMultipleOutputs.jsx     ajax.php                             server/event.php
+                   src/DanInput.jsx                   src/block_twinemaker.jsx            src/blockHasOutputsPerInput.jsx      server/config.php                    server/route_account.php
+                      src/DanCommon.js                    src/block_flinttoolmaker.jsx       src/blockHasSelectableCrafting.jsx  server/common.php                      server/route_admin.php
+                         src/comp_ErrorOverlay.jsx            src/block_huntingpost.jsx          src/blockHasWorkerPriority.jsx      server/DanGlobal.php                   server/route_localMap.php
+                            src/comp_localMap.jsx                 src/block_butchershop.jsx         src/blockMovesWorkers.jsx           server/jsarray.php                      server/route_worldMap.php
+                                src/game.jsx                          src/block_firewoodmaker.jsx       src/blockRequiresTools.jsx          server/weightedRandom.php
+                                    src/block_leanto.jsx                 src/block_campfire.jsx             src/blockRunsFire.jsx               server/globals.php
+    482+126+48+208+65+56+68+267+221+88+90+101+222+139+114+120+123+209+85+167+232+36+33+58+59+176+58+228+134+178+47+521+428+128+8+250+37+221+126+239+407+434+388+354+284+198+284+214=8759 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
     4/11/2021 = 7885 lines
     4/17/2021 = 8328 lines
+    4/24/2021 = 8663 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

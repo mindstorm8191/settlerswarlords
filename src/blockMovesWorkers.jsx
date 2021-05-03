@@ -141,6 +141,10 @@ export const blockMovesWorkers = state => ({
         }
 
         let target = game.blocks.find(ele=>ele.id===state.targetId);
+        if(typeof(target)==='undefined') {
+            console.log('Error in blockMovesWorker->takeStep(): Target block lost? id='+ state.targetId);
+            return;
+        }
         if(typeof(target.tileX)!=='number' || isNaN(target.tileX)) {
             console.log('Error in blockMovesWorkers->takeStep(): target.tileX is not a number. Value:', target.tileX);
             return false;

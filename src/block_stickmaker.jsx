@@ -13,7 +13,7 @@ import {blockRequiresTools} from "./blockRequiresTools.jsx";
 import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function StickMaker(mapTile) {
-    if(mapTile.landtype!==1) return 'wronglandtype';
+    if(mapTile.landtype!==5) return 'wronglandtype';
 
     let b = {
         id: game.getNextBlockId(),

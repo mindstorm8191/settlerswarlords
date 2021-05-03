@@ -35,6 +35,14 @@ export function FlintToolMaker(mapTile) {
                 itemExtras: {efficiency:1,endurance:30},
                 img:imageURL+'item_FlintSpear.png',
                 inputItems: [{name:'Flint Spear Head', qty:1},{name:'Long Stick', qty:1},{name:'Twine', qty:1}]
+            },{
+                name:'Flint Scythe',
+                craftTime:50,
+                qty:1,
+                itemType:'tool',
+                itemExtras: {efficiency:1,endurance:50},
+                img:imageURL+"item_FlintScythe.png",
+                inputItems: [{name:'Flint Scythe Head', qty:1},{name:'Long Stick', qty:1},{name:'Short Stick', qty:1},{name:'Twine', qty:2}]
             }
         ],
         possibleOutputs: ()=>{
@@ -47,7 +55,7 @@ export function FlintToolMaker(mapTile) {
         },
         willAccept: item => {
             // Returns true if this block can accept the specified item
-            return b.needsList.includes(item.name);
+            return b.needsList().includes(item.name);
         },
         takeItem: item => {
             // Accepts an item. Returns true if successful, or false if not.

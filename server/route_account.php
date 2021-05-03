@@ -98,8 +98,8 @@
 
         $worldTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
                                'server/route_account.php->route_signup()->get world map data')[0];
-        $localTiles = DanDBList("SELECT x,y,landtype,buildid FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i', [$worldTile['id']],
-                                'server/route_account.php->route_signup()->get local map tiles');
+        $localTiles = DanDBList("SELECT x,y,landtype,buildid,newlandtype FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
+                                [$worldTile['id']], 'server/route_account.php->route_signup()->get local map tiles');
         die(json_encode([
             'result'=>'success',
             'userid'=>$userid,

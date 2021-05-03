@@ -13,7 +13,7 @@ import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
-    if(mapTile.landtype!==2) return 'wronglandtype';
+    if(mapTile.landtype!==6) return 'wronglandtype';
 
     let b = {
         id: game.getNextBlockId(),
@@ -31,7 +31,8 @@ export function RockKnapper(mapTile) {
         craftOptions: [
             {name:'Flint Knife', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+'item_flintKnife.png'},
             {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
-            {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']}
+            {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']},
+            {name:'Flint Scythe Head', craftTime:40, qty:1, itemType:'item', img:imageURL+"item_flintScytheHead.png", prereq:['Twine']}
         ],
         possibleOutputs: ()=>{
             // Returns an array of possible outputs of this block.

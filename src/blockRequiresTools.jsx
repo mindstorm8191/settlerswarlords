@@ -130,5 +130,24 @@ export const blockRequiresTools = state => ({
                 ))}
             </div>
         )
+    },
+    saveTools: ()=>{
+        // Aids in saving tools. Outputs an array holding the user-editable variables for each tool group
+        return state.toolGroups.map(t=>{
+            return {
+                group: t.group,
+                selected: t.selected,
+                loaded: t.loaded
+            };
+        });
+    },
+    loadTools: content => {
+        // Aids in loading tools. Updates the state to contain the user-editable variables for each tool group
+        state.toolGroups = state.toolGroups.map(group => {
+            let source = content.tools.find(e=>group.group===e.group);
+            group.selected = source.selected;
+            group.loaded = (source.loaded==='none')?null:source.loaded;
+            return group;
+        });
     }
 });

@@ -176,34 +176,39 @@
         // x = (0 to 1.5) + 0.5
         // x = (0.5 to 2.0)
 
-        $built = implode(',', array_map(function($long) {
-            return implode(',', array_map(function($wide) {
+        // So, we have the data stored in a 2D array, but still need to insert one at a time
+        $comm = $db->prepare('INSERT INTO sw_map (x, y, biome, ugresource, ugamount, civilization, civlevel) VALUES (?,?,?,?,?,?,?);');
+        if(!$comm) {
+            reporterror('server/mapbuilder.php->worldmap_generate()->save map', 'query preparation failed');
+            return null;
+        }
+        foreach($fullMap as $long) {
+            foreach($long as $wide) {
                 global $civData;
+                // We have a few variables left to determine. One is the civilization type, which is reduced to a number
+                $civ = -1;
+                $civLevel = 0;
                 if(isset($wide['civ'])) {
                     // Before we can save, we need to convert our civ value to an int. Best to do that before returning a value...
                     $civObj = JSFind($civData, function($civ) use ($wide) {
                         return strtolower($civ['name']) === strtolower($wide['civ']);
                     });
                     if($civObj==null) {
-                        reporterror('server/mapbuilder.php->worldmap_generate()->build query',
-                                    'Error: civilization '. $wide['civ'] .' was not found');
-                        return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
+                        reporterror('server/mapbuilder.php->worldmap_generate()', 'Error: civilization '. $wide['civ'] .' not found');
+                    }else{
+                        $civ = $civObj['id'];
+                        $civLevel = $wide['civstrength'];
                     }
-                    return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .','.
-                           $civObj['id'] .','. $wide['civstrength'] .')';
                 }
-                return '('. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .','. rand(0,13) .','. (randfloat()*1.5+0.5) .',-1,0)';
-            }, $long));
-        },$fullMap));
-        //reporterror('Build content: '. $built);
-        $db->query("INSERT INTO sw_map (x, y, biome, ugresource, ugamount, civilization, civlevel) VALUES ". $built .";");
-        $err = mysqli_error($db);
-        if($err) {
-            reporterror('mapbuilder.php->worldmap_generate()->save all content', 'Mysql reported an error: '. $err ."\r\nFull data:". $built);
-            ajaxreject('internal', "There was an error saving worldmap data. See the error log");
+                $ugtype = rand(0,13);
+                $ugamt  = randfloat()*1.5+0.5;
+                $comm->bind_param('iiiidid', $wide['x'], $wide['y'], $wide['landType'], $ugtype, $ugamt, $civ, $civLevel);
+                if(!$comm->execute()) {
+                    reporterror('server/mapbuilder.php->worldmap_generate()', 'Query execution failed. Mysql says '. mysqli_error($db));
+                    return null;
+                }        
+            }
         }
-                //'server/mapbuild.php->generatemap()->save map content');
-        // And... that should be everything we need
     }
 
     function ensureMinimapXY($worldx, $worldy, $newPlayer) {

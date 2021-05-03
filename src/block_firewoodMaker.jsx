@@ -12,7 +12,7 @@ import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
 export function FirewoodMaker(mapTile) {
-    if(mapTile.landtype!==1) return 'wronglandtype';
+    if(mapTile.landtype!==5) return 'wronglandtype';
     
     let b = {
         id: game.getNextBlockId(),

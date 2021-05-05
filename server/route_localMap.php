@@ -199,6 +199,18 @@
                     verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Harvester');
                     verifyTools($ele['tools'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Harvester');
                     return true;
+                case 'Straw Dryer': // Dries straw so it can be used or stored
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'items',    'required'=>true, 'format'=>'array'],
+                        ['name'=>'inputs',   'required'=>true, 'format'=>'array'],
+                        ['name'=>'tools',    'required'=>true, 'format'=>'array']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer');
+                    verifyItems($ele['items'],  'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer (outputs)');
+                    verifyItems($ele['inputs'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer (inputs)');
+                    verifyTools($ele['tools'],  'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer');
+                    return true;
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');

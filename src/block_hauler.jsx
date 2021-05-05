@@ -31,9 +31,11 @@ export function Hauler(mapTile) {
             // itemName - name of the item that can be transferred
         mode: 'idle',
         possibleOutputs: ()=>[],      // This doesn't output any items
-        hasItems: namesList => false, // This doesn't return any items
+        willOutput: itemName => false, 
+        hasItem: namesList => false, // This doesn't return any items
         getItem: name => null,        // This doesn't return any items
         getItemFrom: list => null,    // This doesn't return any items
+        findItems: namesList => null,
         willAccept: item=>false,
         takeItem: item=>false,
         fetchItem: itemId=>{

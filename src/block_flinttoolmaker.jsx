@@ -43,6 +43,14 @@ export function FlintToolMaker(mapTile) {
                 itemExtras: {efficiency:1,endurance:50},
                 img:imageURL+"item_FlintScythe.png",
                 inputItems: [{name:'Flint Scythe Head', qty:1},{name:'Long Stick', qty:1},{name:'Short Stick', qty:1},{name:'Twine', qty:2}]
+            },{
+                name:'Twine Rake',
+                craftTime:50,
+                qty:1,
+                itemType:'tool',
+                itemExtras: {efficiency:1,endurance:1000},
+                img:imageURL+'item_TwineRake.png',
+                inputItems: [{name:'Long Stick', qty:1},{name:'Short Stick', qty:3},{name:'Twine', qty:2}]
             }
         ],
         possibleOutputs: ()=>{

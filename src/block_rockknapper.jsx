@@ -32,6 +32,7 @@ export function RockKnapper(mapTile) {
             {name:'Flint Knife', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+'item_flintKnife.png'},
             {name:'Flint Stabber', craftTime:20, qty:1, itemType:'tool', itemExtras:{efficiency:1,endurance:30}, img:imageURL+"item_flintStabber.png"},
             {name:'Flint Spear Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintSpearHead.png", prereq:['Twine']},
+            {name:'Flint Hatchet Head', craftTime:30, qty:1, itemType:'item', img:imageURL+"item_flintHatchetHead.png", prereq:['Twine']},
             {name:'Flint Scythe Head', craftTime:40, qty:1, itemType:'item', img:imageURL+"item_flintScytheHead.png", prereq:['Twine']}
         ],
         possibleOutputs: ()=>{
@@ -42,6 +43,11 @@ export function RockKnapper(mapTile) {
                 return ele.prereq.every(name=>game.unlockedItems.includes(name));
             }).map(e=>e.name);
         },
+        // willOutput() is handled by blockSharesOutputs
+        // hasItem() is handled by blockSharesOutputs
+        // getItem() is handled by blockSharesOutputs
+        // getItemFrom() is handled by blockSharesOutputs
+        // findItems() is handled by blockSharesOutputs
         willAccept: item=>false, // This block doesn't accept any inputs
         takeItem: o=>false,
         fetchItem: itemId=>{

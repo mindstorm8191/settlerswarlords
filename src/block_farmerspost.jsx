@@ -26,6 +26,7 @@ export function ForagePost(mapTile) {
             {group:'scythe', options: ['Flint Scythe'], required:true, selected:'', loaded:null},
             {group:'hoe', options: ['Flint Hoe'], required:true, selected:'', loaded:null}
         ],
+        tileSet: [], // contains all tiles w/ data we have activity in
         targetMode: 'clearland',
         update: ()=>{
             // This will operate in multiple modes at once... in a sense. The player can decide if this should focus on clearing

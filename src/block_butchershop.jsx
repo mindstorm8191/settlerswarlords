@@ -126,7 +126,7 @@ export function ButcherShop(mapTile) {
                     let remSlot = b.onhand.findIndex(e=>e.name===b.dropList[i]);
 
                     if(remSlot!==-1) {  // We found something to remove
-                        console.log('Dropping item '+ b.onhand[remSlot].name +'='+ b.dropList[i]);
+                        console.log('Dropping item '+ b.onhand[remSlot].name +'='+ b.dropList[i] +'. DropList=', b.dropList);
                         game.deleteItem(b.onhand[remSlot].id);
                         b.onhand.splice(remSlot,1);
                         game.workPoints--;

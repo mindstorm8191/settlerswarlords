@@ -10,7 +10,7 @@ import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 
 export function LeanTo(mapTile) {
     // Let's start by creating our object first
-    if(mapTile.landtype!==1) return 'wronglandtype';
+    if(mapTile.landtype!==5) return 'wronglandtype';
     let b = {
         //...blockHasWorkerPriority,
         id: game.getNextBlockId(),

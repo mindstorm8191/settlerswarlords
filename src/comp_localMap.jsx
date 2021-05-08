@@ -36,7 +36,7 @@ export function LocalMap(props) {
     const minimapImages = [
         "wheatgrass.png", "oatgrass.png", "ryegrass.png", "barleygrass.png", "milletgrass.png",
         "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "lava.png", "ice.png", "snow.png",
-        "emptygrass.jpg"
+        "emptygrass.jpg", "farmplot.png"
     ];
     const [selected, setSelected] = React.useState(null); // which square is selected to show details on the right
     const [scrollPos, setScrollPos] = React.useState({moveState:false,x:0,y:0});

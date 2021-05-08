@@ -1,6 +1,10 @@
 Settlers and Warlords
-Game like Evony or Travian (or Vesuvius), but focus on diplomatics instead of all-out war (war will still be an option, though),
-and developing your lands to better your empire.
+A MMO game like Evony or Travian (or Vesuvius), but focus on resource production and diplomatics instead of all-out war (war will
+still be an option, though). It is a conceptual expansion of a previous project of mine, DanIdle, accounting for land expansion,
+travel limitations, and managing neighboring civilizations (some hostile).
+
+This is planned to be a community project. If you're interested in the game, download the project and check it out for yourself!
+Feel free to ask questions, post new issues, tackle existing issues and commit changes.
 
 ## Project Setup
 

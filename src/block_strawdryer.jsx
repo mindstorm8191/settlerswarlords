@@ -79,7 +79,7 @@ export function StrawDryer(mapTile) {
             });
         },
         update: ()=>{
-            if(!b.checkTools()) return; // No tool selected
+            if(!b.checkTools()) return; // No tool loaded
             if(b.onhand.length>20) return; // Out of inventory space
             if(game.workPoints<=0) return; // Nobody available to work here
             if(b.inItems.length===0) return; // Nothing available to work on

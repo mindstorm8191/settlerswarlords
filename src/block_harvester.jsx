@@ -16,10 +16,10 @@ export function Harvester(mapTile) {
     let b = {
         id: game.getNextBlockId(),
         name: "Harvester",
-        descr: `Wild grasses grow in many places, most of which produce edible grains, along with straw that can be used in many ways.
-                Clearing grasses can reveal many other seed types, too`,
-        usage: `Uses a scythe to clear grasses, then a knife to produce grains and straw. Has a 20% chance to find seeds to other plants.
-                Working range is 10 blocks.`,
+        descr: `Wild grasses grow in many places, most of which produce edible grains, plus straw that has many uses. Clearing grasses
+                can reveal many other seed types, too`,
+        usage: `Uses a scythe to clear grasses, then a knife to produce grains & straw. Has a 20% chance to find seeds to other plants.
+                Working range is 10 blocks. Only for wild grass fields (not farm plots)`,
         image: imageURL +'harvester.png',
         progressBar: 0,
         progressBarColor: 'blue',

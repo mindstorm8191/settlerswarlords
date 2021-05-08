@@ -17,6 +17,7 @@ import { FirewoodMaker } from "./block_firewoodmaker.jsx";
 import { Campfire } from "./block_campfire.jsx";
 import { Harvester } from "./block_harvester.jsx";
 import { StrawDryer } from "./block_strawdryer.jsx";
+import { FarmersPost } from "./block_farmerspost.jsx";
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 
@@ -47,7 +48,8 @@ export let game = {
         {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
         {name:'Campfire',         image:'campfire.png',       alt:'Campfire',         create:Campfire,       prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
         {name:'Harvester',        image:'harvester.png',      alt:'Harvester',        create:Harvester,      prereq:[['Flint Scythe']],                                        unlocked:0, newFeatures:[]},
-        {name:'Straw Dryer',      image:'strawdryer.png',     alt:'Straw Dryer',      create:StrawDryer,     prereq:[['Wet Straw']],                                           unlocked:0, newFeatures:[]}
+        {name:'Straw Dryer',      image:'strawdryer.png',     alt:'Straw Dryer',      create:StrawDryer,     prereq:[['Wet Straw']],                                           unlocked:0, newFeatures:[]},
+        {name:'Farmers Post',     image:'farmerspost.png',    alt:'Farmers Post',     create:FarmersPost,    prereq:[['Wet Straw']],                                           unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code

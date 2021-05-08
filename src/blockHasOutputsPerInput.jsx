@@ -56,4 +56,4 @@ export const blockHasOutputsPerInput = state => ({
             state.inItems.splice(0,1);
         }
     }
-})
+});

@@ -211,6 +211,40 @@
                     verifyItems($ele['inputs'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer (inputs)');
                     verifyTools($ele['tools'],  'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Straw Dryer');
                     return true;
+                case 'Farmers Post': // Manages farmlands to produce crops
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'items',    'required'=>true, 'format'=>'array'],
+                        ['name'=>'seeds',    'required'=>true, 'format'=>'array'],
+                        ['name'=>'targets',  'required'=>true, 'format'=>'array'],
+                        ['name'=>'tools',    'required'=>true, 'format'=>'array']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post');
+                    verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post (outputs)');
+                    verifyItems($ele['seeds'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post (seeds)');
+                    verifyTools($ele['tools'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post');
+                    if(sizeof($ele['targets'])===0) return true;
+                    return JSEvery($ele['targets'], function($inner) {
+                        // This has many variables, but only one complex data piece; we'll check that after the initial check
+                        verifyInput($inner, [
+                            ['name'=>'x',       'required'=>true, 'format'=>'int'],
+                            ['name'=>'y',       'required'=>true, 'format'=>'int'],
+                            ['name'=>'counter', 'required'=>true, 'format'=>'int'],
+                            ['name'=>'seed',    'required'=>true, 'format'=>'stringnotempty'],
+                            ['name'=>'seedQty',       'required'=>true, 'format'=>'posint'],
+                            ['name'=>'product',       'required'=>true, 'format'=>'stringnotempty'],
+                            ['name'=>'productQty',    'required'=>true, 'format'=>'int'],
+                            ['name'=>'productGroup',  'required'=>true, 'format'=>'stringnotempty'],
+                            ['name'=>'productExtras', 'required'=>true, 'format'=>'array'],
+                            ['name'=>'harvestTime',   'required'=>true, 'format'=>'posint'],
+                            ['name'=>'growTarget',    'required'=>true, 'format'=>'posint'],
+                            ['name'=>'spoilLevel',    'required'=>true, 'format'=>'posint']
+                        ], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post->verify tile set');
+                        if(sizeof($inner['productExtras'])===0) return true;
+                        return verifyInput($inner['productExtras'], [
+                            ['name'=>'lifetime', 'required'=>true, 'format'=>'posint']
+                        ], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post->verify tile set product extras');
+                    });
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');

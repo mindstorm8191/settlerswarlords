@@ -64,20 +64,21 @@ import { game } from "./game.jsx";
     5) Find someone willing to host the game for free
     6) Generate the world map on my own PC, then import the map onto the remote host
   
-    Exotic fantasy creatures
-    https://imgur.com/gallery/3pA5gj5
+    Exotic fantasy creatures https://imgur.com/gallery/3pA5gj5
+    Tarred rope machine: https://imgur.com/gallery/emRfXTx
+
     Project size
-    src/app.js                         src/block_foragepost.jsx              src/block_hauler.jsx               src/blockRunsFire.jsx               server/globals.php
-        src/app.css                       src/block_rockknapper.jsx              src/block_harvester.jsx            src/blockSharesOutputs.jsx          server/mapbuilder.php
-            src/DanAjax.js                    src/block_toolbox.jsx                  src/block_strawdryer.jsx          src/comp_worldMap.jsx                server/usermap.php
-               src/comp_account.jsx               src/block_stickmaker.jsx              src/block_farmerspost.jsx          src/comp_admin.jsx                   server/process.php
-                   src/DanInput.jsx                   src/block_twinemaker.jsx             src/blockHasMultipleOutputs.jsx     ajax.php                             server/event.php
-                      src/DanCommon.js                    src/block_flinttoolmaker.jsx        src/blockHasOutputsPerInput.jsx      server/config.php                    server/route_account.php
-                         src/comp_ErrorOverlay.jsx            src/block_huntingpost.jsx          src/blockHasSelectableCrafting.jsx  server/common.php                      server/route_admin.php
-                            src/comp_localMap.jsx                 src/block_butchershop.jsx          src/blockHasWorkerPriority.jsx      server/DanGlobal.php                   server/route_localMap.php
-                                src/game.jsx                          src/block_firewoodmaker.jsx       src/blockMovesWorkers.jsx           server/jsarray.php                      server/route_worldMap.php
-                                    src/block_leanto.jsx                 src/block_campfire.jsx             src/blockRequiresTools.jsx          server/weightedRandom.php
-    484+126+48+208+65+56+68+271+223+88+90+102+222+139+114+128+123+211+85+167+234+192+32+36+58+59+176+58+232+153+178+47+521+428+128+8+285+37+221+126+239+407+434+388+354+284+198+330+214=8759 lines
+    src/app.js                         src/block_foragepost.jsx              src/block_hauler.jsx                 src/blockRunsFire.jsx               server/globals.php
+        src/app.css                       src/block_rockknapper.jsx              src/block_harvester.jsx              src/blockSharesOutputs.jsx          server/mapbuilder.php
+            src/DanAjax.js                    src/block_toolbox.jsx                  src/block_strawdryer.jsx            src/comp_worldMap.jsx                server/usermap.php
+               src/comp_account.jsx               src/block_stickmaker.jsx               src/block_farmerspost.jsx           src/comp_admin.jsx                   server/process.php
+                   src/DanInput.jsx                   src/block_twinemaker.jsx               src/blockHasMultipleOutputs.jsx     ajax.php                             server/event.php
+                      src/DanCommon.js                    src/block_flinttoolmaker.jsx          src/blockHasOutputsPerInput.jsx      server/config.php                    server/route_account.php
+                         src/comp_ErrorOverlay.jsx            src/block_huntingpost.jsx            src/blockHasSelectableCrafting.jsx  server/common.php                      server/route_admin.php
+                            src/comp_localMap.jsx                 src/block_butchershop.jsx            src/blockHasWorkerPriority.jsx      server/DanGlobal.php                   server/route_localMap.php
+                                src/game.jsx                          src/block_firewoodmaker.jsx         src/blockMovesWorkers.jsx           server/jsarray.php                      server/route_worldMap.php
+                                    src/block_leanto.jsx                 src/block_campfire.jsx               src/blockRequiresTools.jsx          server/weightedRandom.php
+    485+126+48+208+65+56+68+271+227+88+90+109+222+139+114+144+123+211+85+167+236+192+140+265+58+59+176+58+232+153+178+47+521+428+128+8+285+37+221+126+239+407+434+388+354+284+198+376+214=9488 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines
@@ -85,6 +86,7 @@ import { game } from "./game.jsx";
     4/17/2021 = 8328 lines
     4/24/2021 = 8663 lines
     5/1/2021  = 8759 lines
+    5/8/2021  = 9488 lines
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server

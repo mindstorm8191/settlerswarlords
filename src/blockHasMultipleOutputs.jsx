@@ -1,4 +1,4 @@
-/*  blockHasMultipleOutputs
+/*  blockHasMultipleOutputs.jsx
     Simple add-on component to allow multiple outputs to be shown
     For the game Settlers & Warlords
 */

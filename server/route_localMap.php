@@ -174,7 +174,7 @@
                         ['name'=>'mode',       'required'=>true, 'format'=>'stringnotempty'],
                         ['name'=>'carrying',   'required'=>true, 'format'=>($ele['carrying']==='none')?'string':'array'],
                         ['name'=>'receivedId', 'required'=>true, 'format'=>'int'],
-                        ['name'=>'targetId',   'required'=>true, 'format'=>'posint'],
+                        ['name'=>'targetId',   'required'=>true, 'format'=>'int'],
                         ['name'=>'targetList', 'required'=>true, 'format'=>'array']
                     ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Hauler');
                     if($ele['carrying']!=='none') verifyItems([$ele['carrying']], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case hauler (carrying)');
@@ -229,8 +229,8 @@
                         verifyInput($inner, [
                             ['name'=>'x',       'required'=>true, 'format'=>'int'],
                             ['name'=>'y',       'required'=>true, 'format'=>'int'],
-                            ['name'=>'counter', 'required'=>true, 'format'=>'int'],
-                            ['name'=>'seed',    'required'=>true, 'format'=>'stringnotempty'],
+                            ['name'=>'counter',      'required'=>true, 'format'=>'int'],
+                            ['name'=>'seed',          'required'=>true, 'format'=>'stringnotempty'],
                             ['name'=>'seedQty',       'required'=>true, 'format'=>'posint'],
                             ['name'=>'product',       'required'=>true, 'format'=>'stringnotempty'],
                             ['name'=>'productQty',    'required'=>true, 'format'=>'int'],
@@ -245,6 +245,13 @@
                             ['name'=>'lifetime', 'required'=>true, 'format'=>'posint']
                         ], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post->verify tile set product extras');
                     });
+                case 'Recycler':
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'items',    'required'=>true, 'format'=>'array']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Recycler');
+                    verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Recycler (outputs)');
+                return true;
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');

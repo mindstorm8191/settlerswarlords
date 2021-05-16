@@ -10,6 +10,7 @@ import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
 import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
+import {blockDeletesWithItems} from "./blockDeletesWithItems.jsx";
 
 export function RockKnapper(mapTile) {
     // These can only be built on rock areas
@@ -72,13 +73,15 @@ export function RockKnapper(mapTile) {
             game.workPoints--;
             b.progressCraft(1);
         },
-        SidePanel: ()=>{
+        SidePanel: props => {
             const Priority = b.ShowPriority;
             const ItemOutputs = b.ShowOutputs;
             const CraftOptions = b.ShowCraftOptions;
+            const Delete = b.ShowDeleteButton;
             return (
                 <>
                     <Priority />
+                    <Delete onChangeTile={props.onChangeTile} />
                     <ItemOutputs />
                     <CraftOptions />
                 </>
@@ -105,6 +108,13 @@ export function RockKnapper(mapTile) {
             }
         }
     }
-    return Object.assign(b, blockHasWorkerPriority(b), blockHasSelectableCrafting(b), blockHasMultipleOutputs(b), blockSharesOutputs(b));
+    return Object.assign(
+        b,
+        blockHasWorkerPriority(b),
+        blockHasSelectableCrafting(b),
+        blockHasMultipleOutputs(b),
+        blockSharesOutputs(b),
+        blockDeletesWithItems(b)
+    );
 }
 

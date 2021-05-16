@@ -32,11 +32,13 @@ import { game } from "./game.jsx";
     All these changes mean all of the existing code is now, mostly irrelevant. Hence the new version!
 
     Task list
+    1) Build a recycle block, which holds items after a block is deleted. Items can be destroyed, or routed to other locations.
+        Once empty, the block is deleted automatically
     1) Figure out what needs to be added next.
         Item storage: We will still need this, but is now more flexible since it won't deal with tools
         Loggers post: Unlocks lots of wood options, this will be a new feature to test (with things that can't be moved by hand)
-        Farming: With the sickle we can clear grasslands, then with shovels start plowing lands to plant new crops. Need to modify
-            worldgen to include various grain types (while building the clusters)
+        Cooking procedures: We have a way to grow more grains and other things, but no way (currently) to consume more foods. We need
+            a means to cook the foods we are able to
         Mad dash to metals: We will need the loggers post first, in order to craft wooden bowls
     1) Toolbox: Apply the new saveTools and loadTools functions
     1) Toolbox: Figure out a proper way for tools to be gathered when the box is empty and there are pending tool requests
@@ -68,17 +70,18 @@ import { game } from "./game.jsx";
     Tarred rope machine: https://imgur.com/gallery/emRfXTx
 
     Project size
-    src/app.js                         src/block_foragepost.jsx              src/block_hauler.jsx                 src/blockRunsFire.jsx               server/globals.php
-        src/app.css                       src/block_rockknapper.jsx              src/block_harvester.jsx              src/blockSharesOutputs.jsx          server/mapbuilder.php
-            src/DanAjax.js                    src/block_toolbox.jsx                  src/block_strawdryer.jsx            src/comp_worldMap.jsx                server/usermap.php
-               src/comp_account.jsx               src/block_stickmaker.jsx               src/block_farmerspost.jsx           src/comp_admin.jsx                   server/process.php
-                   src/DanInput.jsx                   src/block_twinemaker.jsx               src/blockHasMultipleOutputs.jsx     ajax.php                             server/event.php
-                      src/DanCommon.js                    src/block_flinttoolmaker.jsx          src/blockHasOutputsPerInput.jsx      server/config.php                    server/route_account.php
-                         src/comp_ErrorOverlay.jsx            src/block_huntingpost.jsx            src/blockHasSelectableCrafting.jsx  server/common.php                      server/route_admin.php
-                            src/comp_localMap.jsx                 src/block_butchershop.jsx            src/blockHasWorkerPriority.jsx      server/DanGlobal.php                   server/route_localMap.php
-                                src/game.jsx                          src/block_firewoodmaker.jsx         src/blockMovesWorkers.jsx           server/jsarray.php                      server/route_worldMap.php
-                                    src/block_leanto.jsx                 src/block_campfire.jsx               src/blockRequiresTools.jsx          server/weightedRandom.php
-    485+126+48+208+65+56+68+271+227+88+90+109+222+139+114+144+123+211+85+167+236+192+140+265+58+59+176+58+232+153+178+47+521+428+128+8+285+37+221+126+239+407+434+388+354+284+198+376+214=9488 lines
+    src/app.js                            src/block_rockknapper.jsx                  src/block_strawdryer.jsx               src/blockSharesOutputs.jsx              server/usermap.php
+        src/app.css                           src/block_toolbox.jsx                      src/block_farmerspost.jsx             src/comp_worlMap.jsx                     server/process.php
+            src/DanAjax.js                        src/block_stickmaker.jsx                   src/block_recycler.jsx                src/comp_admin.jsx                       server/event.php
+               src/comp_account.jsx                   src/block_twinemaker.jsx                  src/blockDeletesWithItems.jsx          ajax.php                                 server/route_account.php
+                   src/DanInput.jsx                       src/block_flinttoolmaker.jsx             src/blockHasMultipleOutputs.jsx         server/config.php                        server/route_admin.php
+                      src/DanCommon.js                        src/block_huntingpost.jsx               src/blockHasOutputsPerInput.jsx        server/common.php                          server/route_localMap.php
+                         src/comp_ErrorOverlay.jsx                src/block_butchershop.jsx               src/blockHasSelectableCrafting.jsx     server/DanGlobal.php                       server/route_worldMap.php
+                            src/comp_localMap.jsx                     src/block_firewoodmaker.jsx            src/blockHasWorkerPriority.jsx         server/jsarray.php
+                                src/game.jsx                             src/block_campfire.jsx                 src/blockMovesWorkers.jsx               server/weightedRandom.php
+                                    src/block_leanto.jsx                     src/block_hauler.jsx                   src/blockRequiresTools.jsx              server/globals.php
+                                       src/block_foragepost.jsx                  src/block_harvester.jsx                src/blockRunsFire.jsx                   server/mapbuilder.php
+    485+126+48+208+65+56+68+271+227+88+90+109+222+139+114+144+123+211+85+167+236+192+140+265+90+48+58+59+176+58+232+153+178+47+521+428+128+8+285+37+221+126+239+407+434+388+354+284+198+376+214=9488 lines
     3/13/2021 = 5588 lines
     3/27/2021 = 6448 lines
     4/3/2021  = 6985 lines

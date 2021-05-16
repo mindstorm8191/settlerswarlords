@@ -38,7 +38,7 @@ export function LocalMap(props) {
         "pinetreetwo.jpg", "basicrock.jpg", "desert.jpg", "smallpond.jpg", "lava.png", "ice.png", "snow.png",
         "emptygrass.jpg", "farmplot.png"
     ];
-    const [selected, setSelected] = React.useState(null); // which square is selected to show details on the right
+    const [selected, setSelected] = React.useState(null); // which tile is selected to show details on the right
     const [scrollPos, setScrollPos] = React.useState({moveState:false,x:0,y:0});
 
     function startPan() {
@@ -210,7 +210,7 @@ export function LocalMap(props) {
                             <p className="singleline">Nothing is built here. Select a block from the left to place it here</p>
                         </>
                     ) : (
-                        <LocalTileBuildingDetail tile={selected} />
+                        <LocalTileBuildingDetail tile={selected} onChangeTile={setSelected} />
                     )}
                 </div>
             </div>
@@ -242,7 +242,7 @@ function LocalTileBuildingDetail(props) {
         <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
-        <SidePanel />
+        <SidePanel onChangeTile={props.onChangeTile} />
     </>;
 }
 

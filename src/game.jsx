@@ -18,6 +18,7 @@ import { Campfire } from "./block_campfire.jsx";
 import { Harvester } from "./block_harvester.jsx";
 import { StrawDryer } from "./block_strawdryer.jsx";
 import { FarmersPost } from "./block_farmerspost.jsx";
+// Note the Recycler doesn't get created by the user, so doesn't get included here
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
 

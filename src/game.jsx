@@ -217,8 +217,10 @@ export let game = {
             // With this building updated, update the correct tile in gameLocalTiles
             if (typeof block.progressBar !== "undefined") {
                 let tile = game.tiles.find((t) => t.buildid === block.id);
-                tile.progressBar = (block.progressBar * 60.0) / block.progressBarMax;
-                tile.progressBarColor = block.progressBarColor;
+                if(typeof(tile) !=='undefined') {
+                    tile.progressBar = (block.progressBar * 60.0) / block.progressBarMax;
+                    tile.progressBarColor = block.progressBarColor;
+                }
             }
         });
         

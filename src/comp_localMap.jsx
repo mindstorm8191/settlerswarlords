@@ -76,6 +76,15 @@ export function LocalMap(props) {
         }
     }
 
+    function clearIfSelected(buildId) {
+        // Clears the selected building, but only if it is currently selected.
+        // This is required for the recycler block. I don't know if it'll be needed anywhere else
+        if(selected.buildid===buildId) {
+            selected.buildid = 0;
+            setSelected({...selected});
+        }
+    }
+
     function placeBuilding(buildType) {
         // Check that we have a map tile selected, and that there is no building declared here
         if(selected===null) return;
@@ -210,7 +219,7 @@ export function LocalMap(props) {
                             <p className="singleline">Nothing is built here. Select a block from the left to place it here</p>
                         </>
                     ) : (
-                        <LocalTileBuildingDetail tile={selected} onChangeTile={setSelected} />
+                        <LocalTileBuildingDetail tile={selected} onChangeTile={setSelected} clearIfSelected={clearIfSelected} />
                     )}
                 </div>
             </div>
@@ -225,6 +234,8 @@ function LocalTileBuildingDetail(props) {
     //     tile - object containing all the data about the building to show
     // prop fields - functions
     //      onTileUpdate - Allows a single map tile to be updated
+    //      clearIfSelected - Allows the current tile to be changed, but only if it matches the building selected. This is used
+    //          in the Recycler block, for removing it if it is selected (no action will be taken if it is not)
 
     
     let block = game.blocks.find(ele=>{
@@ -242,7 +253,7 @@ function LocalTileBuildingDetail(props) {
         <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{block.name}</div>
         <p>{block.descr}</p>
         <p>{block.usage}</p>
-        <SidePanel onChangeTile={props.onChangeTile} />
+        <SidePanel onChangeTile={props.onChangeTile} clearIfSelected={props.clearIfSelected} />
     </>;
 }
 

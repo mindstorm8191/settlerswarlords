@@ -8,7 +8,7 @@ import React from "react";
 export const blockHasMultipleOutputs = state => ({
     // This is a simple add-on component, used only for dislay, allowing a mixed list of items to be grouped and tallied.
     // This component assumes the attached block has an onhand attribute, an array of items slated for output
-    dropList: [],
+    dropList: [], // Holds names of any items that the user has elected to drop
 
     ShowOutputs(props) {
         // prop fields - data

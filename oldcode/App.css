@@ -1,0 +1,126 @@
+.app {
+    padding: 5px;
+}
+
+.App-logo {
+    height: 40vmin;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
+}
+
+.App-header {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+    font-size: calc(10px + 2vmin);
+    color: white;
+}
+
+.App-link {
+    color: #61dafb;
+}
+
+.singleline {
+    margin-top: 0.35em;
+    margin-bottom: 0em;
+}
+.fakelink {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+#titletext {
+    /* For the text displaying the title of the game */
+    position: absolute;
+    left: 5;
+    font-size: 40px;
+}
+
+#titleblock {
+    padding: -15px;
+    min-height: 150px;
+    width: 100%;
+}
+
+#loginblock {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+}
+
+#localmapbox {
+    width: 100%;
+    height: calc(100vh - 185px);
+    display: block;
+    position: relative;
+    overflow: hidden;
+}
+
+#localmaprightpane {
+    position: absolute;
+    display: block;
+    right: 0px;
+    width: 300px;
+    background-color: white;
+    height: calc(100vh - 185px);
+}
+
+.haslinespacing {
+    /* Generic span class that gives space betwen each element */
+    margin: 10px;
+}
+
+.buildingListSelected {
+    margin: 10px;
+    border: 1px solid green;
+    text-align: center;
+}
+
+.buildingListChoice {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.simpletitle {
+    /* Used for small titles to sections */
+    text-align: center;
+    font-weight: bold;
+}
+
+.worldmaptile {
+    display: block;
+    position: absolute;
+    width: 55px;
+    height: 55px;
+    cursor: pointer;
+}
+
+.worldmaptileimageoverlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    pointer-events: none;
+}
+
+.worldmaptiledetailbox {
+    display: block;
+    position: absolute;
+    border: 1px solid black;
+    min-width: 200px;
+    background-color: white;
+    padding: 2px;
+}
+
+.exitbutton {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    cursor: pointer;
+}

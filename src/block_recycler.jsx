@@ -26,6 +26,7 @@ export function Recycler(mapTile, allItems, priority) {
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: allItems,
+        tileClearer: null,
         possibleOutputs: ()=>{
             // Returns a list of item names that this block is able to output
             // This will be just a list of all item names, with duplicates removed
@@ -63,12 +64,41 @@ export function Recycler(mapTile, allItems, priority) {
             if(b.onhand.length===0) {
                 // Umm... I don't actually know what it'll take to delete a block, yet!
                 console.log('Time for the Recycler to vanish!');
+                //*
+                // Remove this block from the global blocks list
+                game.blocks.splice(game.blocks.findIndex(e=>e.id===b.id), 1);
+                
+                // Remove the building ID from the tile that this building is on
+                let tile = game.tiles.find(e=>e.x===b.tileX && e.y===b.tileY);
+                tile.buildid = 0;
+
+                // If this building is currently selected, we need to update the side panel content. If not, it can be ignored
+                b.tileClearer(b.id);
+                
+                game.updateReact([...game.tiles]);
+                //*/
+            }
+            // Check if any of our blocks has been set to be dropped. Any dropped items are immediately 'forgotten'; we're just
+            // leaving them behind
+            while(b.dropList.length>0) {
+                let slot = b.onhand.findIndex(e=>e.name===b.dropList[0]);
+                while(slot!==-1) {
+                    game.deleteItem(b.onhand[slot].id);
+                    b.onhand.splice(slot,1);
+                    slot = b.onhand.findIndex(e=>e.name===b.dropList[0]);
+                }
+                b.dropList.splice(0,1);
             }
         },
-        SidePanel: ()=>{
+        SidePanel: props => {
             // Here, show a list of all the items we need to output
             const Priority = b.ShowPriority;
             const Outputs = b.ShowOutputs;
+
+            // We're collecting this prop for later use. We want to be able to delete the building during update(), but we have no
+            // standard way to drill this through. So we'll attach it to the block, in case we need it later
+            b.tileClearer = props.clearIfSelected;
+
             return <>
                 <Priority />
                 <Outputs canDrop={true} />

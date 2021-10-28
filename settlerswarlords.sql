@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Apr 24, 2021 at 01:55 PM
+-- Generation Time: Jul 05, 2021 at 11:54 AM
 -- Server version: 8.0.19
 -- PHP Version: 7.2.4
 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `codelocation` text NOT NULL COMMENT 'where the error occurred at',
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10846 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=11143 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -111,10 +111,10 @@ CREATE TABLE IF NOT EXISTS `sw_map` (
   `blocks` text NOT NULL COMMENT 'All running blocks (including items) in the map, with location',
   `unlockeditems` text NOT NULL COMMENT 'List of all items unlocked here',
   `allItems` text NOT NULL COMMENT 'full items list in this location',
-  `foodCounter` int NOT NULL DEFAULT '0' COMMENT 'counter on food production (this may be expanded later)',
+  `foodCounter` double NOT NULL DEFAULT '180' COMMENT 'counter on food production (this may be expanded later)',
   PRIMARY KEY (`id`),
   UNIQUE KEY `coords` (`x`,`y`)
-) ENGINE=MyISAM AUTO_INCREMENT=1377136 DEFAULT CHARSET=latin1 COMMENT='world map';
+) ENGINE=MyISAM AUTO_INCREMENT=1426389 DEFAULT CHARSET=latin1 COMMENT='world map';
 
 -- --------------------------------------------------------
 
@@ -128,7 +128,8 @@ CREATE TABLE IF NOT EXISTS `sw_minimap` (
   `x` int NOT NULL,
   `y` int NOT NULL,
   `landtype` int NOT NULL COMMENT 'type of land',
-  `buildid` int NOT NULL DEFAULT '0' COMMENT 'id of what building is here'
+  `buildid` int NOT NULL DEFAULT '0' COMMENT 'id of what building is here',
+  `newlandtype` int NOT NULL DEFAULT '-1' COMMENT 'What land this has been changed to by development. -1 if not changed'
 ) ENGINE=InnoDB DEFAULT CHARSET=ascii;
 
 -- --------------------------------------------------------
@@ -151,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `sw_player` (
   `userType` int NOT NULL DEFAULT '0' COMMENT 'Type of user. 0=player, 1=mod',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=166 DEFAULT CHARSET=ascii COMMENT='all users';
+) ENGINE=InnoDB AUTO_INCREMENT=172 DEFAULT CHARSET=ascii COMMENT='all users';
 
 -- --------------------------------------------------------
 

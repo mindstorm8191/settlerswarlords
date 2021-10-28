@@ -1,10 +1,10 @@
-/*  block_stickmaker.jsx
-    Produces sticks from existing trees in the area
+/*  block_loggerspost.jsx
+    Handles chopping wood in forests, cutting it down to a moveable size, suitable for the desired task
     For the game Settlers & Warlords
 */
 
 import React from "react";
-import { imageURL } from "./App.js";
+import {imageURL} from "./App.js";
 import {game} from "./game.jsx";
 import {blockHasWorkerPriority} from "./blockHasWorkerPriority.jsx";
 import {blockHasSelectableCrafting} from "./blockHasSelectableCrafting.jsx";
@@ -12,43 +12,52 @@ import {blockHasMultipleOutputs} from "./blockHasMultipleOutputs.jsx";
 import {blockRequiresTools} from "./blockRequiresTools.jsx";
 import {blockSharesOutputs} from "./blockSharesOutputs.jsx";
 
-export function StickMaker(mapTile) {
-    if(mapTile.landtype!==5) return 'wronglandtype';
-
+export function LoggersPost(mapTile) {
     let b = {
         id: game.getNextBlockId(),
-        name: "Stick Maker",
-        descr: `The effective use of wood is crucial for continued expansion of your colony. Durable yet easily workable, the woods here
-                provides plenty to be made use of`,
-        usage: `Cuts down small trees and branches of larger ones to produce sticks of various sizes. Requires tools`,
-        image: imageURL +'stickmaker.png',
+        name: "Loggers Post",
+        descr: `Crafting things out of fallen sticks can only get you so far. The tools you have now give you access to larger portions of wood.
+                You are unable to move fallen trees yet, but that doesn't stop you from crafting things on the spot to haul out.`,
+        usage: `Fell trees in nearby forest areas to produce a multitude of additional wood products`,
+        image: imageURL +'loggerspost.png',
         progressBar: 0,
         progressBarColor: 'blue',
-        progressBarMax: 30,
+        progressBarMax: 50,
         tileX: mapTile.x,
         tileY: mapTile.y,
         onhand: [],
         craftOptions: [
-            {name:'Short Stick', craftTime:20, qty:1, itemType: 'item', itemExtras: {}, img:imageURL+"item_ShortStick.png"},
-            {name:'Long Stick', craftTime:20, qty:1, itemType: 'item', itemExtras: {}, img:imageURL+"item_LongStick.png"}
+            {
+                name:'Wood Pole',
+                craftTime:50,
+                qty: 1,
+                itemType: 'item',
+                itemExtras: {},
+                img: imageURL +'item_woodPole.png',
+            } // We'll figure out what else to add later
         ],
         toolGroups: [
-            {group:'axe', options: ['Flint Stabber', 'Flint Hatchet'], required:true, selected:'', loaded:null}
+            {group:'axe', options: ['Flint Hatchet'], required:true, selected:'', loaded:null}
         ],
         possibleOutputs: ()=>{
-            // We don't have any items with prerequisites - yet. If we do, we can borrow the same code from the Rock Knapper
+            // Returns an array of possible outputs of this block
+            // We don't really have anything locked from this block; just return the whole list
             return b.craftOptions.map(e=>e.name);
         },
-        willAccept: item=>false,    // This block doesn't have any inputs (besides tools - that's handled differently)
-        takeItem: item=>false,
-        fetchItem: itemId=>{
-            // Returns an item, if this block has it, or null if it was not found. This is primarily used in the game
-            // object to manage food and updating other item stats
+        //willOutput is handled by blockSharesOutputs
+        //hasItem ''  ''  ''
+        //getItem ''  ''  ''
+        //getItemFrom ''  ''  ''
+        //findItems ''  ''  ''
+        willAccept: item=>false, // This block doesn't accept any inputs
+        takeItem: item=>false,   // ''  ''  ''
+        fetchItem: itemId => {
+            // Returns an item, if found, when provided the item's ID
             // Since this only has outputs, we can locate the item in our onhand list
             let item = b.onhand.find(e=>e.id===itemId);
             if(typeof(item)!=='undefined') return item;
-            
-            // We didn't find the item in our onhand list. We might still find it in the tools list
+
+            // Well, we didn't find the item in our onhand list. We might still find it in the tools list
             for(let i=0;i<b.toolGroups.length;i++) {
                 if(b.toolGroups[i].loaded!==null) {
                     if(b.toolGroups[i].loaded.id===itemId) return b.toolGroups[i].loaded;
@@ -71,10 +80,9 @@ export function StickMaker(mapTile) {
             });
         },
         update: ()=>{
-            // Before any work can be done here, a tool must be loaded
             if(!b.checkTools()) return; // No tool selected
             if(b.currentCraft==='') return; // No item selected to craft
-            if(b.onhand.length>=5) return; // We can only hold 5 finished items
+            if(b.onhand.length>=5) return; // No room for more items
             if(game.workPoints<=0) return; // Nobody available to work here
             game.workPoints--;
             b.useTools();
@@ -101,31 +109,16 @@ export function StickMaker(mapTile) {
                 items: b.onhand,
                 currentCraft: b.currentCraft,
                 nextCraft: b.nextCraft,
-                tools: b.toolGroups.map(t=>{
-                    return {
-                        group: t.group,
-                        selected: t.selected,
-                        loaded: typeof(t.loaded)==='null'?'none':t.loaded
-                    }
-                })
+                tools: b.saveTools()
             };
         },
         load: content=>{
-            b.priority     = content.priority;
-            b.progressBar  = content.progress;
+            b.priority    = content.priority;
+            b.progressBar = content.progress;
             b.onhand       = content.items;
             b.currentCraft = content.currentCraft;
             b.nextCraft    = content.nextCraft;
-            b.toolGroups   = b.toolGroups.map(group => {
-                let source = content.tools.find(e=>group.group===e.group);
-                group.selected = source.selected;
-                group.loaded = (source.loaded==='none')?null:source.loaded;
-                return group;
-            });
-            // Don't forget to set the progress bar's max value, too, since it's based on the currently crafted item
-            if(b.currentCraft!=='') {
-                b.progressBarMax = b.craftOptions.find(e=>e.name===b.currentCraft).craftTime;
-            }
+            b.loadTools();
         }
     };
     return Object.assign(

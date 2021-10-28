@@ -33,6 +33,7 @@ import { game } from "./game.jsx";
 
     We're using https://parser.name/api/generate-random-name/ to generate ranomized names
 
+
     Task list
     1) Create some workers. Generate them on the server side (for later tracking) with a name. Pass this data to the client so it can
         be utilized. New players will still start with 4 workers
@@ -51,7 +52,6 @@ import { game } from "./game.jsx";
     Exotic fantasy creatures https://imgur.com/gallery/3pA5gj5
     Tarred rope machine: https://imgur.com/gallery/emRfXTx
     Traditional Hemp Rope process: https://imgur.com/gallery/73IqiK8
-    Various Windmill designs https://imgur.com/gallery/tOUYe2E
 
     Project size
     src/app.js                            src/block_rockknapper.jsx                  src/block_strawdryer.jsx               src/blockRunsFire.jsx                   server/mapbuilder.php

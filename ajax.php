@@ -73,6 +73,7 @@
     const $civilizations (array of objects) - server/globals.php
     const $civTypes (array of strings) - server/globals.php
     function compareObjects() - server/jsarray.php
+    function createWorkers() - server/mapbuilder.php
     function DanDBList() - server/common.php
     function danescape() - server/common.php
     global $db (object?) - server/common.php

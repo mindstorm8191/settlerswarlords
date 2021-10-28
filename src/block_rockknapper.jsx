@@ -1,4 +1,4 @@
-/* rockknapper.jsx
+/*  block_rockknapper.jsx
     Provides the Rock Knapper, the first means to produce tools from rocks
     For the game Settlers & Warlords
 */

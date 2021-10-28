@@ -4,6 +4,7 @@
 */
 
 import { LeanTo } from "./block_leanto.jsx";
+/*
 import { ForagePost } from "./block_foragepost.jsx";
 import { RockKnapper } from "./block_rockknapper.jsx";
 import { Toolbox } from "./block_toolbox.jsx";
@@ -18,6 +19,7 @@ import { Campfire } from "./block_campfire.jsx";
 import { Harvester } from "./block_harvester.jsx";
 import { StrawDryer } from "./block_strawdryer.jsx";
 import { FarmersPost } from "./block_farmerspost.jsx";
+import { LoggersPost } from "./block_loggerspost.jsx";*/
 // Note the Recycler doesn't get created by the user, so doesn't get included here
 
 let cardinalDirections = [{x:0,y:-1},{x:1,y:0},{x:0,y:1},{x:-1,y:0}];
@@ -28,6 +30,7 @@ export let game = {
     foodCounter: 180,   // Players start with a 3-minute lead time to get food production going... shouldn't be too hard though
     tiles: [],          // all the tiles of the map
     blocks: [],         // All buildings or other structures on the map
+    workers: [],        // All active workers in the game
     items: [],          // All items that have been generated. This list is kept so that items with decay can decay properly... all this
                         // needs to be ironed out though
     unlockedItems: [],  // Lists all items the player has had access to (including items received by trade)
@@ -37,26 +40,27 @@ export let game = {
     pickMode: false,    // Set to true if the currently selected block type is working to pick another file from the map
     blockTypes: [
         {name:'Lean-To',          image:'leanto.png',         alt:'leanto',           create:LeanTo,         prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Forage Post',      image:'foragepost.png',     alt:'forage post',      create:ForagePost,     prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Rock Knapper',     image:'rockKnapper.png',    alt:'rock knapper',     create:RockKnapper,    prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Toolbox',          image:'toolbox.png',        alt:'tool box',         create:Toolbox,        prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Hauler',           image:'hauler.png',         alt:'hauler',           create:Hauler,         prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Stick Maker',      image:'stickmaker.png',     alt:'stick maker',      create:StickMaker,     prereq:[['Flint Stabber']], unlocked:0, newFeatures:[]},
-        {name:'Twine Maker',      image:'twinemaker.png',     alt:'twine maker',      create:TwineMaker,     prereq:[['Flint Knife']], unlocked:0, newFeatures:[]},
-        {name:'Flint Tool Maker', image:'flintToolMaker.png', alt:'flint tool maker', create:FlintToolMaker, prereq:[['Twine'],['Short Stick', 'Long Stick']],                 unlocked:0, newFeatures:[]},
-        {name:'Hunting Post',     image:'huntingpost.png',    alt:'Hunting Post',     create:HuntingPost,    prereq:[['Flint Spear']],                                         unlocked:0, newFeatures:[]},
-        {name:'Butcher Shop',     image:'butchershop.png',    alt:'Butcher Shop',     create:ButcherShop,    prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
-        {name:'Firewood Maker',   image:'firewoodMaker.png',  alt:'Firewood Maker',   create:FirewoodMaker,  prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
-        {name:'Campfire',         image:'campfire.png',       alt:'Campfire',         create:Campfire,       prereq:[['Dead Deer', 'Dead Boar', 'Dead Wolf', 'Dead Chicken']], unlocked:0, newFeatures:[]},
-        {name:'Harvester',        image:'harvester.png',      alt:'Harvester',        create:Harvester,      prereq:[['Flint Scythe']],                                        unlocked:0, newFeatures:[]},
-        {name:'Straw Dryer',      image:'strawdryer.png',     alt:'Straw Dryer',      create:StrawDryer,     prereq:[['Wet Straw']],                                           unlocked:0, newFeatures:[]},
-        {name:'Farmers Post',     image:'farmerspost.png',    alt:'Farmers Post',     create:FarmersPost,    prereq:[['Wet Straw']],                                           unlocked:0, newFeatures:[]}
     ],
     // For the newFeatures array: if an item in that list is added to the unlocked items, it only means that the left-side block will 'light up' green.
     // The specific features will have to be checked by the block's code
     travellers: [],     // List of travelling units. Primarily to display workers hauling items about the map
 
+    assignWorker: (workerName, buildId, task) =>{
+        // Gives a specific worker a new task to complete. Returns true if successful, or false if not
+
+        // Start with getting the specific worker; we only have the name
+        let worker = game.workers.find(e=>e.name===workerName);
+        if(typeof(worker)==='undefined') return false;
+
+        // For now, just assign the task. We will insert it in front of all others
+        worker.tasks = [{building:buildId, mainTask:task}, ...worker.tasks];
+        worker.subtask = '';
+    },
+
     getNextBlockId: ()=> {
+        // Determines what block ID to assign a block, as it is being declared
+        // This method is needed because blocks will not be in ID order
+        // That being said, this may not be needed anymore, if blocks don't get assigned priority
         if(game.blocks.length===0) return 1;
         return game.blocks.reduce((carry,block)=>{
             if(block.id>carry) return block.id;
@@ -206,10 +210,49 @@ export let game = {
                 // Oh dear, we have run out of food. We need to reduce the population now
                 game.population--;
                 // Also reset the food counter, so the colony can continue to function
+                // (Does this count as cannibalizing one of their people? I dunno...)
                 game.foodCounter = 120;
                 if(game.population===0) game.population = 1; // can't continue playing if there's nobody around
             }
         }
+
+        // Next, update all the workers
+        game.workers.forEach((worker) => {
+            // Check for idle tasks
+
+            // Get the building ID of the first task, so we can ask it what to work on
+            let curTask = worker.tasks[0];
+            if(typeof(curTask)==='undefined') return;
+            let building = game.blocks.find(build=>build.id===curTask.building);
+            if(typeof(building)==='undefined') {
+                console.log('Worker error: could not locate building for this task ('+ curTask.mainTask +'). Deleting task');
+                // To prevent future errors, delete this task
+                worker.tasks.splice(0,1);
+                return;
+            }
+            if(worker.subtask==='') worker.subtask = building.getSubtask();
+            switch(worker.subtask) {
+                case "craft":
+                    // All we need is to be at the place and craft the desired item.
+                    // First we gotta get there, though
+                    
+                    // Determine if they are lined up with the building x-wise.
+                    // If not, move to line up with it
+                    if(worker.x===building.tileX) {
+                        // Already lined up x-wise. Now check y axis
+                        if(worker.y===building.tileY) {
+                            // We seem to be at the location we need. Craft the item we're after
+                            building.advanceCraft();
+                        } else {
+                            let dir = (worker.y > building.tileY)? -1 : 1;
+                            worker.y += dir;
+                        }
+                    } else {
+                        let dir = (worker.x > building.tileX)? -1 : 1;
+                        worker.x += dir; 
+                    }
+            }
+        });
 
         game.workPoints = game.population;
         game.blocks.forEach((block) => {

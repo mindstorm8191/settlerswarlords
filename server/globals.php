@@ -202,6 +202,18 @@
     $localTileNames = ['wheat', 'oat', 'rye', 'barley', 'millet', 'trees', 'rock', 'sands', 'water', 'lava', 'ice', 'snow'];
     // Are we just going to stick with one type of tree land? No way! But we're just not 'there' yet. Gotta keep at it!
 
+    // We very much need names for all the workers that the player has, in order for players to keep them organized (on some level)
+    // I pulled these from https://www.imagineforest.com/blog/fantasy-character-names/ from human names only (male & female)
+    $workerNames = ['Akibrus', 'Aleera',    'Alva',      'Amara',   'Angun',   'Anya',   'Asralyn', 'Azura',    'Balrus',   'Breya',    'Brina',     'Bulruk',
+                    'Caelia',  'Caldor',    'Ciscra',    'Dagen',   'Darvyn',  'Delvin', 'Dezaral', 'Dorath',   'Dracyian', 'Dray',     'Drusila',   'Elda', 
+                    'Eldar',   'Engar',     'Esmeralla', 'Fabien',  'Farkas',  'Freya',  'Galdor',  'Gelda',    'Hadena',   'Igor',     'Jai-Blynn', 'Klayden',
+                    'Kyla',    'Kyra',      'Laimus',    'Lavinia', 'Lunarex', 'Lyra',   'Malfas',  'Mireille', 'Norok',    'Nyssa',    'Olwyn',     'Orion',
+                    'Ophelia', 'Peregrine', 'Pindious',  'Quintus', 'Rammir',  'Remus',  'Reyda',   'Rorik',    'Sabir ',   'Sarielle', 'Severin',   'Shikta',
+                    'Sirius',  'Soril',     'Sulfu',     'Sybella', 'Syfas',   'Syfyn',  'Thalia',  'Turilla',  'Vasha',    'Viktas',   'Vixen',     'Vyn',
+                    'Wilkass', 'Yagul',     'Yvanna',    'Zakkas',  'Zarek',   'Zaria',  'Zeniya',  'Zorion'];
+    // male suffixes: ar, or, io, on, mus, mir, as, ik
+    // female suffixes: ella, ina, sha, ia, illa, ica, ika, en, lia
+
     define('x', 'x');
     define('y', 'y');
     $directionMap = [

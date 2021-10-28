@@ -50,11 +50,12 @@
                     'ajax.php->action signup->add new user');
         $uid = mysqli_insert_id($db);
 
+        // Now is a good time to generate the workers for this land plot
+        $workers = createWorkers(4);
+
         // We also need to update the map location to show that the user owns this land
-        // Now is also a good time to add beginner items (just bread) and set the resource time balance of this block,
-        // as food consumption depends on it
-        DanDBList("UPDATE sw_map SET owner=?, population=4 WHERE x=? and y=?;", 'iii',
-                  [ $uid, $playerx, $playery], 'ajax.php->action signup->update map with new user');
+        DanDBList("UPDATE sw_map SET owner=?, population=4, workers=? WHERE x=? and y=?;", 'isii',
+                  [ $uid, json_encode($workers), $playerx, $playery], 'ajax.php->action signup->update map with new user');
         
         // Update the player's known map now to show that they're aware of their own starting land
         worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
@@ -81,8 +82,6 @@
         finishLogin($uid, $ajaxcode, $playerx, $playery);
         */
     }
-
-    //spectrum? 866-914-5806
 
     function finishLogin($userid, $accesscode, $playerx, $playery) {
         // Handles sending the full login package to the user. This is the same response from all three sources:
@@ -113,6 +112,7 @@
             ],
             'localTiles'=>$localTiles,
             'blocks'       =>json_decode($worldTile['blocks'], true),
+            'workers'      =>json_decode($worldTile['workers'], true),
             'unlockedItems'=>json_decode($worldTile['unlockeditems'], true),
             'allItems'     =>json_decode($worldTile['allItems'], true),
             'foodCounter'  =>$worldTile['foodCounter']

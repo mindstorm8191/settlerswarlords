@@ -12,7 +12,6 @@ export function LeanTo(mapTile) {
     // Let's start by creating our object first
     if(mapTile.landtype!==5) return 'wronglandtype';
     let b = {
-        //...blockHasWorkerPriority,
         id: game.getNextBlockId(),
             // We can pick a unique ID by looking at the last building, and going +1 of that - as long as the list isn't empty
             // This will only work until we prioritize buildings (to use work points correctly)
@@ -37,8 +36,22 @@ export function LeanTo(mapTile) {
         takeItem: o => false,
         fetchItem: itemId=>null,
         destroyItem: itemId=>false,
+        workState: ()=>{
+            // Returns a string representing the status of work for this block. May be one of:
+            // 'needs work': This block is missing components that prevent it from functioning fully
+            // 'has work': This block has work that can be done, but isn't necessary for its function
+            // 'no work': There is no work that can be done at this block
+            return (b.mode==='building')?'needs work':'no work';
+        },
+        getSubtask: ()=> {
+          // Returns a subtask for this worker to work on
+          // Since this only needs construction, have any workers work on site
+          return "craft";
+        },
         update: () => {
             if(b.mode==='building') {
+                /* We will no longer do work here directly; it will be handled by the worker. Decay of the building, however, will happen
+                   automatically... we will likely have an acceptWork function in all blocks now
                 if(game.workPoints<=0) return;
                 b.progressBar++;
                 game.workPoints--;
@@ -47,7 +60,7 @@ export function LeanTo(mapTile) {
                     b.progressBar = 300;
                     b.progressBarMax = 300;
                     b.progressBarColor = 'black';
-                }
+                }*/
             }else{
                 b.progressBar--;
                 if(b.progressBar<=0) {
@@ -58,13 +71,45 @@ export function LeanTo(mapTile) {
                 }
             }
         },
-        SidePanel: hooks =>{
-            const Priority = b.ShowPriority;
+        advanceCraft: () => {
+            // A worker has put their effort into this building. Time to get some progress done
+            // Start by checking this block's current mode
+            if(b.mode==='building') {
+                b.progressBar++;
+                if(b.progressBar>=120) {
+                    b.mode = 'in use';
+                    b.progressBar = 300;
+                    b.progressBarMax = 300;
+                    b.progressBarColor = 'black';
+                }
+            }
+        },
+        SidePanel: ()=>{
+            // All buildings show their description & usage at the top automatically
+            const [pickingWorker, setPickingWorker] = React.useState(0);
             return (
                 <>
-                    <Priority />
                     <div>Mode: {b.mode}</div>
                     <div>Counter: {b.progressBar}</div>
+                    <p className="singleline" style={{fontWeight:'bold'}}>Tasks</p>
+                    <p className="fakelink singleline" onClick={()=>setPickingWorker(1-pickingWorker)}>Build & Maintain</p>
+                    {pickingWorker===1?(
+                        <>
+                            <p className="singleline">Choose a worker</p>
+                            {game.workers.length===0?(
+                                <p className="singleline">(You have no workers)</p>
+                            ):game.workers.map((worker,key)=>(
+                                <p key={key}
+                                   className="fakelink singleline"
+                                   onClick={()=>{
+                                       // Now the magic begins!
+                                       game.assignWorker(worker.name, b.id, 'Build & Maintain');
+                                       // Later, we will set if this should be done first, next or last
+                                   }}
+                                >{worker.name} ({worker.status})</p>
+                            ))}
+                        </>
+                    ):('')}
                 </>
             );
         },

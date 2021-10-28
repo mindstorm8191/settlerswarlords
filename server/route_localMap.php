@@ -245,13 +245,25 @@
                             ['name'=>'lifetime', 'required'=>true, 'format'=>'posint']
                         ], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Farmers Post->verify tile set product extras');
                     });
+                case 'Loggers Post':    // Manages cutting down trees to produce workable goods
+                    verifyInput($ele, array_merge($blockBasics, [
+                        ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
+                        ['name'=>'progress',     'required'=>true, 'format'=>'int'],
+                        ['name'=>'items',        'required'=>true, 'format'=>'array'],
+                        ['name'=>'currentCraft', 'required'=>true, 'format'=>'string'],
+                        ['name'=>'nextCraft',    'required'=>true, 'format'=>'string'],
+                        ['name'=>'tools',        'required'=>true, 'format'=>'array']
+                    ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Loggers Post');
+                    verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Loggers Post');
+                    verifyTools($ele['tools'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Loggers Post');
+                    return true;
                 case 'Recycler':
                     verifyInput($ele, array_merge($blockBasics, [
                         ['name'=>'priority', 'required'=>true, 'format'=>'posint'],
                         ['name'=>'items',    'required'=>true, 'format'=>'array']
                     ]), 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Recycler');
                     verifyItems($ele['items'], 'server/route_localMap.php->route_saveLocalMap()->verify blocks->case Recycler (outputs)');
-                return true;
+                    return true;
                 default:
                     reporterror('server/route_localMap.php->route_saveLocalMap->verify blocks list', 'Building type '. $ele['name'] .' not supported');
                     ajaxreject('badinput', 'Building type '. $ele['name'] .' not supported');

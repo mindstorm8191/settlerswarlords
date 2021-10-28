@@ -107,6 +107,7 @@ export function RegisterForm(props) {
     const [fields, setFields] = React.useState({ username: "", password: "", pass2: "", email: "" });
     const [userError, setError] = React.useState("");
     const [serverError, setServerError] = React.useState("");
+    const [showPrivacy, setShowPrivacy] = React.useState(0);
 
     function handleRegister() {
         // Handles starting the registration process
@@ -194,7 +195,15 @@ export function RegisterForm(props) {
             </p>
             <p className="singleline">
                 <input type="button" value="Sign Up" onClick={handleRegister} />
+                <span className="fakelink" onClick={()=>{setShowPrivacy(1-showPrivacy);}}>Show Privacy policy</span>
             </p>
+            {showPrivacy===0? (""):(
+                <p>
+                    Privacy Policy? I haven't figured that part out yet. But I am collecting email addresses... I only intend to use those
+                    to recover account passwords; I don't even know how to sell addresses. In the future I may use emails to provide news of
+                    updates about this game. If this policy changes in the future, I will let you know.
+                </p>
+            )}
             {userError === "" ? (
                 ""
             ) : (

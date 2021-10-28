@@ -232,7 +232,7 @@
         // Allows us to ensure that a minimap exists for a given world map location. If none exists, one will be created for it.
         // $worldTile: full data package as received from the database about this world location
         // $newPlayer: set to true if this is for a new player. This will ensure at least 1 rock tile and 5 tree tiles exist
-        //      on the map somewhere
+        //      on the map somewhere, along with 4 workers
 
         // Generates a minimap. Requires a full read-out of the world map coordinate from the database.  Use either
         // generateminimapfromcoords or generateminimapfromid to grab that data.
@@ -320,6 +320,18 @@
             reporterror('server/mapbuilder.php->generateminimap()->save new map data', 'MySQL reported an error: '. $err);
             ajaxreject('internal', 'There was an error saving worldmap data. See the error log');
         }
+    }
+
+    function createWorkers($workerCount) {
+        // Creates a number of new workers, each with unique names, that can be stored in the database. We will place them
+        // at a random location on the map, while we're at it. Multiple workers can occupy the same square, without issue
+        global $workerNames;
+        
+        $group = [];
+        for($i=0;$i<$workerCount;$i++) {
+            array_push($group, ['name'=>getRandomFrom($workerNames), 'x'=>rand(0,40), 'y'=>rand(0,40), 'status'=>'idle']);
+        }
+        return $group;
     }
 
     function newPlayerLocation($level, $mode, $count) {

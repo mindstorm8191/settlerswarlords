@@ -255,7 +255,7 @@
         
         // Generate a clustered map based on the biome selected
         $localTiles = generateClusterMap(0,$localMapWidth,0,$localMapHeight,$biomeData[$worldTile['biome']]['localTiles'], 25);
-
+        /*
         // For new players, check that they have the starting essentials
         if($newPlayer) {
             $passingSet = array_reduce($localTiles, function($carryLong, $long) {
@@ -320,6 +320,7 @@
             reporterror('server/mapbuilder.php->generateminimap()->save new map data', 'MySQL reported an error: '. $err);
             ajaxreject('internal', 'There was an error saving worldmap data. See the error log');
         }
+        */
     }
 
     function createWorkers($workerCount) {

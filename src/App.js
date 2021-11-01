@@ -29,6 +29,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
     that could be difficult.
 
     We're using https://parser.name/api/generate-random-name/ to generate ranomized names
+    Textiles paved the way into early computer memory, using punch cards https://imgur.com/gallery/8DwbcBG
 
     Task list
     1) Get the homepage working again
@@ -65,10 +66,14 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 */
 
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
-export const serverURL = process.env.NODE_ENV === "production" ? "ajax.php" : "http://localhost:80/settlerswarlords/ajax.php";
+export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
 function App() {
+    function onLogin(pack) {
+        console.log(pack);
+    }
+
     return (
         <div className="app">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
@@ -94,11 +99,11 @@ function App() {
                 players you must manage.
             </p>
             <p>Develop your land to dominate the world</p>
-            <RegisterForm /> {/*onLogin={props.onLogin} />*/}
+            <RegisterForm onLogin={onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
-                Guess what? We're starting version 7! Maybe I AM a little crazy... but don't worry about that. After spending a lot of time on version
-                6, I started to realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious, but this was TOO
+                Guess what? We're starting version 7! Maybe I AM a little crazy... but nevermind that. After spending a lot of time on version 6, I
+                started to realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious, but this was TOO
                 tedious. This time, work will be centered around a per-worker level. Workers are assigned tasks (or a series of tasks) and they
                 determine how to accomplish that. This may feel a lot more like Dwarf Fortress, but I don't mind.
             </p>
@@ -119,3 +124,32 @@ function App() {
 }
 
 export default App;
+
+/*  Functions and where to find them
+function  ajaxreject        - server/common.php
+component App               - src/App.js
+array of objects biomeData          - server/globals.php
+array of objects civTypes           - server/globals.php
+function  createWorkers             - server/mapContent.php
+function  DanDBList         - server/common.php
+function  danescape         - server/common.php
+function  DanMultiDB        - server/common.php
+array of objects directionMap       - server/globals.php
+function         ensureMinimapXY      - server/mapContent.php
+function  generateClusterMap   - server/mapContent.php
+string           imageURL             - src/App.js
+array of strings knownMapBiomes     - server/globals.php
+array of strings localTileNames     - server/globals.php
+function         newPlayerLocation  - server/mapContent.php
+arra of strings  oreTypes           - server/globals.php
+component RegisterForm       - src/comp_account.jsx
+function  reporterror       - server/common.php
+string    serverURL         - src/App.js
+function  validFloat        - server/common.php
+function  validInt          - server/common.php
+function         verifyInput          - server/common.php
+array of strings workerNames   - server/globals.php
+array of strings worldBiomes   - server/globals.php
+function  worldmap_generate - server/routes/signup.php
+function  worldmap_updateKnown - server/mapContent.php
+*/

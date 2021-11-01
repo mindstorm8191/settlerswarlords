@@ -11,7 +11,7 @@
         // knownMapBiomes are added onto the world biome types. They handle special-case situations such as exploring new lands
         // we don't have any other types yet... hopefully this won't be the last.
 
-    $OreTypes = [
+    $oreTypes = [
         'Coal', 'Banded Iron', 'Cassiterite', 'Chalcopyrite', 'Aluminum', 'Bauxite', 'Stibnite', 'Limonite', 'Magnetite',
         'Lignite', 'Tin', 'Copper', 'Silicon', 'Lithium', 'Gold', 'Silver', 'Uraninite', 'Cinnabar'
     ];

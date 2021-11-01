@@ -1,7 +1,7 @@
 <?php
     /* ajax.php
         Entry point for all messages received from the client side of this app
-        for the project Settlers & Warlords
+        For the project Settlers & Warlords
     */
 
     require_once("server/config.php");

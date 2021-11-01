@@ -154,7 +154,7 @@ export function RegisterForm(props) {
 
         // Now, send data to the server.
         fetch(
-            serverURL,
+            serverURL +"routes/signup.php",
             DAX.serverMessage("signup", { username: fields.username, password: fields.password, pass2: fields.pass2, email: fields.email }, false)
         )
             .then((res) => DAX.manageResponseConversion(res))

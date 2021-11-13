@@ -71,6 +71,11 @@ export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http:/
 
 function App() {
     function onLogin(pack) {
+        // Let's see if we can convert all the items from JSON to an array here
+        pack.localTiles = pack.localTiles.map((ele) => {
+            ele.items = JSON.parse(ele.items);
+            return ele;
+        });
         console.log(pack);
     }
 
@@ -126,7 +131,8 @@ function App() {
 export default App;
 
 /*  Functions and where to find them
-function  ajaxreject        - server/common.php
+function         advanceStartPos    - server/mapContent.php
+function         ajaxreject        - server/common.php
 component App               - src/App.js
 array of objects biomeData          - server/globals.php
 array of objects civTypes           - server/globals.php
@@ -141,13 +147,15 @@ string           imageURL             - src/App.js
 array of strings knownMapBiomes     - server/globals.php
 array of strings localTileNames     - server/globals.php
 function         newPlayerLocation  - server/mapContent.php
-arra of strings  oreTypes           - server/globals.php
-component RegisterForm       - src/comp_account.jsx
+array of strings  oreTypes           - server/globals.php
+function          randomFloat        - server/mapContent.php
+component         RegisterForm       - src/comp_account.jsx
 function  reporterror       - server/common.php
 string    serverURL         - src/App.js
 function  validFloat        - server/common.php
-function  validInt          - server/common.php
+function         validInt          - server/common.php
 function         verifyInput          - server/common.php
+function         within               - server/mapContent.php
 array of strings workerNames   - server/globals.php
 array of strings worldBiomes   - server/globals.php
 function  worldmap_generate - server/routes/signup.php

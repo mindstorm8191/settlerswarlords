@@ -4,6 +4,19 @@
     For the game Settlers & Warlords
 */
 
+function within($val, $min, $max, $inclusive) {
+    // returns true if $val falls within $min and $max
+    // We had goodSpot() for this job, but it expected fixed boundaries
+
+    if($inclusive) return $val >= $min && $val <= $max;
+    return $val > $min && $val < $max;
+}
+
+function randomFloat() {
+    // Returns a random float value between 0 and 1.
+    return mt_rand(0, PHP_INT_MAX)/PHP_INT_MAX;
+}
+
 function generateClusterMap($minX, $maxX, $minY, $maxY, $biomeGroup, $biomeDensity) {
     // Generates a cluster map, to be used for showing biome-based map content
     // $minX, $maxX, $minY, $maxY: range of points to add to this map
@@ -130,6 +143,37 @@ function newPlayerLocation($level, $mode, $count) {
     return [$x, $y];
 }
 
+function advanceStartPos($level, $mode, $count) {
+    // Determines where the next position for new players should be. Returns an array of elements for the next place
+
+    $limit = 0;  // This determines how far along
+    switch($mode) {
+        case 0: case 2: $limit = $level*2+1; break;
+        case 1: case 3: $limit = $level*2-1; break;
+    }
+    if($level==0) {
+        $level = 1;
+        $mode = 0;
+        $count = 0;
+    }else{
+
+        $count++;
+        if($count>$limit) {
+            $count=0;
+            $mode++;
+            if($mode>4) {
+                $mode = 0;
+                $level++;
+            }
+        }
+    }
+    return array(
+        'level'=>$level,
+        'mode'=>$mode,
+        'count'=>$count
+    );
+}
+
 function createWorkers($workerCount) {
     // Creates a number of new workers, each with unique names, that can be stored in the database. We will place them
     // at a random location on the map, while we're at it. Multiple workers can occupy the same square, without issue
@@ -190,7 +234,7 @@ function ensureMinimap($worldTile, $newPlayer) {
     $slideRate = rand(-6,6);  // for every 6 blocks, we slide one (left or right)
     $slideDirection = ($slideRate>0)? 1 : -1;
     $slideCounter = 0;
-    for($y=0;$i<40;$y++) {
+    for($y=0;$y<40;$y++) {
         $localTiles[$startX][$y]['landType'] = 'stream';
         $slideCounter++;
         if($slideCounter>$slideRate && $slideRate!==0) {
@@ -199,5 +243,149 @@ function ensureMinimap($worldTile, $newPlayer) {
         }
     }
 
+    // Now, for new players, ensure that they have some basic elements for starting out. Since we now have streams anyway,
+    // just check for trees and some rocks
+    if($newPlayer) {
+        $passingSet = array_reduce($localTiles, function($carrying, $long) {
+            return array_reduce($long, function($carry, $item) {
+                if($item['landType']==='rock') {
+                    $carry['rock'] +=1;
+                    return $carry;
+                }
+                if($item['landType']==='maple') {
+                    $carry['maple'] +=1;
+                    return $carry;
+                }
+                return $carry; // This item didn't fit any of the targets. Pass the same list forward
+            }, $carrying);
+        }, ['rock'=>0, 'maple'=>0]);
 
+        // If any are missing or insufficient, pick random places on the map to fill it in
+        if($passingSet['maple']<5) {
+            reporterror('server/mapContent.php->ensureMinimap()->new player checks',
+                        'Notice: localMap only has '. $passingSet['maple'] .' maple trees. Adding more manually');
+            for($i=$passingSet['maple'];$i<=5;$i++) {
+                $localTiles[mt_rand(0,$localMapHeight)][mt_rand(0,$localMapWidth)]['landType'] = 'maple';
+            }
+        }
+        if($passingSet['rock']<1) {
+            reporterror('server/mapContent.php->ensureMinimap()->new player checks', 'Noticed: localMap has no rocks. Adding one manually');
+            $localTiles[mt_rand(0,$localMapHeight)][mt_rand(0,$localMapWidth)]['landType'] = 'rock';
+        }
+    }
+
+    // Now, we need to fill out these tiles with additional item content. Usually for forest tiles, this will be trees of various sizes
+    // We don't really have much to fill in here besides trees yet, but we can expand on this later
+    $localTiles = array_map(function($long) {
+        return array_map(function($wide) {
+            switch($wide['landType']) {
+                case 'wheat': // Wheat fields
+                    $wheatAmount = rand(5,30);
+                    $wide['items'] = [
+                        ['name'=>'Wheat', 'amount'=>$wheatAmount],
+                        ['name'=>'Wheat Seeds', 'amount'=>$wheatAmount/2]
+                    ];
+                break;
+                case 'oat': // Oat fields
+                    $oatAmount = rand(5,30);
+                    $wide['items'] = [
+                        ['name'=>'Oat', 'amount'=>$oatAmount],
+                        ['name'=>'Oat Seeds', 'amount'=>$oatAmount]
+                    ];
+                break;
+                case 'rye': // Rye fields
+                    $ryeAmount = rand(5,25);
+                    $wide['items'] = [
+                        ['name'=>'Rye', 'amount'=>$ryeAmount],
+                        ['name'=>'Rye Seeds', 'amount'=>$ryeAmount/4]
+                    ];
+                break;
+                case 'barley': // Barley
+                    $barleyAmount = rand(3,35);
+                    $wide['items'] = [
+                        ['name'=>'Barley', 'amount'=>$barleyAmount],
+                        ['name'=>'Barley Seeds', 'amount'=>$barleyAmount*1.25]
+                    ];
+                break;
+                case 'millet': // Millet
+                    $milletAmount = rand(8,20);
+                    $wide['items'] = [
+                        ['name'=>'Millet', 'amount'=>$milletAmount],
+                        ['name'=>'Millet Seeds', 'amount'=>$milletAmount*.75]
+                    ];
+                break;
+                // I think trees should work a little differently. Each tree will have a fixed size and number of sticks / bark / 
+                // fruits on them. But... I guess this can be calculated later on, when we start actually using the trees.
+                // We don't even really need a seed count here. When a tree starts getting used, this count will decrement; this
+                // also controls 
+                case 'maple':    $wide['items'] = [ ['name'=>'Maple Trees',    'amount'=>rand(3,12)] ]; break;
+                case 'birch':    $wide['items'] = [ ['name'=>'Birch Trees',    'amount'=>rand(8,60)] ]; break;
+                case 'oak':      $wide['items'] = [ ['name'=>'Oak Trees',      'amount'=>rand(4,16)] ]; break;
+                case 'mahogany':  $wide['items'] = [ ['name'=>'Mahogany Trees', 'amount'=>rand(3, 8)] ]; break;
+                case 'pine':      $wide['items'] = [ ['name'=>'Pine Trees',     'amount'=>rand(7,20)] ]; break;
+                case 'cedar':     $wide['items'] = [ ['name'=>'Cedar Trees',    'amount'=>rand(4,20)] ]; break;
+                case 'fir':       $wide['items'] = [ ['name'=>'Fir Trees',      'amount'=>rand(5,16)] ]; break;
+                case 'hemlock':   $wide['items'] = [ ['name'=>'Hemlock Trees',  'amount'=>rand(8,50)] ]; break;
+                case 'cherry':    $wide['items'] = [ ['name'=>'Cherry Trees',   'amount'=>rand(5,10)] ]; break;
+                case 'apple':     $wide['items'] = [ ['name'=>'Apple Trees',    'amount'=>rand(5,10)] ]; break;
+                case 'pear':      $wide['items'] = [ ['name'=>'Pear Trees',     'amount'=>rand(4, 8)] ]; break;
+                case 'orange':    $wide['items'] = [ ['name'=>'Orange Trees',   'amount'=>rand(5,12)] ]; break;
+                case 'hawthorne': $wide['items'] = [ ['name'=>'Hawthorne Trees', 'amount'=>rand(8,20)] ]; break;
+                case 'dogwood':   $wide['items'] = [ ['name'=>'Dogwood Trees',   'amount'=>rand(3, 8)] ]; break;
+                case 'locust':    $wide['items'] = [ ['name'=>'Locust Trees',    'amount'=>rand(3, 8)] ]; break;
+                case 'juniper':   $wide['items'] = [ ['name'=>'Juniper Trees',   'amount'=>rand(5,10)] ]; break;
+                // I think, for the remaining items, they'll start out void of items... for now. We can change that later, though
+                case 'rock':  $wide['items'] = [];
+                case 'sands': $wide['items'] = [];
+                case 'water': $wide['items'] = [];
+                case 'lava':  $wide['items'] = [];
+                case 'ice':   $wide['items'] = [];
+                case 'snow':   $wide['items'] = [];
+                case 'stream':  $wide['items'] = [];
+                case 'wetland': $wide['items'] = [];
+                case 'cliff':   $wide['items'] = [];
+                case 'creekwash': $wide['items'] = []; // This will be an ideal source of gravel and raw metals... but we're not there yet
+                case 'creekbank': $wide['items'] = [];
+            }
+            return $wide;
+        }, $long);
+    }, $localTiles);
+
+    // With all the land plots decided now, we still have them all in text form. The database stores these as IDs, not names. Convert
+    // all the tile names to be the correct TileType ID
+    $localTiles = array_map(function($long) {
+        return array_map(function($wide) {
+            global $localTileNames;
+            // Check that all tiles have an items attribute. We may have certain tile types that are missing it
+            if(!isset($wide['items'])) {
+                reporterror('server/mapContent.php->ensureMiniMap()->convert tilenames to IDs',
+                            'Error: tile type '. $wide['landType'] .' was missing an items list');
+                // Well, why don't we just add it here?
+                $wide['items'] = [];
+            }
+            $wide['landType'] = array_search($wide['landType'], $localTileNames);
+            return $wide;
+        }, $long);
+    }, $localTiles);
+
+    // Now, we need to insert this into the database. That's not possible as an array, but we can convert this into a string instead
+    $built = implode(',', array_map(function($long) use ($worldTile) {  // worldTile must be passed through both functions
+        return implode(',', array_map(function($wide) use ($worldTile) {
+            
+            return '('. $worldTile['id'] .','. $wide['x'] .','. $wide['y'] .','. $wide['landType'] .",'". json_encode($wide['items']) ."')";
+            // We don't need to include the building ID of 0, since this is a default in the database
+        }, $long));
+    }, $localTiles));
+
+    reporterror('server/mapContent.php->ensureMinimap()->pre-save',
+                'Minimap save: '. $built);
+
+    // We should be all set to save the data... in one sweep
+    $db->query("INSERT INTO sw_minimap (mapid,x,y,landtype,items) VALUES ". $built .";");
+    $err = mysqli_error($db);
+    if($err) {
+        reporterror('server/mapContent.php->generateMinimap()->save new map data', 'MySQL reported an error: '. $err);
+        ajaxreject('internal', 'There was an error saving localmap data. See the error log');
+    }
+}
 ?>

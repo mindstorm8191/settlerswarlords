@@ -3,6 +3,8 @@
     // Just a file holding all the constant data structures and global variables for this game
     // for Settlers & Warlords
 
+    require_once("weightedRandom.php");
+
     $userid = 0;
     $accesscode = 0;
     $worldBiomes = ['grassland', 'forest', 'desert', 'swamp', 'water', 'jungle', 'lavascape', 'frozen waste'];
@@ -85,9 +87,11 @@
                 ['name'=>'rye',   'amount'=>5],  // leans more orange than golden
                 ['name'=>'barley','amount'=>5],  // a greenish yellow
                 ['name'=>'millet','amount'=>5],  // two-tone pale white & green
-                ['name'=>'trees', 'amount'=>5],
+                ['name'=>'maple', 'amount'=>3],
+                ['name'=>'locust','amount'=>1],
+                ['name'=>'apple', 'amount'=>1],
                 ['name'=>'water', 'amount'=>2],
-                ['name'=>'rock', 'amount'=>2]
+                ['name'=>'rock',  'amount'=>2],
             ])
         ],[
             'biome'=>'forest',
@@ -103,12 +107,21 @@
                 ['name'=>'wood elemental', 'amount'=>4],
                 ['name'=>'fairie camp', 'amount'=>4],
                 ['name'=>'wisp altar', 'amount'=>2],
-                ['name'=>'ice horrors', 'amount'=>1],
-                ['name'=>'ork tribe', 'amount'=>1]
+                ['name'=>'ice horrors',      'amount'=>1],
+                ['name'=>'ork tribe',        'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'trees', 'amount'=>25],
-                ['name'=>'wheat', 'amount'=>1],
+                ['name'=>'oak',   'amount'=>5],
+                ['name'=>'birch', 'amount'=>3],
+                ['name'=>'maple',   'amount'=>2],
+                ['name'=>'pine',    'amount'=>4],
+                ['name'=>'cedar',   'amount'=>4],
+                ['name'=>'hemlock', 'amount'=>1],
+                ['name'=>'apple',   'amount'=>1],
+                ['name'=>'juniper',  'amount'=>1],
+                ['name'=>'mahogany', 'amount'=>1],
+                ['name'=>'dogwood',  'amount'=>1],
+                ['name'=>'wheat',    'amount'=>1],
                 ['name'=>'oat',   'amount'=>1],
                 ['name'=>'rye',   'amount'=>1],
                 ['name'=>'barley','amount'=>1],
@@ -150,8 +163,8 @@
                 ['name'=>'fairie camp', 'amount'=>4],
                 ['name'=>'swamp horror', 'amount'=>5],
                 ['name'=>'swirl altar', 'amount'=>2],
-                ['name'=>'ice horrors', 'amount'=>1],
-                ['name'=>'ork tribe', 'amount'=>1]
+                ['name'=>'ice horrors',      'amount'=>1],
+                ['name'=>'ork tribe',        'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
                 ['name'=>'water', 'amount'=>100],
@@ -160,8 +173,15 @@
                 ['name'=>'rye',   'amount'=>12],
                 ['name'=>'barley','amount'=>12],
                 ['name'=>'millet','amount'=>12],
-                ['name'=>'trees', 'amount'=>40],
-                ['name'=>'rock', 'amount'=>15]
+                ['name'=>'maple',    'amount'=>12],
+                ['name'=>'birch',    'amount'=>8],
+                ['name'=>'oak',      'amount'=>5],
+                ['name'=>'mahogany', 'amount'=>5],
+                ['name'=>'cherry',   'amount'=>2],
+                ['name'=>'apple',    'amount'=>2],
+                ['name'=>'orange',   'amount'=>2],
+                ['name'=>'hawthorne', 'amount'=>2],
+                ['name'=>'rock',      'amount'=>15]
             ])
         ],[
             'biome'=>'water',
@@ -169,7 +189,7 @@
                 ['name'=>'dolphin pod', 'amount'=>4],
                 ['name'=>'water elemental', 'amount'=>3],
                 ['name'=>'crustacean cluster', 'amount'=>2],
-                ['name'=>'angry whale', 'amount'=>3]
+                ['name'=>'angry whale',        'amount'=>3]
             ]),
             'localTiles'=> new WeightedRandom([
                 ['name'=>'water', 'amount'=>23],
@@ -178,17 +198,28 @@
         ],[
             'biome'=>'jungle',
             'civs'=> new WeightedRandom([
-                ['name'=>'dwarves', 'amount'=>3],
+                ['name'=>'dwarves',         'amount'=>3],
                 ['name'=>'plant elemental', 'amount'=>4],
-                ['name'=>'gorrila camp', 'amount'=>6],
-                ['name'=>'life altar', 'amount'=>2],
-                ['name'=>'ice horrors', 'amount'=>1],
-                ['name'=>'ork tribe', 'amount'=>1]
+                ['name'=>'gorrila camp',    'amount'=>6],
+                ['name'=>'life altar',      'amount'=>2],
+                ['name'=>'ice horrors',     'amount'=>1],
+                ['name'=>'ork tribe',       'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water', 'amount'=>50],
-                ['name'=>'trees', 'amount'=>80],
-                ['name'=>'wheat', 'amount'=>4],
+                ['name'=>'water',    'amount'=>30],
+                ['name'=>'maple',    'amount'=>5],
+                ['name'=>'oak',      'amount'=>10],
+                ['name'=>'birch',    'amount'=>20],
+                ['name'=>'mahogany', 'amount'=>5],
+                ['name'=>'pine',     'amount'=>5],
+                ['name'=>'fir',      'amount'=>5],
+                ['name'=>'cherry',   'amount'=>5],
+                ['name'=>'apple',     'amount'=>5],
+                ['name'=>'orange',    'amount'=>10],
+                ['name'=>'dogwood',   'amount'=>5],
+                ['name'=>'hawthorne', 'amount'=>3],
+                ['name'=>'juniper',   'amount'=>2],
+                ['name'=>'wheat',     'amount'=>4],
                 ['name'=>'oat',   'amount'=>4],
                 ['name'=>'rye',   'amount'=>4],
                 ['name'=>'barley','amount'=>4],
@@ -198,10 +229,46 @@
         ]
     ];
 
-    //                  0         1      2       3          4        5       6       7        8        9      10      11
-    $localTileNames = ['wheat', 'oat', 'rye', 'barley', 'millet', 'trees', 'rock', 'sands', 'water', 'lava', 'ice', 'snow'];
-    // Are we just going to stick with one type of tree land? No way! But we're just not 'there' yet. Gotta keep at it!
-
+    $localTileNames = [
+    //     0       1      2       3          4
+        'wheat', 'oat', 'rye', 'barley', 'millet',
+    //     5        6       7         8        9       10       11      12         13       14       15       16          17         18         19         20
+        'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorne', 'dogwood', 'locust', 'juniper',
+    //    21       22       23      24      25     26        27       28         29        30            31
+        'rock', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank'
+    ];
+    
+    // I think it's time to figure out what type of trees we're going to have.
+    // * 2 main types: deciduous & evergreen. For forest (not jungle) areas, let's keep a 50/50 mix of those
+    // * We will support apple trees in forest areas, and orange & banana trees in jungle areas. If we add a cold climate forest, we'll
+    //   see if there are any fruits to utilize there (pears work!)
+    // Keepers list
+    // * Maple - Sap can be used to make syrups. Grows everywhere, very common
+    // * Birch - Grows tall and narrow. A lot of trees can cluster together. Bark can be used for making ropes
+    // * Oak - provides acorns. Acorns can be used as food in a pinch, even for early tech; but you'll need a lot to feed people
+    // * Mahogany - Medium height tree, doesn't grow straight
+    // * Pine - produces pine cones (which can be broken, soaked, then roasted for an edible food). Creates excellent lumber, as it grows
+    //   tall and straight. Also makes sap in cold weather
+    // * Cedar - Very common evergreen tree. Grows straight and tall
+    // * Fir - Hearty evergreen, grows great in cold weather areas. Makes a lot of sticks
+    // * Hemlock - an evergreen, grows straight and in tight clusters
+    // Fruit-bearing trees
+    // * Cherry - Black cherry grows everywhere, Pin Cherry grows well in cold climates
+    // * Apple  - Grows best in normal climates
+    // * Pear   - Grows well in cold areas
+    // * Orange - Grows best in warm areas
+    // Magical trees to use
+    // * Hawthorne - nothing special, but has historic religious significance, for fertility and warding
+    // * Dogwood - Grows best in shaded areas (under other trees). Has a hint of firey determination about it
+    // * Locust - Grows best in sunny areas by itself. Can turn grasslands into more forestry areas
+    // * Juniper - an evergreen. Maybe we can use this one for magical purposes?
+    // Rejects (to control complexity)
+    // * Walnut - Produces nuts, but takes a lot of time & effort to process. Rejecting; we don't need yet another nut that's hard to reach
+    // * Gum - considered evergreen, grows best in flood-prone lands
+    // * Aspen - Grows talls and narrow, will work in most soil types
+    // * Black Ash - Tall trees, only grows in swamps
+    // * White Ash - A more normal tree, grows in many places
+    
     // We very much need names for all the workers that the player has, in order for players to keep them organized (on some level)
     // I pulled these from https://www.imagineforest.com/blog/fantasy-character-names/ from human names only (male & female)
     $workerNames = ['Akibrus', 'Aleera',    'Alva',      'Amara',   'Angun',   'Anya',   'Asralyn', 'Azura',    'Balrus',   'Breya',    'Brina',     'Bulruk',

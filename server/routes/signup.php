@@ -8,6 +8,7 @@
     require_once("../common.php");
     require_once("../mapContent.php");
     require_once("../globals.php");
+    require_once("../DanGlobal.php"); // A simple library w/ a DB table to manage global game variables
 
     // Start with collecting the actual message
     require_once("../getInput.php");
@@ -57,10 +58,35 @@
               [ $uid, json_encode($workers), $playerx, $playery], 'ajax.php->action signup->update map with new user');
 
     // Update the player's known map now to show that they're aware of their own starting land
-    worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
+    //worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
 
     // Generate the localMap content of this worldMap tile
     ensureMiniMapXY($playerx, $playery, true);
+
+    // With that finished, it is time to start working on the response to this request.
+    $worldTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx,$playery],
+                           'server/routes/signup.php->get world map data for response')[0];
+    $localTiles = DanDBList("SELECT x,y,landtype,buildid,newlandtype,items FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
+                            [$worldTile['id']], 'server/routes/signup.php->get local map tiles');
+    die(json_encode([
+        'result'  =>'success',
+        'userid'  =>$uid,
+        'userType'=>'player',
+        'access'  =>$ajaxcode,
+        'localContent'=>[
+            'biome'     =>$biomeData[$worldTile['biome']]['biome'],
+            'ugresource'=>$oreTypes[$worldTile['ugresource']],
+            'ugamount'  =>$worldTile['ugamount'],
+            'population'=>$worldTile['population']
+        ],
+        'localTiles'=>$localTiles//,
+        //'blocks'        => json_decode($worldTile['blocks'], true),
+        //'workers'       => json_decode($worldTile['workers'], true),
+        //'unlockedItems' => json_decode($worldTile['unlockeditems'], true),
+        //'allItems'      => json_decode($worldTile['allItems'], true),
+        //'foodCounter'   => $worldTile['foodCounter']
+        // Well... we have a lot of pieces left to put into this
+    ]));
 
     
     function worldmap_generate() {
@@ -88,7 +114,7 @@
         ]), 25);
 
         // We need to convert our biome names to an ID, as it matches the indexing of other parts, including the database
-        reporterror('server/mapbuilder.php->worldmap_generate()->before landType update', 'Center land type='. $fullMap[0][0]['landType']);
+        //reporterror('server/mapbuilder.php->worldmap_generate()->before landType update', 'Center land type='. $fullMap[0][0]['landType']);
         $fullMap = array_map(function($long) {
             return array_map(function($wide) {
                 global $worldBiomes;
@@ -96,7 +122,7 @@
                 return $wide;
             }, $long);
         }, $fullMap);
-        reporterror('server/mapbuilder.php->worldmap_generate()->after landType update', 'Center  land type='. $fullMap[0][0]['landType']);
+        //reporterror('server/mapbuilder.php->worldmap_generate()->after landType update', 'Center  land type='. $fullMap[0][0]['landType']);
 
         // Place down some civilizations. Civilization choices will be determined by land types, so we need to determine which
         // biome we're at before deciding a civilization there
@@ -120,7 +146,7 @@
                 }
                 // Also include a strength of this civilization. We want to display lots of abandoned civilization places, too
                 // Anything zero is considered abandoned, so the real range is from 0 to 3
-                $fullMap[$xspot][$yspot]['civstrength'] = max(0, randfloat()*4.5-1.5);
+                $fullMap[$xspot][$yspot]['civstrength'] = max(0, randomFloat()*4.5-1.5);
             }
         }
         
@@ -174,7 +200,7 @@
                     }
                 }
                 $ugtype = rand(0,13);
-                $ugamt  = randfloat()*1.5+0.5;
+                $ugamt  = randomFloat()*1.5+0.5;
                 $comm->bind_param('iiiidid', $wide['x'], $wide['y'], $wide['landType'], $ugtype, $ugamt, $civ, $civLevel);
                 if(!$comm->execute()) {
                     reporterror('server/mapbuilder.php->worldmap_generate()', 'Query execution failed. Mysql says '. mysqli_error($db));

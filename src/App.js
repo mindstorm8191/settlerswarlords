@@ -6,7 +6,7 @@ import { DAX } from "./DanAjax.js";
 
 // Project-specific components
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
-//import { localMap_fillFromServerData, LocalMap } from "./comp_localMap.jsx";
+import { LocalMap } from "./comp_localMap.jsx";
 //import { worldMap_fillFromServerData, WorldMap } from "./comp_worldMap.jsx";
 //import { AdminPage } from "./comp_admin.jsx";
 //import { game } from "./game.jsx";
@@ -134,10 +134,6 @@ function App() {
     );
 }
 
-function LocalMap(props) {
-    return <>Hello world!</>;
-}
-
 function HomePage(props) {
     return (
         <>
@@ -145,11 +141,11 @@ function HomePage(props) {
                 Settlers and Warlords is an online multiplayer game mixing Idle game concepts with Civilization-style strategy. Start from natural
                 land with a few workers.
             </p>
-            <img src={imageURL + "homepage_basicland.png"} />
+            <img src={imageURL + "homepage_basicland.png"} alt="basic land" />
             <p>Harness your lands to develop technology, unlocking new resources and abilities</p>
-            <img src={imageURL + "homepage_gameshot.png"} />
+            <img src={imageURL + "homepage_gameshot.png"} alt="local map working" />
             <p>Explore the world, discovering exotic structures, creatures and civilizations. Some helpful, others dangerous</p>
-            <img src={imageURL + "homepage_worldmap.png"} />
+            <img src={imageURL + "homepage_worldmap.png"} alt="world map" />
             <p>
                 Trade with neighboring players to access greater abilities. Or wage war to conquer their lands. The more land you control, the more
                 neighbors you must manage.
@@ -185,26 +181,31 @@ export default App;
 function         advanceStartPos    - server/mapContent.php
 function         ajaxreject        - server/common.php
 component App               - src/App.js
-array of objects biomeData          - server/globals.php
+server route      autoLogin            - server/routes/autologin.php
+array of objects  biomeData          - server/globals.php
 array of objects civTypes           - server/globals.php
 function  createWorkers             - server/mapContent.php
 function  DanDBList         - server/common.php
 function  danescape         - server/common.php
-function  DanMultiDB        - server/common.php
+function         DanMultiDB        - server/common.php
 array of objects directionMap       - server/globals.php
 function         ensureMinimapXY      - server/mapContent.php
-function         generateClusterMap   - server/mapContent.php
-component        HomePage             - src/App.js
+script            finishLogin          - server/finishLogin.php
+function          generateClusterMap   - server/mapContent.php
+script            getInput             - server/getInput.php
+component         HomePage             - src/App.js
 string           imageURL             - src/App.js
-array of strings knownMapBiomes     - server/globals.php
-array of strings localTileNames     - server/globals.php
+array of strings  knownMapBiomes     - server/globals.php
+component         localMap             - src/App.js
+array of strings  localTileNames     - server/globals.php
+server route      login                - server/routes/login.php
 function         newPlayerLocation  - server/mapContent.php
 array of strings  oreTypes           - server/globals.php
-component         PagePicker         - src/App.js
 function          randomFloat        - server/mapContent.php
 component         RegisterForm       - src/comp_account.jsx
 function  reporterror       - server/common.php
-string    serverURL         - src/App.js
+string            serverURL         - src/App.js
+server route      signup               - server/routes/signup.php
 function  validFloat        - server/common.php
 function         validInt          - server/common.php
 function         verifyInput          - server/common.php

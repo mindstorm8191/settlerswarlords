@@ -19,7 +19,7 @@
         ["name"=>"password", "required"=>true, "format"=>"stringnotempty"],
         ["name"=>"pass2", "required"=>true, "format"=>"stringnotempty"],
         ["name"=>"email", "required"=>true, "format"=>"email"]
-    ], 'server/route_account.php->route_signup()->verify input');
+    ], 'server/routes/signup.php->verify input');
     // Also check that the two passwords match
     if($con['password'] !== $con['pass2']) ajaxreject('badinput', 'Your passwords did not match');
 
@@ -48,14 +48,14 @@
     DanDBList("INSERT INTO sw_player (name, password, email, ajaxcode, ipaddress, lastlogin, currentx, currenty) VALUES (?,?,?,?,?,NOW(),?,?);",
               'sssisii', [$con['username'], $con['password'], $con['email'], $ajaxcode, $_SERVER['REMOTE_ADDR'], $playerx, $playery],
               'ajax.php->action signup->add new user');
-    $uid = mysqli_insert_id($db);
+    $playerid = mysqli_insert_id($db);
 
     // Now is a good time to generate the workers for this land plot
     $workers = createWorkers(4);
 
     // We also need to update the map location to show that the user owns this land. This is where we put active worker data into the DB
     DanDBList("UPDATE sw_map SET owner=?, population=4, workers=? WHERE x=? and y=?;", 'isii',
-              [ $uid, json_encode($workers), $playerx, $playery], 'ajax.php->action signup->update map with new user');
+              [ $playerid, json_encode($workers), $playerx, $playery], 'ajax.php->action signup->update map with new user');
 
     // Update the player's known map now to show that they're aware of their own starting land
     //worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
@@ -63,14 +63,17 @@
     // Generate the localMap content of this worldMap tile
     ensureMiniMapXY($playerx, $playery, true);
 
-    // With that finished, it is time to start working on the response to this request.
+    // With that finished, we can send the request back to the client. That step is handled in a separate piece of code.
+    include_once("../finishLogin.php");
+    /*
+    
     $worldTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx,$playery],
                            'server/routes/signup.php->get world map data for response')[0];
     $localTiles = DanDBList("SELECT x,y,landtype,buildid,newlandtype,items FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
                             [$worldTile['id']], 'server/routes/signup.php->get local map tiles');
     die(json_encode([
         'result'  =>'success',
-        'userid'  =>$uid,
+        'userid'  =>$playerid,
         'userType'=>'player',
         'access'  =>$ajaxcode,
         'localContent'=>[
@@ -87,8 +90,8 @@
         //'foodCounter'   => $worldTile['foodCounter']
         // Well... we have a lot of pieces left to put into this
     ]));
+    */
 
-    
     function worldmap_generate() {
         // Our goal will be to create an area that spans from -50 to +50 in both x and y directions. At the same time, we will set global
         // variables to help control where the next player will spawn at

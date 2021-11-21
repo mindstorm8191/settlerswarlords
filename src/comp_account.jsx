@@ -43,7 +43,7 @@ export function AccountBox(props) {
             return;
         }
         console.log('Send to server,', fields);
-        fetch(serverURL, DAX.serverMessage("login", fields, false))
+        fetch(serverURL +'routes/login.php', DAX.serverMessage(fields, false))
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))
             .then((data) => {
@@ -155,7 +155,7 @@ export function RegisterForm(props) {
         // Now, send data to the server.
         fetch(
             serverURL +"routes/signup.php",
-            DAX.serverMessage("signup", { username: fields.username, password: fields.password, pass2: fields.pass2, email: fields.email }, false)
+            DAX.serverMessage({ username: fields.username, password: fields.password, pass2: fields.pass2, email: fields.email }, false)
         )
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))

@@ -16,6 +16,7 @@ export function AccountBox(props) {
     // Handles displaying account access at the top right of the page
     // prop fields - data
     //      user - full package of the user data, as received from the server. This will be null before they have logged in
+    //      errorText - Error received when user tried to log in
     // prop fields - functions
     //      onLogin - Gets called when the user has requested to log in (or out)
     //                No, that's not correct. This gets called to handle updating app content after the server has replied
@@ -81,17 +82,22 @@ export function AccountBox(props) {
                     <input type="button" value="Logout" onClick={handleLogout} />
                 </div>
             ):(
-                <form id="loginform">
-                    <p className="singleline">
-                        <DanInput placeholder="username" onUpdate={inputUpdate} fieldName="username" />
-                    </p>
-                    <p className="singleline">
-                        <DanInput placeholder="password" onUpdate={inputUpdate} fieldName="password" onEnter={handleLogin} />
-                    </p>
-                    <p className="singleline">
-                        <input type="button" value="login" onClick={handleLogin} />
-                    </p>
-                </form>
+                <>
+                    <form id="loginform">
+                        <p className="singleline">
+                            <DanInput placeholder="username" onUpdate={inputUpdate} fieldName="username" />
+                        </p>
+                        <p className="singleline">
+                            <DanInput placeholder="password" onUpdate={inputUpdate} fieldName="password" onEnter={handleLogin} />
+                        </p>
+                        <p className="singleline">
+                            <input type="button" value="login" onClick={handleLogin} />
+                        </p>
+                    </form>
+                    {(props.errorText==='')?'':(
+                        <div style={{backgroundColor:'LightGreen'}}>{props.errorText}</div>
+                    )}
+                </>
             )}
             <ErrorOverlay content={userError} onContinue={setUserError} />
         </div>

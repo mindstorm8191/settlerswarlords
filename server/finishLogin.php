@@ -28,9 +28,9 @@ die(json_encode([
         'ugamount'  =>$worldTile['ugamount'],
         'population'=>$worldTile['population']
     ],
-    'localTiles'=>$localTiles//,
+    'localTiles'=>$localTiles,
     //'blocks'        => json_decode($worldTile['blocks'], true),
-    //'workers'       => json_decode($worldTile['workers'], true),
+    'workers'       => json_decode($worldTile['workers'], true)//,
     //'unlockedItems' => json_decode($worldTile['unlockeditems'], true),
     //'allItems'      => json_decode($worldTile['allItems'], true),
     //'foodCounter'   => $worldTile['foodCounter']

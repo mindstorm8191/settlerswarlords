@@ -31,16 +31,14 @@ import { LocalMap } from "./comp_localMap.jsx";
     Textiles paved the way into early computer memory, using punch cards https://imgur.com/gallery/8DwbcBG
 
     Task list
-    3) Get a map to appear on screen, so we can have something to log in to
-    4) Set up map scrolling. Try to get this working on a cellphone.
-    1) Include stats for the rest of the world biome types
-    2) Handle the transition from the homepage to the local map, with full display. This means sorting out what trees are displayed, and
-        showing some stream blocks
-    1) Create some workers. Generate them on the server side (for later tracking) with a name. Pass this data to the client so it can
-        be utilized. New players will still start with 4 workers
+    2) Display buildable building types, and allow players to place buildings
+    2) Add the game loop. Get the workers to start moving around
     2) Write a privacy agreement. Keep it simple, and as a popup. Just say we may contact you in the future about updates with this game,
         and email addresses won't be released
-
+    
+    Things the need to be done later
+    1) Include stats for the rest of the world biome types
+    
     Further ideas
         Tool boxes: they will provide tools to any blocks needing them within an X-block radius (we can make it 10, for now).
             Any blocks needing a specific tool can get tools from that box. If a block is out of range of a toolbox, the user will be told that
@@ -67,14 +65,36 @@ import { LocalMap } from "./comp_localMap.jsx";
     5/29/2021 = 9819 lines
 */
 
+// Accessing the server will work differently between when this project is in dev mode or production mode.
+// In Dev mode, since Create-React-App is running its own server, we need to access the server side (and images) via
 //* Since the app is officially published when using npm run build, this leaves us trying to connect to the public server
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
+
+export const game = {
+    blockList: [], // All functioning buildings
+    tiles: [], // All map tiles of the local map
+    timerLoop: null, // This gets updated to a timer handle when the game starts
+    workers: [], // List of all local workers (and their stats)
+    update: () => {
+        // First, allow workers to do work, for whatever building they're doing work at
+        game.workers.forEach((wk) => {
+            if (wk.currentTask === "") {
+                // This worker has no work right now. Let's see if we can help out someone else doing work (that's easier than finding work)
+            }
+        });
+        game.blockList.forEach((block) => {
+            block.update();
+        });
+    },
+};
 
 function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
     const [localTiles, setLocalTiles] = React.useState(null);
+    const [localWorkers, setLocalWorkers] = React.useState(null);
+    const [loginError, setLoginError] = React.useState("");
 
     // Allow players to log in automatically
     React.useEffect(() => {
@@ -86,7 +106,13 @@ function App() {
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))
             .then((data) => {
-                //console.log(data);
+                // Before proceeding, check that the login was accepted
+                if (data.result !== "success") {
+                    // Show the error state to the user
+                    setLoginError(data.message);
+                    return;
+                }
+
                 // At this point, everything needs to behandled by the onLogin script
                 onLogin(data);
             });
@@ -94,17 +120,37 @@ function App() {
 
     function onLogin(pack) {
         // Let's see if we can convert all the items from JSON to an array here
+        console.log(pack);
         pack.localTiles = pack.localTiles.map((ele) => {
             ele.items = JSON.parse(ele.items);
             return ele;
         });
-        console.log(pack);
 
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
+
+        game.tiles = pack.localTiles;
+        game.timerLoop = setInterval(game.update, 1000);
+        game.workers = pack.workers;
+
         setUserData({ id: pack.userid, ajax: pack.access });
         setLocalTiles(pack.localTiles);
+        setLocalWorkers(pack.workers);
         setPage("LocalMap");
+    }
+
+    function onLocalTileUpdate(newTilesList) {
+        // Updates the localmap tiles list with new tile content
+        // newTilesList: array of new tiles to add to the list. These tiles will replace existing ones, that match the X & Y coordinates
+        game.tiles = game.tiles.map((ele) => {
+            // find any tiles within our input list to replace this tile with
+            let match = newTilesList.find((mel) => {
+                return ele.x === mel.x && ele.y === mel.y;
+            });
+            if (match === undefined) return ele;
+            return match;
+        });
+        setLocalTiles(game.tiles);
     }
 
     function pickPage() {
@@ -112,7 +158,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap localTiles={localTiles} />;
+                return <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }
@@ -122,7 +168,7 @@ function App() {
         <div className="app">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
                 <div id="titleblock">
-                    <AccountBox onLogin={onLogin} user={userData} />
+                    <AccountBox onLogin={onLogin} user={userData} errorText={loginError} />
                     <div id="titletext">
                         Settlers & <br />
                         Warlords
@@ -189,17 +235,22 @@ function  DanDBList         - server/common.php
 function  danescape         - server/common.php
 function         DanMultiDB        - server/common.php
 array of objects directionMap       - server/globals.php
-function         ensureMinimapXY      - server/mapContent.php
+component         EmptyLandDescription - src/localTiles.jsx
+function          ensureMinimapXY      - server/mapContent.php
 script            finishLogin          - server/finishLogin.php
+object            game                 - src/App.js
 function          generateClusterMap   - server/mapContent.php
 script            getInput             - server/getInput.php
 component         HomePage             - src/App.js
-string           imageURL             - src/App.js
+string            imageURL             - src/App.js
 array of strings  knownMapBiomes     - server/globals.php
+Building          LeanTo               - src/comp_localMap.jsx
 component         localMap             - src/App.js
+component         localMapBuildingDetail - src/comp_localMap.jsx
 array of strings  localTileNames     - server/globals.php
 server route      login                - server/routes/login.php
-function         newPlayerLocation  - server/mapContent.php
+array of strings  minimapImages        - src/localTiles.jsx
+function          newPlayerLocation  - server/mapContent.php
 array of strings  oreTypes           - server/globals.php
 function          randomFloat        - server/mapContent.php
 component         RegisterForm       - src/comp_account.jsx

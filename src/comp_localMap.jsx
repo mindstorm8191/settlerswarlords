@@ -4,48 +4,9 @@
 */
 
 import React from "react";
-import { imageURL, serverURL, game } from "./App.js";
+import { imageURL, serverURL } from "./App.js";
 import { EmptyLandDescription, minimapImages } from "./localTiles.jsx";
-
-const blockTypes = [
-    {name:"Lean-To", img:"leanto.png", create:LeanTo}
-];
-
-function LeanTo() {
-    // Returns an object that will manage activities for a new Lean-To
-
-    let b = {
-        id: 1,
-        name: 'Lean To',
-        descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
-        for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
-        on top, this is fast & easy to set up, but wont last long in the elements itself.`,
-        usage: `Needs workers to set this up, then can be used for a time before it must be rebuilt`,
-        image: "leanto.png",
-        mode: 'build',
-        counter: 0,
-        SidePanel: ()=>{
-            // Displays text for this building, when selected, on the right panel of the page
-            return <p>Hello dudes!</p>;
-        },
-        update: () => {
-            if(b.mode==='use') {
-                b.counter--;
-                if(b.counter<=0) b.mode='build';
-            }else{
-                console.log(b.counter);
-            }
-        },
-        openTasks: () => {
-            // Returns a list of all current task names that this block needs done. The worker will then decide if they wish to complete
-            // that task. If so, assignTask must be called with that task.
-            // If there are no tasks, an empty array will be returned.
-            if(b.mode==='use') return [];
-            return ['construct']; // Task names are defined from a fixed list
-        }
-    };
-    return b;
-}
+import { game } from "./game.js";
 
 export function LocalMap(props) {
     // Manages displaying the local map, where the 'king piece' is located at.
@@ -84,7 +45,7 @@ export function LocalMap(props) {
         }
 
         // Add this block to the game's block list
-        game.blockList.push(b);
+        game.blocks.push(b);
 
         // Also add this to the given tile. We'll have to update the base tiles to get this to work
         let tileIndex = game.tiles.findIndex(ele=>ele.x===tile.x && ele.y===tile.y);
@@ -108,7 +69,7 @@ export function LocalMap(props) {
                     {/*Provide a save button*/}
                     <div>Save</div>
                     {/*List all building options currently available. This is a pseudo list, which we'll use until we have an actual list*/}
-                    {blockTypes.map((bld, key) => {
+                    {game.blockTypes.map((bld, key) => {
                         if(buildSelected!==null) {
                             if(bld.name===buildSelected.name) {
                                 return <div key={key} style={{display:'inline', border:'1px solid black'}}><img src={imageURL+bld.img} alt={bld.name} /></div>
@@ -156,7 +117,12 @@ export function LocalMap(props) {
                                         setSelected(tile); // We will later have to add management of pickMode here
                                     }}
                                 >
-                                    {(hasWorker===true) ? (
+                                    {(parseInt(tile.buildid)!==0 && hasWorker===true) ? (
+                                        <>
+                                            <img src={imageURL +tile.image} alt={"Bldg"} style={{pointerEvents:'none', display:'block', position:'absolute', top:1,left:1}} draggable="false" />
+                                            <img src={imageURL +"worker.png"} alt={"worker"} style={{pointerEvents:'none', display:'block', position:'absolute', top:1,left:1,zIndex:1}} draggable="false"/>
+                                        </>
+                                    ): (hasWorker===true) ? (
                                         <img src={imageURL +"worker.png"} alt="worker" />
                                     ) : parseInt(tile.buildid) === 0 ? (
                                         ""
@@ -195,8 +161,8 @@ function LocalMapBuildingDetail(props) {
     // Start with verifying input
     if(typeof(props.bid)!=='number') return <>Error: LocalMapBuildingDetail requires bid to be a building ID</>;
 
-    // Find the correct building in the game's blockList, as that has the actual block content (including the display function)
-    const block = game.blockList.find(ele=>parseInt(ele.id) === parseInt(props.bid));
+    // Find the correct building in the game's blocks list, as that has the actual block content (including the display function)
+    const block = game.blocks.find(ele=>parseInt(ele.id) === parseInt(props.bid));
     if(typeof(block)==='undefined') return <>Error: Did not find building ID={props.bid}</>;
 
     const SidePanel = block.SidePanel;  // This declaration allows us to treat the block's SidePanel function as a fully working React component

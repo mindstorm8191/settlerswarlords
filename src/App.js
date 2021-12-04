@@ -9,7 +9,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_localMap.jsx";
 //import { worldMap_fillFromServerData, WorldMap } from "./comp_worldMap.jsx";
 //import { AdminPage } from "./comp_admin.jsx";
-//import { game } from "./game.jsx";
+import { game } from "./game.js";
 
 /*  Version 7? Yes! ...Why?
     Version 6 had a lot more control over the production of resources. But I realized that, eventually, managing resources and
@@ -71,24 +71,6 @@ import { LocalMap } from "./comp_localMap.jsx";
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
-export const game = {
-    blockList: [], // All functioning buildings
-    tiles: [], // All map tiles of the local map
-    timerLoop: null, // This gets updated to a timer handle when the game starts
-    workers: [], // List of all local workers (and their stats)
-    update: () => {
-        // First, allow workers to do work, for whatever building they're doing work at
-        game.workers.forEach((wk) => {
-            if (wk.currentTask === "") {
-                // This worker has no work right now. Let's see if we can help out someone else doing work (that's easier than finding work)
-            }
-        });
-        game.blockList.forEach((block) => {
-            block.update();
-        });
-    },
-};
-
 function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
@@ -121,8 +103,16 @@ function App() {
     function onLogin(pack) {
         // Let's see if we can convert all the items from JSON to an array here
         console.log(pack);
+        // Before we can get serious about running the game, we need to process some of the data received from the server
         pack.localTiles = pack.localTiles.map((ele) => {
             ele.items = JSON.parse(ele.items);
+            return ele;
+        });
+        let lastWorkerId = 1;
+        pack.workers = pack.workers.map((ele) => {
+            ele.currentTask = "";
+            ele.id = lastWorkerId;
+            lastWorkerId++;
             return ele;
         });
 
@@ -132,6 +122,8 @@ function App() {
         game.tiles = pack.localTiles;
         game.timerLoop = setInterval(game.update, 1000);
         game.workers = pack.workers;
+        game.updateWorkers = setLocalWorkers;
+        game.updateLocalMap = setLocalTiles;
 
         setUserData({ id: pack.userid, ajax: pack.access });
         setLocalTiles(pack.localTiles);
@@ -233,18 +225,18 @@ array of objects civTypes           - server/globals.php
 function  createWorkers             - server/mapContent.php
 function  DanDBList         - server/common.php
 function  danescape         - server/common.php
-function         DanMultiDB        - server/common.php
-array of objects directionMap       - server/globals.php
+function          DanMultiDB        - server/common.php
+array of objects  directionMap       - server/globals.php
 component         EmptyLandDescription - src/localTiles.jsx
 function          ensureMinimapXY      - server/mapContent.php
 script            finishLogin          - server/finishLogin.php
-object            game                 - src/App.js
+object            game                 - src/game.js
 function          generateClusterMap   - server/mapContent.php
 script            getInput             - server/getInput.php
 component         HomePage             - src/App.js
 string            imageURL             - src/App.js
 array of strings  knownMapBiomes     - server/globals.php
-Building          LeanTo               - src/comp_localMap.jsx
+Building          LeanTo               - src/blocks/LeanTo.jsx
 component         localMap             - src/App.js
 component         localMapBuildingDetail - src/comp_localMap.jsx
 array of strings  localTileNames     - server/globals.php
@@ -262,7 +254,9 @@ function         validInt          - server/common.php
 function         verifyInput          - server/common.php
 function         within               - server/mapContent.php
 array of strings workerNames   - server/globals.php
-array of strings worldBiomes   - server/globals.php
-function  worldmap_generate - server/routes/signup.php
+array of strings  worldBiomes   - server/globals.php
+function          worker_atLocation      - src/game.js
+function          worker_stepToward      - src/game.js
+function          worldmap_generate - server/routes/signup.php
 function  worldmap_updateKnown - server/mapContent.php
 */

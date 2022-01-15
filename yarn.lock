@@ -4998,9 +4998,9 @@ flush-write-stream@^1.0.0:
     readable-stream "^2.3.6"
 
 follow-redirects@^1.0.0:
-  version "1.13.0"
-  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.13.0.tgz#b42e8d93a2a7eea5ed88633676d6597bc8e384db"
-  integrity sha512-aq6gF1BEKje4a9i9+5jimNFIpq4Q1WiwBToeRK5NvZBd/TRsmW8BsJfOEGkr76TbOyPVD3OVDN910EcUNtRYEA==
+  version "1.14.7"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.7.tgz#2004c02eb9436eee9a21446a6477debf17e81685"
+  integrity sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==
 
 for-in@^1.0.2:
   version "1.0.2"
@@ -8892,6 +8892,11 @@ react-app-polyfill@^2.0.0:
     raf "^3.4.1"
     regenerator-runtime "^0.13.7"
     whatwg-fetch "^3.4.1"
+
+react-bind-html@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/react-bind-html/-/react-bind-html-1.4.0.tgz#164d78136a5d2b75692fe5119d51316a1cb76f6f"
+  integrity sha512-XxRFUzeZ/FrU6ORYwHlfetjU8sbggYgT3EPX2ChzHfUloQY1O3RkbjtbbZsCtQpMruKffUfLq4FugNrSQ60x1Q==
 
 react-dev-utils@^11.0.1:
   version "11.0.1"

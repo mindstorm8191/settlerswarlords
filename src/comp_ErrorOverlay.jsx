@@ -5,7 +5,7 @@
 */
 
 import React from "react";
-import BindHtml from "react-bind-html";
+import parse from "html-react-parser";
 
 export function ErrorOverlay(props) {
     // Displays a full-page error box to the user. Useful for displaying complex errors. Will provide an accept button to
@@ -60,7 +60,7 @@ export function ErrorOverlay(props) {
                 }}
             >
                 {/* This is the old method: <p>{props.content}</p>*/}
-                <BindHtml html={props.content} />
+                {parse(props.content)}
                 <button onClick={() => props.onContinue("")}>Okay</button>
             </div>
         </div>

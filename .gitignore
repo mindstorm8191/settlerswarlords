@@ -2,14 +2,11 @@
 
 # dependencies
 /node_modules
-/version*
 /.pnp
 .pnp.js
 
 # testing
 /coverage
-/tests
-error.html
 
 # production
 /build
@@ -24,4 +21,3 @@ error.html
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-oldREADME.md

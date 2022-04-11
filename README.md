@@ -21,4 +21,4 @@ Once done, you can run 'npm start' to start the client code. If WAMP is running 
 
 ## Development
 
-There is a lot planned for this game, and a lot to get done. Ultimately, I want players to be able to utilize technology to advance their abilities in a variety of ways (here's a current [techtree.md](tech tree)). Currently, I only have the home page set up, but I have a large portion of code from previous iterations of this project that I can plug in... this will provide a general world structure to start from. After that, the code to control workers will need to be created, and we can go from there.
+There is a lot planned for this game, and a lot to get done. Ultimately, I want players to be able to utilize technology to advance their abilities in a variety of ways (here's a current [tech tree](/techtree.md)). Currently, I only have the home page set up, but I have a large portion of code from previous iterations of this project that I can plug in... this will provide a general world structure to start from. After that, the code to control workers will need to be created, and we can go from there.

@@ -3,7 +3,7 @@ import "./App.css";
 
 import { DAX } from "./libs/DanAjax.js"; // A library to make Fetch calls a little easier
 
-import { AccountBox } from "./comp_account.jsx";
+import { AccountBox, RegisterForm } from "./comp_account.jsx";
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
 // In Dev mode, since Create-React-App is running as a separate entity from the server, we will have to request
@@ -11,19 +11,24 @@ import { AccountBox } from "./comp_account.jsx";
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
 
+/* *** Building project ***
+   To build this project, run 'npm run build' from the command line.
+   Note that you will need to change the homepage variable within package.json
+*/
+
 function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
 
     function onLogin(data) {
-        console.log("App.onLogin was called... help??");
+        console.log(data);
     }
 
     function pickPage() {
         switch (page) {
             case "HomePage":
-                return <HomePage /*onLogin={onLogin}*/ />;
+                return <HomePage onLogin={onLogin} />;
             case "LocalMap":
                 return <div>Hello world!</div>;
             /*  return (
@@ -68,7 +73,7 @@ function HomePage(props) {
             </p>
             <img src={imageURL + "homepage_neighbors.png"} alt="neighbor negotiations" />
             <p>Develop your land to dominate the world</p>
-            {/*<RegisterForm onLogin={props.onLogin} />*/}
+            <RegisterForm onLogin={props.onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
                 Guess what? We're starting version 7! Maybe I AM a little crazy... but nevermind that. After spending a lot of time on version 6, I started to

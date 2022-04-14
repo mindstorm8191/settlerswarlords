@@ -16,13 +16,80 @@ export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http:/
    Note that you will need to change the homepage variable within package.json
 */
 
+const game = {
+    blocks: [], // All functioning buildings
+    tiles: [], // All map tiles of the local map
+    timerLoop: null, // This gets updated to a timer handle when the game starts
+    updateWorkers: null, // This gets assigned to React's setWorkers call
+    updateLocalMap: null, // This also gets assigned to a React callback
+    workers: [], // List of all workers (with stats)
+    tickTime: 0,
+
+    setupGame: () => {
+        // A simple function to handle setting up game basics
+        //
+    },
+
+    startGame: () => {
+        // A simple function to handle starting the game's timer
+        game.tickTime = new Date().valueOf();
+        setTimeout(game.tick, 50);
+    },
+
+    tick: () => {
+        // Handles updates to the local world
+    },
+};
+
 function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
+    const [localTiles, setLocalTiles] = React.useState(null);
+    const [localWorkers, setLocalWorkers] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
 
-    function onLogin(data) {
-        console.log(data);
+    function onLogin(pack) {
+        console.log(pack);
+
+        // Before we can get serious about running the game, we need to process some of the data received from the server
+        // Right now, this only involves parsing JSON content from the items list at each tile
+        pack.localTiles = pack.localTiles.map((ele) => {
+            ele.items = JSON.parse(ele.items);
+            return ele;
+        });
+
+        // Turn the worker data into objects. For new players, this will be relatively blank
+        let lastWorkerId = 1;
+        pack.workers = pack.workers.map((ele) => {
+            ele.currentTask = "";
+            ele.carrying = [];
+            ele.id = lastWorkerId;
+            lastWorkerId++;
+            return ele;
+        });
+
+        // Use localStorage to keep the user's ID & access code
+        localStorage.setItem("userid", pack.userid);
+        localStorage.setItem("ajaxcode", pack.ajaxcode);
+
+        setUserData({ id: pack.userid, ajax: pack.ajaxcode });
+        setLocalTiles(pack.localTiles);
+        setLocalWorkers(pack.workers);
+        setPage("LocalMap");
+    }
+
+    function onLocalTileUpdate(newTilesList) {
+        // Updates the localmap tiles list with new tile content
+        // newTilesList: array of new tiles to add to the list. These tiles will replace existing ones, that match the X & Y coordinates
+        game.tiles = game.tiles.map((ele) => {
+            // find any tiles within our input list to replace this tile with
+            let match = newTilesList.find((mel) => {
+                return ele.x === mel.x && ele.y === mel.y;
+            });
+            if (match === undefined) return ele;
+            return match;
+        });
+        setLocalTiles(game.tiles);
     }
 
     function pickPage() {
@@ -30,10 +97,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <div>Hello world!</div>;
-            /*  return (
-                    <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} />
-                ); */
+                return <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }
@@ -53,6 +117,10 @@ function App() {
             {pickPage()}
         </div>
     );
+}
+
+function LocalMap(props) {
+    return <div>Hello world!</div>;
 }
 
 function HomePage(props) {

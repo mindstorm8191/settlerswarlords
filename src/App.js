@@ -24,20 +24,49 @@ const game = {
     updateLocalMap: null, // This also gets assigned to a React callback
     workers: [], // List of all workers (with stats)
     tickTime: 0,
+    clockCheck: 0,
 
-    setupGame: () => {
-        // A simple function to handle setting up game basics
-        //
+    setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
+        // A public function to set up game basics
+        // parameters:
+        //  localTiles - array of the local tiles, as received by the server
+        //  localWorkers - array of the local workers, as received by the server
+        //  funcUpdateTiles - callback function from React to update all game tiles
+        //  funcUpdateWorkers - callback function from React to udpate all workers
+
+        game.tiles = localTiles;
+        game.workers = localWorkers;
+        game.updateLocalMap = funcUpdateTiles;
+        game.updateWorkers = funcUpdateWorkers;
     },
 
     startGame: () => {
-        // A simple function to handle starting the game's timer
+        // A public function to handle starting the game's timer
         game.tickTime = new Date().valueOf();
-        setTimeout(game.tick, 50);
+        setTimeout(function () {
+            window.requestAnimationFrame(game.tick);
+        }, 50);
     },
 
     tick: () => {
-        // Handles updates to the local world
+        // Handles updates to the local world. This function should run about once every 50 ticks, or 20 times a second
+
+        // Do work here //
+        game.clockCheck++;
+        if (game.clockCheck % 20 === 0) console.log("tick...");
+
+        // Handle time management
+        let newTime = new Date().valueOf();
+        let timeDiff = newTime - game.tickTime;
+        game.tickTime = newTime;
+        // timeDiff is the amount of time from last frame to this frame. It should be about 50 milliseconds, including the time
+        // it took to complete the frame. If the game is running slow, this value will be larger; so we will need to reduce the
+        // timeout length to compensate
+        timeDiff -= 50;
+        if (timeDiff < 0) timeDiff = 0;
+        setTimeout(function () {
+            window.requestAnimationFrame(game.tick);
+        }, 50 - timeDiff);
     },
 };
 
@@ -71,6 +100,9 @@ function App() {
         // Use localStorage to keep the user's ID & access code
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
+
+        game.setupGame(pack.localTiles, pack.workers, setLocalTiles, setLocalWorkers);
+        game.startGame();
 
         setUserData({ id: pack.userid, ajax: pack.ajaxcode });
         setLocalTiles(pack.localTiles);
@@ -120,8 +152,86 @@ function App() {
 }
 
 function LocalMap(props) {
-    return <div>Hello world!</div>;
+    return (
+        <>
+            <div style={{ display: "flex", width: "100%" }}>
+                <div>Area details here</div>
+            </div>
+            <div style={{ display: "flex", width: "100%" }}>
+                <div style={{ width: 180 }}>
+                    {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
+                    <div>Save</div>
+                    {/*List all building options currently available*/}
+                </div>
+                <div id="localmapbox">
+                    {/*This is the map container, that lets us scroll the whole map at once */}
+                    <div style={{ position: "absolute", top: 0, left: 0 }}>
+                        {props.localTiles.map((tile, key) => {
+                            return (
+                                <div
+                                    key={key}
+                                    style={{
+                                        display: "block",
+                                        position: "absolute",
+                                        width: 40,
+                                        height: 40,
+                                        top: tile.y * 42,
+                                        left: tile.x * 42,
+                                        backgroundImage:
+                                            "url(" +
+                                            imageURL +
+                                            "localtiles/" +
+                                            minimapImages[parseInt(tile.newlandtype) === -1 ? tile.landtype : tile.newlandtype] +
+                                            ")",
+                                        cursor: "pointer",
+                                        border: "1px solid green",
+                                    }}
+                                ></div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 }
+
+export const minimapImages = [
+    "wheatgrass.png", // 0: wheat
+    "oatgrass.png", // 1: oat
+    "ryegrass.png", // 2: rye
+    "barleygrass.png", // 3: barley
+    "milletgrass.png", // 4: millet
+    "mapletreeone.jpg", // 5: maple
+    "mapletreeone.jpg", // 6: birch
+    "mapletreeone.jpg", // 7: oak
+    "mapletreeone.jpg", // 8: mahogany
+    "pinetreetwo.jpg", // 9: pine
+    "pinetreetwo.jpg", // 10: cedar
+    "pinetreetwo.jpg", // 11: fir
+    "pinetreetwo.jpg", // 12: hemlock
+    "cherrytreeone.jpg", // 13: cherry
+    "appletreeone.jpg", // 14: apple
+    "peartreeone.jpg", // 15: pear
+    "orangetreeone.jpg", // 16: orange
+    "mapletreeone.jpg", // 17: hawthorne
+    "mapletreeone.jpg", // 18: dogwood
+    "mapletreeone.jpg", // 19: locust
+    "pinetreeone.jpg", // 20: juniper
+    "basicrock.jpg", // 21
+    "desert.jpg", // 22
+    "smallpond.jpg", // 23
+    "lava.png", // 24
+    "ice.png", // 25
+    "snow.png", // 26
+    "smallpond.jpg", // 27 stream
+    "emptygrass.jpg", // 28 wetland
+    "basicrock.jpg", // 29 cliff
+    "smallpond.jpg", // 30 creekwash
+    "basicrock.jpg", // 31 creekbank
+    "emptygrass.jpg", // 32 empty grass
+    "farmplot.png", // 33 farm plot
+];
 
 function HomePage(props) {
     return (

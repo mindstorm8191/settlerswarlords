@@ -9,6 +9,11 @@ import { imageURL, serverURL, game } from "./App.js";
 
 function DraggableMap(props) {
     // Presents a larger-than-screen map that can be dragged by the mouse
+    // How to use
+    // <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)'}}>
+    //     Your map content goes here, as child components
+    // </DraggableMap>
+
     // Note that, for all child components, any <img> tags must have `draggable="false"` included in its HTML parameters (not CSS)
 
     const [scrollPos, setScrollPos] = React.useState({ moveState: false, x: 0, y: 0 });

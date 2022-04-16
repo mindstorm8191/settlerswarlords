@@ -6,6 +6,12 @@ import { DAX } from "./libs/DanAjax.js"; // A library to make Fetch calls a litt
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
+/* Task List
+1) Get auto-login to work
+2) Get log-out to work
+
+*/
+
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
 // In Dev mode, since Create-React-App is running as a separate entity from the server, we will have to request
 // content through a full URL (and work around CORS). Once the site is published, all this will be 'local' to the app

@@ -51,7 +51,9 @@ export function AccountBox(props) {
                 if (data.result !== "success") {
                     console.log("Error received from server:", data);
                     setUserError("The server responded with an error state");
-                    return;
+                    // Go ahead and clear localstorage content, so that they're logged out locally anyway
+                    localStorage.removeItem("userid");
+                    localStorage.removeItem("access");
                 }
                 props.onLogin(data);
             });
@@ -59,7 +61,7 @@ export function AccountBox(props) {
 
     function handleLogout() {
         // Allows the user to log out, by sending a message to the server
-        fetch(serverURL, DAX.serverMessage("logout", [], true))
+        fetch(serverURL +'routes/logout.php', DAX.serverMessage({}, true))
         .then(res => DAX.manageResponseConversion(res))
         .catch(err => console.log(err))
         .then(data => {

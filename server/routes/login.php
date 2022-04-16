@@ -17,7 +17,7 @@ $con = verifyInput($msg, [
 ], 'ajax.php->action login->verify user input');
 
 // Now, gather the user information from the database, verifying their login credentials are correct
-$res = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'ajax.php->case login->get player data');
+$res = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'routes/login.php->get player data');
 if(sizeof($res)===0) {
     // There was no player data found
     ajaxreject('invaliduser', 'Sorry, that user name doesn\'t exist. Please try again');
@@ -35,7 +35,7 @@ $playery = $player['currenty'];
 srand(time());
 $ajaxcode = rand(0, pow(2, 31));
 DanDBList("UPDATE sw_player SET ipaddress=?, ajaxcode=?, lastlogin=NOW() WHERE id=?;", 'sii',
-          [$_SERVER['REMOTE_ADDR'], $ajaxcode, $player['id']], 'ajax.php->action login->update player at login');
+          [$_SERVER['REMOTE_ADDR'], $ajaxcode, $player['id']], 'routes/login.php->update player at login');
 
 // We are ready to send a response to the client
 require_once("../finishLogin.php");

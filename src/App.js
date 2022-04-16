@@ -7,9 +7,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get auto-login to work
-2) Get log-out to work
-
+1) Get log-out to work
+2) Get tile details being displayed on the right-side panel
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -31,6 +30,7 @@ const game = {
     updateLocalMap: null, // This also gets assigned to a React callback
     workers: [], // List of all workers (with stats)
     tickTime: 0,
+    timeout: null, // We keep this handle so that the timeout can be interrupted
     clockCheck: 0,
 
     setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
@@ -50,9 +50,15 @@ const game = {
     startGame: () => {
         // A public function to handle starting the game's timer
         game.tickTime = new Date().valueOf();
-        setTimeout(function () {
+        game.timeout = setTimeout(function () {
             window.requestAnimationFrame(game.tick);
         }, 50);
+    },
+
+    stopGame: () => {
+        // A public function to stop the game
+        clearTimeout(game.timeout);
+        game.timeout = null;
     },
 
     tick: () => {
@@ -71,7 +77,7 @@ const game = {
         // timeout length to compensate
         timeDiff -= 50;
         if (timeDiff < 0) timeDiff = 0;
-        setTimeout(function () {
+        game.timeout = setTimeout(function () {
             window.requestAnimationFrame(game.tick);
         }, 50 - timeDiff);
     },
@@ -84,8 +90,41 @@ function App() {
     const [localWorkers, setLocalWorkers] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
 
+    // Startup processes. We're primarily concerned about letting existing players log in automatically
+    React.useEffect(() => {
+        if (typeof localStorage.getItem("userid") == "object") return; // Do nothing if no data is in localStorage
+        console.log("Auto-login: access code = " + localStorage.getItem("ajaxcode"));
+        fetch(
+            serverURL + "/routes/autologin.php",
+            DAX.serverMessage({ userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") }, false)
+        )
+            .then((res) => DAX.manageResponseConversion(res))
+            .catch((err) => console.log(err))
+            .then((data) => {
+                if (data.result !== "success") {
+                    setLoginError(data.message);
+                    return;
+                }
+                // At this point, everything is handled the same as a normal login
+                onLogin(data);
+            });
+    }, []);
+
     function onLogin(pack) {
         console.log(pack);
+
+        if (pack === null) {
+            // Receiving null means the user is trying to log out
+            localStorage.removeItem("userid");
+            localStorage.removeItem("ajaxcode");
+            game.stopGame();
+            setPage("HomePage");
+            setUserData(null);
+            setLocalTiles(null);
+            setLocalWorkers(null);
+            //setWorldMap(null); // we need to clear this too, so the new user can load content
+            return;
+        }
 
         // Before we can get serious about running the game, we need to process some of the data received from the server
         // Right now, this only involves parsing JSON content from the items list at each tile

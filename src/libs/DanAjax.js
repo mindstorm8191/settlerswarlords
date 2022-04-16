@@ -13,7 +13,7 @@ export const DAX = {
         //let packout = { action: command, ...content };
         if (includeUserData) {
             content.userid = localStorage.getItem("userid");
-            content.access = localStorage.getItem("access");
+            content.ajaxcode = localStorage.getItem("ajaxcode");
             console.log("Userid info included. value is" + includeUserData + ". Sending " + JSON.stringify(content));
         }
         return {

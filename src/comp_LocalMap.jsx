@@ -9,6 +9,11 @@ import { DraggableMap } from "./comp_DraggableMap.jsx";
 
 
 export function LocalMap(props) {
+    if(props.localTiles===null) {
+        // This can happen when the player logs out
+        return <div>No map content available</div>;
+    }
+
     return (
         <>
             <div style={{ display: "flex", width: "100%" }}>

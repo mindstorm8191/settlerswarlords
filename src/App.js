@@ -7,8 +7,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get log-out to work
-2) Get tile details being displayed on the right-side panel
+2) Get the left side panel displaying content properly
+3) Add a lean-to and allow it to be built
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -93,7 +93,7 @@ function App() {
     // Startup processes. We're primarily concerned about letting existing players log in automatically
     React.useEffect(() => {
         if (typeof localStorage.getItem("userid") == "object") return; // Do nothing if no data is in localStorage
-        console.log("Auto-login: access code = " + localStorage.getItem("ajaxcode"));
+
         fetch(
             serverURL + "/routes/autologin.php",
             DAX.serverMessage({ userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") }, false)

@@ -9,6 +9,10 @@ import { DraggableMap } from "./comp_DraggableMap.jsx";
 
 
 export function LocalMap(props) {
+    
+    const [selected, setSelected] = React.useState(null); // which tile is selected to show details on the right
+    const [buildSelected, setBuildSelected] = React.useState(null); // which building is selected, or null otherwise
+
     if(props.localTiles===null) {
         // This can happen when the player logs out
         return <div>No map content available</div>;
@@ -27,14 +31,16 @@ export function LocalMap(props) {
                 </div>
                 <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)'}}>
                     {props.localTiles.map((tile, key) => {
+                        // For each location, we need to determine if a worker is here.
+                        let hasWorker = props.localWorkers.some(ele => {
+                            return parseInt(ele.x)===parseInt(tile.x) && parseInt(ele.y)===parseInt(tile.y);
+                        });
+                        
                         return (
                             <div
                                 key={key}
+                                className="localmaptile"
                                 style={{
-                                    display: "block",
-                                    position: "absolute",
-                                    width: 40,
-                                    height: 40,
                                     top: tile.y * 42,
                                     left: tile.x * 42,
                                     backgroundImage:
@@ -43,16 +49,104 @@ export function LocalMap(props) {
                                         "localtiles/" +
                                         minimapImages[parseInt(tile.newlandtype) === -1 ? tile.landtype : tile.newlandtype] +
                                         ")",
-                                    cursor: "pointer",
-                                    border: "1px solid green",
                                 }}
-                            ></div>
+                                onClick={()=>{
+                                    if(buildSelected!==null) {
+                                        console.log('Add a building here!');
+                                    }
+                                    // Later on, when we have pickMode, we will manage that here. For now, there is only one.
+                                    setSelected(tile);
+                                }}
+                            >
+                                {/*Display contents of the tile. This is a multiple-choice result */}
+                                {(parseInt(tile.buildid)!==0 && hasWorker===true) ? (
+                                    <>
+                                        <img src={imageURL +"buildings/"+ tile.image} alt="Building" style={{pointerEvents:'none', display:'block', position:'absolute', top:1, left:1,}} draggable="false" />
+                                        <img src={imageURL +"worker.png"} alt="Worker" style={{pointerEvents:'none', display:'block', position:'absolute', top:1, left:1}} draggable="false" />
+                                    </>
+                                ): (hasWorker===true) ? (
+                                    <img src={imageURL +"worker.png"} alt="worker" />
+                                ): parseInt(tile.buildid)===0 ? (
+                                    ""
+                                ): (
+                                    <img src={imageURL +"buildings/"+ tile.image} alt="Building" style={{pointerEvents:'none', border:0}} draggable="false" />
+                                )}
+                            </div>
                         );
                     })}
                 </DraggableMap>
+                <div id="localmaprightpanel">
+                    {buildSelected !== null ? (
+                        "Click a map tile to place this building"
+                    ) : (selected===null)? (
+                        "Click a tile to view options"
+                    ) : parseInt(selected.buildid)===0?(
+                        <>
+                            <EmptyLandDescription tile={selected} />
+                            <p className="singleline">Nothing is built here. Click a block from the left to place it here</p>
+                        </>
+                    ) : (
+                        <LocalMapBuildingDetail bid={selected.buildid} />
+                    )}
+                </div>
             </div>
         </>
     );
+}
+
+function LocalMapBuildingDetail(props) {
+    return <div>Ooooh, its a building!</div>;
+}
+
+function EmptyLandDescription(props) {
+    // Provides a basic description of the land in the selected tile
+    // Collects the correct land type from the tile that is selected
+
+    // These are the natural land formations
+    let landType = (props.tile.newlandtype===-1)?props.tile.landtype:props.tile.newlandtype
+    let response='';
+    switch(landType) {
+        case 0: response='Wheat. Tasteful grains for a variety of uses'; break;
+        case 1: response='Oat. Hearty grains for many purposes'; break;
+        case 2: response='Rye. Makes a sour tasting bread'; break;
+        case 3: response='Barley. A nutty grain'; break;
+        case 4: response="Millet. It's good for you"; break;
+        case 5: response='Maple trees. Its sap is useful for syrups'; break;
+        case 6: response='Birch trees. Its bark is good for making ropes'; break;
+        case 7: response='Oak trees. Provides acorns - edible in a pinch'; break;
+        case 8: response='Mahogany trees. Provides lots of shade'; break;
+        case 9: response='Pine trees. Green year-round, and provides pinecones'; break;
+        case 10: response='Cedar trees. Grows all and straight'; break;
+        case 11: response='Fir trees. Strong trees that make lots of sticks'; break;
+        case 12: response='Hemlock trees. Grows tall in tight clusters'; break;
+        case 13: response='Cherry trees. Makes a tart fruit, good for many dishes'; break;
+        case 14: response='Apple trees. Delicious fruits that everyone enjoys'; break;
+        case 15: response='Pear trees. Tasty fruits that excel in colder climates'; break;
+        case 16: response='Orange trees. Sweet fruits that enjoy warmer climates'; break;
+        case 17: response='Hawthorne trees. It seems to pulse with extra energy'; break;
+        case 18: response="Dogwood trees. You wouldn't think this would grow here, but it's determined"; break;
+        case 19: response='Locust trees. It seems to glow in the sunlight'; break;
+        case 20: response='Juniper trees. It seems to come alive at night'; break;
+        case 21: response='Barren rock. Easy source of stone materials and building on'; break;
+        case 22: response='Desert sands. Hot, dusty and hard to build on'; break;
+        case 23: response='Sitting water. Lots of life grows in it, but drinking it makes you sick'; break;
+        case 24: response='Hot lava! Very dangerous, even from a distance'; break;
+        case 25: response='Slick ice. Very cold'; break;
+        case 26: response='Snowed-over ground. Very cold'; break;
+        case 27: response='Flowing water through a stream'; break;
+        case 28: response='Wet grounds. Some grass, mostly water'; break;
+        case 29: response="Rugged cliff. Don't get close to the edge"; break;
+        case 30: response='Creek-side rubble. Lots of tiny rocks that the stream washed in'; break;
+        case 31: response='Creek bank. The streams are slowly eroding this wall'; break;
+        // Now we get into the man-made land types
+        case 32: response='Short grass space. Nothing major here, good for new projects'; break;
+        case 33: response='Active farm space.'; break;
+        case 34: response='Open dirt pit. Too much traffic for plants to grow here'; break;
+        case 35: response="Flat gravel surface. Won't turn into a muddy mess in the rain"; break;
+        // We'll add wood flooring, concrete, carpets, tile, etc when we reach those points
+        default: response="Oops, there's no description of land type "+ landType; break
+    }
+    return <p>{response}</p>;
 }
 
 export const minimapImages = [

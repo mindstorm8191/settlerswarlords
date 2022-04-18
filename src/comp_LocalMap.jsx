@@ -4,7 +4,8 @@
 */
 
 import React from "react";
-import { imageURL, serverURL, game } from "./App.js";
+import { imageURL, serverURL } from "./App.js";
+import { game } from "./game.jsx";
 import { DraggableMap } from "./comp_DraggableMap.jsx";
 
 
@@ -18,6 +19,41 @@ export function LocalMap(props) {
         return <div>No map content available</div>;
     }
 
+    function addBuilding(tile) {
+        // Handles adding a new building to the map
+        // tile - what tile was clicked on when adding a building
+
+        if(buildSelected===null) {
+            console.log('Player tried to place building, but no building type was selected');
+            return;
+        }
+        if(tile===null) {
+            console.log('PLayer tried to place a building, but no tile is selected?');
+            return;
+        }
+
+        let b = buildSelected.create(tile);
+        if(typeof b ==='string') {
+            console.log('Building creation rejected: '+ b);
+            return;
+        }
+        // Add this building to the game's block list
+        game.blockList.push(b);
+
+        // Also add this to the given tile. We'll have to update the base tiles to get this to work
+        let tileIndex = game.tiles.findIndex(ele=>ele.x===tile.x && ele.y===tile.y);
+        game.tiles[tileIndex].buildid = b.id;
+        game.tiles[tileIndex].image = b.image;
+
+        // With the game tiles updated, trigger React to update the map
+        // For this, we need to provide new instances of the updated tiles. Our function has us provide an array of them.
+        // It will replace the whole list with a new one, inserting the updated one in place of the old one.
+        props.onTileUpdate([{...game.tiles[tileIndex], buildid:b.id, buildImage:b.image}]);
+
+        // Clear the selected building type while we're here
+        setBuildSelected(null);
+    }
+
     return (
         <>
             <div style={{ display: "flex", width: "100%" }}>
@@ -28,6 +64,23 @@ export function LocalMap(props) {
                     {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
                     <div>Save</div>
                     {/*List all building options currently available*/}
+                    {game.blockTypes.map((block, key) => {
+                        // First, determine if this is the currently selected building
+                        let bColor = 'black'; if(buildSelected!==null && block.name===buildSelected.name) bColor = 'red';
+
+                        return (
+                            <div key={key} style={{display:'inline-block', border:'1px solid '+ bColor, width:40, height:40}}
+                                onClick={()=>{
+                                    if(buildSelected==block) {
+                                        setBuildSelected(null);
+                                    }else{
+                                        setBuildSelected(block);
+                                    }
+                                }}>
+                                <img src={imageURL +"structures/"+ block.image} alt={block.name} />
+                            </div>
+                        );
+                    })}
                 </div>
                 <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)'}}>
                     {props.localTiles.map((tile, key) => {
@@ -35,7 +88,7 @@ export function LocalMap(props) {
                         let hasWorker = props.localWorkers.some(ele => {
                             return parseInt(ele.x)===parseInt(tile.x) && parseInt(ele.y)===parseInt(tile.y);
                         });
-                        
+
                         return (
                             <div
                                 key={key}
@@ -52,7 +105,7 @@ export function LocalMap(props) {
                                 }}
                                 onClick={()=>{
                                     if(buildSelected!==null) {
-                                        console.log('Add a building here!');
+                                        addBuilding(tile);
                                     }
                                     // Later on, when we have pickMode, we will manage that here. For now, there is only one.
                                     setSelected(tile);
@@ -61,7 +114,7 @@ export function LocalMap(props) {
                                 {/*Display contents of the tile. This is a multiple-choice result */}
                                 {(parseInt(tile.buildid)!==0 && hasWorker===true) ? (
                                     <>
-                                        <img src={imageURL +"buildings/"+ tile.image} alt="Building" style={{pointerEvents:'none', display:'block', position:'absolute', top:1, left:1,}} draggable="false" />
+                                        <img src={imageURL +"structures/"+ tile.image} alt="Building" style={{pointerEvents:'none', display:'block', position:'absolute', top:1, left:1,}} draggable="false" />
                                         <img src={imageURL +"worker.png"} alt="Worker" style={{pointerEvents:'none', display:'block', position:'absolute', top:1, left:1}} draggable="false" />
                                     </>
                                 ): (hasWorker===true) ? (
@@ -69,7 +122,7 @@ export function LocalMap(props) {
                                 ): parseInt(tile.buildid)===0 ? (
                                     ""
                                 ): (
-                                    <img src={imageURL +"buildings/"+ tile.image} alt="Building" style={{pointerEvents:'none', border:0}} draggable="false" />
+                                    <img src={imageURL +"structures/"+ tile.image} alt="Building" style={{pointerEvents:'none', border:0}} draggable="false" />
                                 )}
                             </div>
                         );

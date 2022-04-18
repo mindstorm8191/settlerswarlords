@@ -3,6 +3,7 @@ import "./App.css";
 
 import { DAX } from "./libs/DanAjax.js"; // A library to make Fetch calls a little easier
 
+import { game } from "./game.jsx";
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
@@ -21,67 +22,6 @@ export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http:/
    To build this project, run 'npm run build' from the command line.
    Note that you will need to change the homepage variable within package.json
 */
-
-const game = {
-    blocks: [], // All functioning buildings
-    tiles: [], // All map tiles of the local map
-    timerLoop: null, // This gets updated to a timer handle when the game starts
-    updateWorkers: null, // This gets assigned to React's setWorkers call
-    updateLocalMap: null, // This also gets assigned to a React callback
-    workers: [], // List of all workers (with stats)
-    tickTime: 0,
-    timeout: null, // We keep this handle so that the timeout can be interrupted
-    clockCheck: 0,
-
-    setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
-        // A public function to set up game basics
-        // parameters:
-        //  localTiles - array of the local tiles, as received by the server
-        //  localWorkers - array of the local workers, as received by the server
-        //  funcUpdateTiles - callback function from React to update all game tiles
-        //  funcUpdateWorkers - callback function from React to udpate all workers
-
-        game.tiles = localTiles;
-        game.workers = localWorkers;
-        game.updateLocalMap = funcUpdateTiles;
-        game.updateWorkers = funcUpdateWorkers;
-    },
-
-    startGame: () => {
-        // A public function to handle starting the game's timer
-        game.tickTime = new Date().valueOf();
-        game.timeout = setTimeout(function () {
-            window.requestAnimationFrame(game.tick);
-        }, 50);
-    },
-
-    stopGame: () => {
-        // A public function to stop the game
-        clearTimeout(game.timeout);
-        game.timeout = null;
-    },
-
-    tick: () => {
-        // Handles updates to the local world. This function should run about once every 50 ticks, or 20 times a second
-
-        // Do work here //
-        game.clockCheck++;
-        if (game.clockCheck % 20 === 0) console.log("tick...");
-
-        // Handle time management
-        let newTime = new Date().valueOf();
-        let timeDiff = newTime - game.tickTime;
-        game.tickTime = newTime;
-        // timeDiff is the amount of time from last frame to this frame. It should be about 50 milliseconds, including the time
-        // it took to complete the frame. If the game is running slow, this value will be larger; so we will need to reduce the
-        // timeout length to compensate
-        timeDiff -= 50;
-        if (timeDiff < 0) timeDiff = 0;
-        game.timeout = setTimeout(function () {
-            window.requestAnimationFrame(game.tick);
-        }, 50 - timeDiff);
-    },
-};
 
 function App() {
     const [page, setPage] = React.useState("HomePage");

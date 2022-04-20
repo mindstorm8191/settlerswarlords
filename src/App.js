@@ -76,9 +76,11 @@ function App() {
         // Turn the worker data into objects. For new players, this will be relatively blank
         let lastWorkerId = 1;
         pack.workers = pack.workers.map((ele) => {
-            ele.currentTask = "";
+            ele.task = "";
+            ele.assignedBlock = 0; // We will only hold the ID of the building we are working at. This will be easier to load, or drop when buildings vanish
             ele.carrying = [];
             ele.id = lastWorkerId;
+            ele.aiding = 0; // This will be the ID of the user that they are helping
             lastWorkerId++;
             return ele;
         });

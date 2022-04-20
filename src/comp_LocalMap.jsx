@@ -148,7 +148,26 @@ export function LocalMap(props) {
 }
 
 function LocalMapBuildingDetail(props) {
-    return <div>Ooooh, its a building!</div>;
+    // Shows content of the selected building on the right-side panel
+    // prop fields - data
+    //      bid - ID of the correct building to show
+
+    // Start with verifying input
+    if(typeof(props.bid)!=='number') return <>Error: LocalMapBuildingDetail requires a bid (id of the building), what it received isn't a number</>;
+
+    // get the correct building object from Game
+    const block = game.blockList.find(ele=>parseInt(ele.id)===parseInt(props.bid));
+    if(typeof(block)==='undefined') return <>Error: Did not find building id={props.bid}</>;
+    if(typeof(block.SidePanel)==='undefined') return <>Error: Block missing SidePanel function (type={block.name})</>;
+
+    const SidePanel = block.SidePanel; // This lets us use the block's function as a fully functioning React component. Makes it easy!
+
+    return <>
+        <div style={{width:"100%", textAlign:'center', fontWeight:'bold'}}>{block.name}</div>
+        <p>{block.descr}</p>
+        <p>{block.usage}</p>
+        <SidePanel />
+    </>
 }
 
 function EmptyLandDescription(props) {

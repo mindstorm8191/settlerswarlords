@@ -34,6 +34,7 @@
     return b;
 }*/
 
+import {minimapTiles} from "./comp_LocalMap.jsx";
 import {LeanTo} from "./structures/LeanTo.jsx";
 
 export const game = {
@@ -105,10 +106,7 @@ export const game = {
         let hasWorkerUpdate = false; // we only want to update the local map if any workers have actually moved, or something
         game.workers.forEach((wk)=> {
             // First, see if they are working at a particular building
-            if(wk.assignedBlock!==0) {
-                // Determine what needs to be done here
-                //console.log(wk.name +' working at '+ game.getBlock(wk.assignedBlock).name);
-            }else{
+            if(wk.assignedBlock===0) {
                 // This worker currently has no work. Let's see if we can find an important task for it to work on
                 // Find a block that needs work done
                 let target = game.blockList.find(block=> {
@@ -127,7 +125,7 @@ export const game = {
                     // Since no other buildings need work, go find someone to help out
                     let aid = game.workers.find(aa=> {
                         if(aa.id===wk.id) return false; // Make sure we're not checking ourselves first; each worker has a unique ID
-                        if(aa.assignedBlock===null) return false; // This worker doesn't have an assigned block
+                        if(aa.assignedBlock===0) return false; // This worker doesn't have an assigned block
                         // Sometimes workers will already be aiding others. We want all workers to be aiding only one - they'll be in charge
                         if(typeof(aa.aiding)==='undefined' || typeof(aa.aiding)==='null') return true;
                         return false;
@@ -138,6 +136,70 @@ export const game = {
                     }
                     // If that didn't work, well I guess there's nothing for them to do
                 }
+            }
+            if(wk.assignedBlock===0) return;  // We should have 
+
+            // Now, our action depends on what task we currently have
+            switch(wk.task) {
+                case "construct":
+                    // Here, we need to get to the building location, then doWork().
+                    // Start by comparing this worker's location to the building's location
+                    let block = game.blockList.find(e=>e.id===wk.assignedBlock);
+                    if(block===null) {
+                        console.log('Worker error: could not find block id='+ wk.assignedBlock);
+                        // Rather than leaving this worker in this state (posting console content 20 times a second), let's clear our
+                        // this worker's current task
+                        wk.assignedBlock = 0;
+                        wk.task = '';
+                    }
+                    if(block.x===wk.x && block.y===wk.y) {
+                        let hasMoreWork = block.doWork();
+                        if(!hasMoreWork) {
+                            wk.assignedBlock = 0;
+                            wk.task = '';
+                        }
+                    }else{
+                        // We're not at the correct location. 
+                        // Every worker will have a travel counter. When it reaches zero, the worker
+                        // will move to the next block. We will need to set this when they first decide
+                        // to begin moving. Its value will depend on the tile they're currently on.
+                        if(wk.moveCounter>0) {
+                            wk.moveCounter--;
+                        } else {
+                            // At some point (soon) we will need workers to decide on a fastest
+                            // path route to a target. Path information should be determined
+                            // by that, not all this
+                            
+                            // First, see if we can update the X coordinate
+                            wk.x += (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x); // This gives us -1,0 or 1 to decide which way to go
+                            wk.y += (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
+                            // Do those formulas again, for the new location
+                            let diffx = (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x);
+                            let diffy = (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
+                            let distance = 1.4;
+                            if(diffx===0 || diffy===0) distance = 1;
+                            // Determine what kind of land this worker is currently standing in. That will decide how long the worker takes to
+                            // get through it. Water will be slowest, plains will be fairly fast, developed flat spaces will be fastest
+                            // First, though, we need to access the correct tile, then static info about that tile
+                            let tile = game.tiles.find(e=>e.x===wk.x && e.y===wk.y);
+                            let landType = (tile.newlandtype===-1)? tile.landtype : tile.newlandtype;
+                            let tileType = minimapTiles.find(f=>f.id===landType);
+                            if(typeof(tileType)==='undefined') {
+                                wk.moveCounter = 51;
+                            }else{
+                                wk.moveCounter = tileType.walkLag;
+                            }
+                            // Since this user's location has changed, we need to trigger map re-rendering
+                            hasWorkerUpdate = true;
+                        }
+                    }
+                break;
+            }
+            
+            // Determine if we need to udpate rendering from worker changes
+            if(hasWorkerUpdate) {
+                game.updateWorkers(game.workers);
+                game.updateLocalMap([...game.tiles]);
             }
         });
 

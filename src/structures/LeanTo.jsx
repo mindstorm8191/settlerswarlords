@@ -17,6 +17,8 @@ export function LeanTo(tile) {
     // Next, create our object. We need to do this so the object can be modified (with Object Composition) before returning it
     let b = {
         id: game.getNextBlockId(),
+        x: tile.x,
+        y: tile.y,
         name: 'Lean-To',
         descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
                 for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
@@ -44,6 +46,17 @@ export function LeanTo(tile) {
             if(b.mode!=='build') return 'none';
             return 'construct';
             // 'construct' requires that the worker goes to the structure's location. Once there, they can doWork().
+        },
+        doWork: (action) => {
+            // Allows a worker to do work at this building
+            // Since there is only one action here, we won't worry about the action value we get
+            if(b.mode!=='build') return false;
+            b.progressBar++;
+            if(b.progressBar>=b.progressBarMax) {
+                b.mode = 'use';
+                return false;
+            }
+            return true;
         },
 
         SidePanel: (props)=>{

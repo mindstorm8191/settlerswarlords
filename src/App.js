@@ -8,8 +8,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-2) Get the left side panel displaying content properly
-3) Add a lean-to and allow it to be built
+1) Get workers to move around & get places they need to be
+2) Get workers to build the lean-to
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

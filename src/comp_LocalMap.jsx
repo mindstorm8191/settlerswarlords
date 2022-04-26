@@ -89,6 +89,16 @@ export function LocalMap(props) {
                             return parseInt(ele.x)===parseInt(tile.x) && parseInt(ele.y)===parseInt(tile.y);
                         });
 
+                        // We also need to determine what image to show as the background
+                        let targetTile = parseInt(tile.landtype);
+                        if(tile.newlandtype!==-1) targetTile = tile.newlandtype;
+                        targetTile = minimapTiles.find(e=>e.id===targetTile);
+                        if(typeof(targetTile)==='undefined') {
+                            targetTile = "snow.png";
+                        }else{
+                            targetTile = targetTile.img;
+                        }
+                        
                         return (
                             <div
                                 key={key}
@@ -96,12 +106,7 @@ export function LocalMap(props) {
                                 style={{
                                     top: tile.y * 42,
                                     left: tile.x * 42,
-                                    backgroundImage:
-                                        "url(" +
-                                        imageURL +
-                                        "localtiles/" +
-                                        minimapImages[parseInt(tile.newlandtype) === -1 ? tile.landtype : tile.newlandtype] +
-                                        ")",
+                                    backgroundImage: `url(${imageURL}localtiles/${targetTile})`,
                                 }}
                                 onClick={()=>{
                                     if(buildSelected!==null) {
@@ -175,86 +180,52 @@ function EmptyLandDescription(props) {
     // Collects the correct land type from the tile that is selected
 
     // These are the natural land formations
-    let landType = (props.tile.newlandtype===-1)?props.tile.landtype:props.tile.newlandtype
-    let response='';
-    switch(landType) {
-        case 0: response='Wheat. Tasteful grains for a variety of uses'; break;
-        case 1: response='Oat. Hearty grains for many purposes'; break;
-        case 2: response='Rye. Makes a sour tasting bread'; break;
-        case 3: response='Barley. A nutty grain'; break;
-        case 4: response="Millet. It's good for you"; break;
-        case 5: response='Maple trees. Its sap is useful for syrups'; break;
-        case 6: response='Birch trees. Its bark is good for making ropes'; break;
-        case 7: response='Oak trees. Provides acorns - edible in a pinch'; break;
-        case 8: response='Mahogany trees. Provides lots of shade'; break;
-        case 9: response='Pine trees. Green year-round, and provides pinecones'; break;
-        case 10: response='Cedar trees. Grows all and straight'; break;
-        case 11: response='Fir trees. Strong trees that make lots of sticks'; break;
-        case 12: response='Hemlock trees. Grows tall in tight clusters'; break;
-        case 13: response='Cherry trees. Makes a tart fruit, good for many dishes'; break;
-        case 14: response='Apple trees. Delicious fruits that everyone enjoys'; break;
-        case 15: response='Pear trees. Tasty fruits that excel in colder climates'; break;
-        case 16: response='Orange trees. Sweet fruits that enjoy warmer climates'; break;
-        case 17: response='Hawthorne trees. It seems to pulse with extra energy'; break;
-        case 18: response="Dogwood trees. You wouldn't think this would grow here, but it's determined"; break;
-        case 19: response='Locust trees. It seems to glow in the sunlight'; break;
-        case 20: response='Juniper trees. It seems to come alive at night'; break;
-        case 21: response='Barren rock. Easy source of stone materials and building on'; break;
-        case 22: response='Desert sands. Hot, dusty and hard to build on'; break;
-        case 23: response='Sitting water. Lots of life grows in it, but drinking it makes you sick'; break;
-        case 24: response='Hot lava! Very dangerous, even from a distance'; break;
-        case 25: response='Slick ice. Very cold'; break;
-        case 26: response='Snowed-over ground. Very cold'; break;
-        case 27: response='Flowing water through a stream'; break;
-        case 28: response='Wet grounds. Some grass, mostly water'; break;
-        case 29: response="Rugged cliff. Don't get close to the edge"; break;
-        case 30: response='Creek-side rubble. Lots of tiny rocks that the stream washed in'; break;
-        case 31: response='Creek bank. The streams are slowly eroding this wall'; break;
-        // Now we get into the man-made land types
-        case 32: response='Short grass space. Nothing major here, good for new projects'; break;
-        case 33: response='Active farm space.'; break;
-        case 34: response='Open dirt pit. Too much traffic for plants to grow here'; break;
-        case 35: response="Flat gravel surface. Won't turn into a muddy mess in the rain"; break;
-        // We'll add wood flooring, concrete, carpets, tile, etc when we reach those points
-        default: response="Oops, there's no description of land type "+ landType; break
+    let landType = (props.tile.newlandtype===-1)?props.tile.landtype:props.tile.newlandtype;
+
+    // We now have all land descriptions in the minimapTiles array. Find the correct one to show
+    let tile = minimapTiles.find(e=>e.id===landType);
+    if(typeof(tile)==='undefined') {
+        // Oops, we didn't find this tile
+        return <p>Oops, there's no description for land type where id={landType}</p>;
     }
-    return <p>{response}</p>;
+    return <p>{tile.desc}</p>;
 }
 
-export const minimapImages = [
-    "wheatgrass.png", // 0: wheat
-    "oatgrass.png", // 1: oat
-    "ryegrass.png", // 2: rye
-    "barleygrass.png", // 3: barley
-    "milletgrass.png", // 4: millet
-    "mapletreeone.jpg", // 5: maple
-    "mapletreeone.jpg", // 6: birch
-    "mapletreeone.jpg", // 7: oak
-    "mapletreeone.jpg", // 8: mahogany
-    "pinetreetwo.jpg", // 9: pine
-    "pinetreetwo.jpg", // 10: cedar
-    "pinetreetwo.jpg", // 11: fir
-    "pinetreetwo.jpg", // 12: hemlock
-    "cherrytreeone.jpg", // 13: cherry
-    "appletreeone.jpg", // 14: apple
-    "peartreeone.jpg", // 15: pear
-    "orangetreeone.jpg", // 16: orange
-    "mapletreeone.jpg", // 17: hawthorne
-    "mapletreeone.jpg", // 18: dogwood
-    "mapletreeone.jpg", // 19: locust
-    "pinetreeone.jpg", // 20: juniper
-    "basicrock.jpg", // 21
-    "desert.jpg", // 22
-    "smallpond.jpg", // 23
-    "lava.png", // 24
-    "ice.png", // 25
-    "snow.png", // 26
-    "smallpond.jpg", // 27 stream
-    "emptygrass.jpg", // 28 wetland
-    "basicrock.jpg", // 29 cliff
-    "smallpond.jpg", // 30 creekwash
-    "basicrock.jpg", // 31 creekbank
-    "emptygrass.jpg", // 32 empty grass
-    "farmplot.png", // 33 farm plot
+export const minimapTiles = [
+    {id:0, img:'wheatgrass.png', desc: 'Wheat. Tasteful grains for a variety of uses', walkLag: 6},
+    {id:1, img:'oatgrass.png',     desc: 'Oat. Hearty grains for many purposes',         walkLag: 6},
+    {id:2, img:'ryegrass.png',     desc: 'Rye. Makes a sour tasting bread', walkLag: 6},
+    {id:3, img:'barleygrass.png',  desc: 'Barley. A nutty grain',                       walkLag: 6},
+    {id:4, img:'milletgrass.png',  desc: 'Millet. Its good for you',                    walkLag: 8},
+    {id:5, img:'mapletreeone.jpg', desc: 'Maple trees. Its sap is useful for syrups',  walkLag: 8},
+    {id:6, img:'mapletreeone.jpg', desc: 'Birch trees. Its bark is good for making ropes', walkLag: 8},
+    {id: 7, img:'mapletreeone.jpg', desc: 'Oak trees. Provides acorns - edible in a pinch', walkLag: 8},
+    {id: 8, img:'mapletreeone.jpg',  desc: 'Mahogany trees. Provides lots of shade',                                      walkLag: 8},
+    {id: 9, img:'pinetreetwo.jpg',   desc: 'Pine trees. Green year-round, and provides pinecones',                        walkLag: 8},
+    {id:10, img:'pinetreetwo.jpg',   desc: 'Cedar trees. Grows tall and straight',                                        walkLag: 8},
+    {id:11, img:'pinetreetwo.jpg',   desc: 'Fir trees. Strong trees that make lots of sticks',                            walkLag: 8},
+    {id:12, img:'pinetreetwo.jpg',   desc: 'Hemlock trees. Grows tall in tight clusters',                                 walkLag: 8},
+    {id:13, img:'cherrytreeone.jpg', desc: 'Cherry trees. Makes a tart fruit, good for many dishes',                      walkLag: 8},
+    {id:14, img:'appletreeone.jpg',  desc: 'Apple trees. Delicious fruits that everyone enjoys',                          walkLag: 8},
+    {id:15, img:'peartreeone.jpg',   desc: 'Pear trees. Tasty fruits that excel in colder climates',                      walkLag: 8},
+    {id:16, img:'orangetreeone.jpg', desc: 'Orange trees. Sweet fruits that enjoy warmer climates',                       walkLag: 8},
+    {id:17, img:'mapletreeone.jpg',  desc: 'Hawthorne trees. It seems to pulse with extra energy',                        walkLag: 8},
+    {id:18, img:'mapletreeone.jpg',  desc: "Dogwood trees. You wouldn't think this would grow here, but it's determined", walkLag: 8},
+    {id:19, img:'mapletreeone.jpg',  desc: 'Locust trees. It seems to have an extra glow in the sunlight',                walkLag: 8},
+    {id:20, img:'pinetreeone.jpg',   desc: 'Juniper trees. It seems to come alive at night',                              walkLag: 8},
+    {id:21, img:'basicrock.jpg',     desc: 'Barren rock. Easy source of stone materials and building on',                 walkLag: 5},
+    {id:22, img:'desert.jpg',        desc: 'Desert sands. Hot, dusty and hard to build on',                               walkLag: 6},
+    {id:23, img:'smallpond.jpg',     desc: 'Sitting water. Lots of life grows in it, but drinking it makes you sick',     walkLag: 25},
+    {id:24, img:'lava.png',          desc: 'Hot lava! Very dangerous, even from a distance',                              walkLag: 50},
+    {id:25, img:'ice.png',           desc: 'Slick ice. Very cold',                                                        walkLag: 10},
+    {id:26, img:'snow.png',          desc: 'Snowed-over ground. Very cold',                                               walkLag: 14},
+    {id:27, img:'smallpond.jpg',     desc: 'Flowing water through a stream',                                              walkLag: 25},
+    {id:28, img:'emptygrass.jpg',    desc: 'Wet grounds. Some grass, mostly water',                                       walkLag: 20},
+    {id:29, img:'basicrock.jpg',     desc: "Rugged cliff. Don't get close to the edge",                                   walkLag: 80},
+    {id:30, img:'smallpond.jpg',     desc: 'Creek-side rubble. Lots of tiny rocks that the stream washed in',             walkLag: 15},
+    {id:31, img:'basicrock.jpg',     desc: 'Creek bank. The streams are slowly eroding this wall',                        walkLag: 20},
+    {id:32, img:'emptygrass.jpg',    desc: 'Short grass space. Nothing major here, good for new projects',                walkLag: 6},
+    {id:33, img:'farmplot.png',      desc: 'Active farm space.',                                                          walkLag: 12},
+    {id:34, img:'basicdirt.jpg',     desc: 'Open dirt pit. Too much foot traffic for plants to grow here',                walkLag: 6},
+    {id:35, img:'basicrock.jpg',     desc: "Flat gravel surface. Won't turn into a muddy mess in the rain",               walkLag: 4}
 ];
-

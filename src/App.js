@@ -8,8 +8,11 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get workers to move around & get places they need to be
-2) Get workers to build the lean-to
+1) Fix bug: workers are still allowed to assist one at the Forage Post
+2) Fix bug: Workers seem to go straight to the Forage Post, instead of trying to locate food first. Need to see 'what they're thinking'
+1) Add bush types to worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
+1) Get the Forage Post collecting food, as planned
+2) Create the Rock Knapper, get workers to automatically build things there
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -73,17 +76,8 @@ function App() {
             return ele;
         });
 
-        // Turn the worker data into objects. For new players, this will be relatively blank
-        let lastWorkerId = 1;
-        pack.workers = pack.workers.map((ele) => {
-            ele.task = "";
-            ele.assignedBlock = 0; // We will only hold the ID of the building we are working at. This will be easier to load, or drop when buildings vanish
-            ele.carrying = [];
-            ele.id = lastWorkerId;
-            ele.aiding = 0; // This will be the ID of the user that they are helping
-            lastWorkerId++;
-            return ele;
-        });
+        // Turn the worker data into objects. For new players, this will be relatively blank. This is now in the game object
+        pack.workers = game.prepWorkers(pack.workers);
 
         // Use localStorage to keep the user's ID & access code
         localStorage.setItem("userid", pack.userid);

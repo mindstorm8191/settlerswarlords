@@ -162,8 +162,8 @@ function LocalMapBuildingDetail(props) {
 
     // get the correct building object from Game
     const block = game.blockList.find(ele=>parseInt(ele.id)===parseInt(props.bid));
-    if(typeof(block)==='undefined') return <>Error: Did not find building id={props.bid}</>;
-    if(typeof(block.SidePanel)==='undefined') return <>Error: Block missing SidePanel function (type={block.name})</>;
+    if(typeof(block)==='undefined') return <div style={{backgroundColor:'pink'}}>Error: Did not find building id={props.bid}</div>;
+    if(typeof(block.SidePanel)==='undefined') return <div style={{backgroundColor:'pink'}}>Error: Block missing SidePanel function (type={block.name})</div>;
 
     const SidePanel = block.SidePanel; // This lets us use the block's function as a fully functioning React component. Makes it easy!
 

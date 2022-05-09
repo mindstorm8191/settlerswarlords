@@ -33,8 +33,12 @@ export function LeanTo(tile) {
 
         hasWork: () => {
             // Returns true if this building has work available
-            if(b.assignedWorkers.length>0) return false;
             if(b.mode!=='build') return false;
+            if(b.assignedWorkers.length>0) return false; // Since this only has a build option, we only need one worker here
+            return true;
+        },
+        canAssist: ()=>{
+            // Returns true or false if other workers can assist someone on a task at this building
             return true;
         },
         assignWorker: (newWorker) => {
@@ -43,8 +47,12 @@ export function LeanTo(tile) {
         },
         getTask: (worker) => {
             // Gives a worker a task to complete at this building
-            if(b.mode!=='build') return 'none';
-            return 'construct';
+            if(b.mode!=='build') return;
+            worker.task = 'construct';
+            worker.targetx = b.x;
+            worker.targety = b.y;
+            
+            return worker;
             // 'construct' requires that the worker goes to the structure's location. Once there, they can doWork().
         },
         doWork: (action) => {
@@ -52,8 +60,11 @@ export function LeanTo(tile) {
             // Since there is only one action here, we won't worry about the action value we get
             if(b.mode!=='build') return false;
             b.progressBar++;
+            //if(b.progressBar%100===0) console.log("Lean-to building...");
+            
             if(b.progressBar>=b.progressBarMax) {
                 b.mode = 'use';
+                console.log("Lean-to is ready for use!");
                 return false;
             }
             return true;

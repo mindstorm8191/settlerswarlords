@@ -8,8 +8,9 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Fix bug: workers are still allowed to assist one at the Forage Post
-2) Fix bug: Workers seem to go straight to the Forage Post, instead of trying to locate food first. Need to see 'what they're thinking'
+1) Fix bug: Workers seem to never get a new task from a building, if it got cancelled somehow. This is because the building's workers
+    list is never corrected when they stop working. We should streamline the task of clearing out work
+
 1) Add bush types to worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 1) Get the Forage Post collecting food, as planned
 2) Create the Rock Knapper, get workers to automatically build things there

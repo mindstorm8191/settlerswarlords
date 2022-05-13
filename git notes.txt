@@ -1,3 +1,14 @@
 Notes on how to use Git
 
 Saving local master copy to Github: 'git push'
+
+It's been a while since I've done any freelancing, but I want to get back into it. I have been programming for over 20
+years, dating all the way back to high school where I learned QBasic. Now, my specialty is web applications;
+I focus on the functionality of a website over the aesthetics. My strongest skills are React.js for front end, and
+PHP for back end. I can use other tools (node.js, JQuery, React Native) if you need them, and I am not afraid to learn
+new tools if the job needs them. For me, no job is too big or small.
+Unfortunately, time may become an issue. My current job has been running overtime regularly for months now, with no signs
+of letting up. I can still offer 4 hours every week, and I will try to increase that if I'm able. I usually don't get
+home until after 5:30, I'll be unable to communicate until then.
+If you're still interested, my rate is $15/hr; I think that charging by the hour is the most fair exchange for the work I
+put in. Feel free to message me here at any time, and I will work with you to determine the best way to service your needs.

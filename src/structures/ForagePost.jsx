@@ -64,6 +64,7 @@ export function ForagePost(tile) {
             worker.targety = targety;
             worker.task = 'fetchitem';
             worker.targetitem = 'Apple';
+            //console.log(worker.name +' is to get '+ worker.targetitem +' at ['+ worker.targetx +','+ worker.targety +'] for building at ['+ b.x +','+ b.y +']');
             return worker;
         }
     };

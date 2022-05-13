@@ -17,8 +17,14 @@ the login credentials for your database.
 
 Next, navigate to the project's root folder using Command Prompt, and run 'npm install'. This will set up everything needed for the client code.
 
-Once done, you can run 'npm start' to start the client code. If WAMP is running and your serverURL & imageURL variables are set up, you will be ready to go!
+Once done, you can run 'npm start' to start the client code. If WAMP is running and your serverURL & imageURL variables are set correctly, you will see the banner image at top - you're ready to go! The database tables start empty; the world is generated when the first player creates an account. So sign yourself up and see what you can do!
 
 ## Development
 
-There is a lot planned for this game, and a lot to get done. Ultimately, I want players to be able to utilize technology to advance their abilities in a variety of ways (here's a current [tech tree](/techtree.md)). Currently, I only have the home page set up, but I have a large portion of code from previous iterations of this project that I can plug in... this will provide a general world structure to start from. After that, the code to control workers will need to be created, and we can go from there.
+There is a lot planned for this game, and a lot to get done. Ultimately, I want players to have to work toward unlocking new technologies, relying on automating common tasks to make the process easier. Here are a few progression trees:
+
+-   [Tech Tree](/techtree.md)
+-   [Automation Path](/automationtree.md)
+-   [Means of War](/wartree.md)
+
+Currently, players can start playing the game, but there's only two structures available: the lean-to and forage post. I am still working on getting workers to accept tasks properly.

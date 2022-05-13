@@ -53,6 +53,7 @@ export const game = {
                 wk.id = game.lastWorkerId;
             }
             if(typeof(wk.aiding)==='undefined') wk.aiding = 0; // This will be the ID of the user that they are helping
+            if(typeof(wk.moveCounter)==='undefined') wk.moveCounter = 0;
             return wk;
         });
     },
@@ -155,90 +156,37 @@ export const game = {
                 }
             }
             if(wk.assignedBlock===0) return wk;  // We should have received a task from above, but sometimes we don't
+            let workerUpdate = false;
 
             // Now, our action depends on what task we currently have
             switch(wk.task) {
                 case "construct":
                     // Here, we need to get to the building location, then doWork().
                     // Start by comparing this worker's location to the building's location
-                    /*
-                    if(wk.name==='Igor') {
-                        clockCounter++;
-                        if(clockCounter%20===0) {
-                            console.log(wk);
+
+                    [wk,workerUpdate] = moveWorker(wk, (wo) => {
+                        // Now, we need the block instance, so we can call its functions
+                        block = game.blockList.find(e=>e.id===wk.assignedBlock);
+                        if(typeof(block)==='undefined') {
+                            console.log(`${wo.name} tried to work at building id=${wo.assignedBlock} but it doesn't exist? Task cancelled`);
+                            wo.assignedBlock = 0;
+                            wo.task = '';
+                            return wo;
                         }
-                    }*/
-                    
-                    block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                    if(block===null) {
-                        console.log('Worker error: could not find block id='+ wk.assignedBlock);
-                        // Rather than leaving this worker in this state (posting console content 20 times a second), let's clear our
-                        // this worker's current task
-                        wk.assignedBlock = 0;
-                        wk.task = '';
-                    }
-                    if(block.x===wk.x && block.y===wk.y) {
+
                         let hasMoreWork = block.doWork();
                         if(!hasMoreWork) {
-                            wk.assignedBlock = 0;
-                            wk.task = '';
+                            wo.assignedBlock = 0;
+                            wo.task = '';
                         }
-                    }else{
-                        // We're not at the correct location. 
-                        // While we're going there, keep checking that there is still work to do; someone else could have finished it
-                        //if(!block.hasWork()) break;
-
-                        // Every worker will have a travel counter. When it reaches zero, the worker will move to the next block.
-                        // We will need to set this when they first decide to begin moving. Its value will depend on the tile they're
-                        // currently on.
-                        if(wk.moveCounter>0) {
-                            wk.moveCounter--;
-                        } else {
-                            // At some point (soon) we will need workers to decide on a fastest
-                            // path route to a target. Path information should be determined
-                            // by that, not all this
-                            
-                            // First, see if we can update the X coordinate
-                            wk.x += (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x); // This gives us -1,0 or 1 to decide which way to go
-                            wk.y += (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
-                            // Do those formulas again, for the new location
-                            let diffx = (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x);
-                            let diffy = (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
-                            let distance = 1.4;
-                            if(diffx===0 || diffy===0) distance = 1;
-                            // Determine what kind of land this worker is currently standing in. That will decide how long the worker takes to
-                            // get through it. Water will be slowest, plains will be fairly fast, developed flat spaces will be fastest
-                            // First, though, we need to access the correct tile, then static info about that tile
-                            let tile = game.tiles.find(e=>e.x===wk.x && e.y===wk.y);
-                            let landType = (tile.newlandtype===-1)? tile.landtype : tile.newlandtype;
-                            let tileType = minimapTiles.find(f=>f.id===landType);
-                            if(typeof(tileType)==='undefined') {
-                                wk.moveCounter = 51;
-                            } else {
-                                wk.moveCounter = tileType.walkLag * distance;
-                            }
-                            // Since this user's location has changed, we need to trigger map re-rendering
-                            hasWorkerUpdate = true;
-                        }
-                    }
+                        return wo;
+                    });
                 break;
 
                 case 'fetchitem':
                     // Here, we need to (again) get to a certain location. This time, the location is stored in targetx and targety
                     // of the worker.
-                    // First, some error checking
-                    if(typeof(wk.targetx)==='undefined') {
-                        console.log('Error: worker '+ wk.name +' has task fetchitem but targetx not defined. Task cancelled');
-                        wk.assignedBlock = 0;
-                        wk.task = '';
-                        return wk;
-                    }
-                    if(typeof(wk.targety)==='undefined') {
-                        console.log('Error: worker '+ wk.name +' has task fetchitem but targety not defined. Task cancelled');
-                        wk.assignedBlock = 0;
-                        wk.task = '';
-                        return wk;
-                    }
+
                     if(typeof(wk.targetitem)==='undefined') {
                         console.log('Error: worker '+ wk.name +' has task fetchitem but target item not defined. Task cancelled');
                         wk.assignedBlock = 0;
@@ -246,112 +194,64 @@ export const game = {
                         return wk;
                     }
                     if(typeof(wk.carrying)==='undefined') wk.carrying = [];  // This seems like an error we can just correct on the spot
-                    if(wk.x===wk.targetx && wk.y===wk.targety) {
-                        // We have reached our destination!
-                        // Decide if this is where we pick up the item, or drop it off. That will be decided by the block's location
-                        block = game.blockList.find(e=>e.id===wk.assignedBlock);
+                    let workerUpdate = false;
+                    [wk, workerUpdate] = moveWorker(wk, wo => {
+                        // returns the worker object when finished
+                        
+                        // Before doing anything, we need data about both the block we're working for, and the tile the worker is at
+                        block = game.blockList.find(e=>e.id===wo.assignedBlock);
                         if(typeof(block)==='undefined') {
-                            console.log('Error: could not find target block with id='+ wk.assignedBlock +'. Worker task cancelled');
-                            wk.assignedBlock = 0;
-                            wk.task = '';
-                            return wk;
+                            console.log('Error: could not find target block with id='+ wo.assignedBlock +'. Worker task cancelled');
+                            wo.assignedBlock = 0;
+                            wo.task = '';
+                            return wo;
                         }
-                        if(block.x===wk.x && block.y===wk.y) {
-                            // This is where we need to place the item we picked up.
-                            // First, find the slot of the item in our inventory
-                            let slot = wk.carrying.findIndex(e=>e.name===wk.targetitem);
-                            if(slot===-1) {
-                                console.log('Error: Worker tried to place item, but not carrying it now. Item='+ wk.targetitem +', carrying size='+ wk.carrying.length +'. Worker task cancelled');
-                                wk.assignedBlock = 0;
-                                wk.task = '';
-                                return wk;
-                            }
-                            let tile=game.tiles.find(e=>e.x===wk.x && e.y===wk.y);
-                            if(typeof(tile)==='undefined') {
-                                console.log('Error: Worker tried to place item, but did not find tile at ['+ wk.x +','+ wk.y +']. Assignment cancelled');
-                                wk.assignedBlock = 0;
-                                wk.task = '';
-                            }
-                            let item = wk.carrying.splice(slot, 1);
-                            tile.items.push(item);
-                            return wk;
-                        }
-
-                        // We should be picking up an item here
-                        let tile=game.tiles.find(e=>e.x===wk.x && e.y===wk.y);
+                        let tile = game.tiles.find(e=>e.x===wo.x && e.y===wo.y);
                         if(typeof(tile)==='undefined') {
-                            console.log('Error: did not find tile at ['+ wk.x +','+ wk.y +']. Worker task cancelled');
-                            wk.assignedBlock = 0;
-                            wk.task = '';
-                            return wk;
+                            console.log(`Error: ${wo.name} tried to get/place an item, but tile not found at [${wo.x},${wo.y}]. Task cancelled`);
+                            wo.assignedBlock = 0;
+                            wo.task = ''
+                            return wo;
                         }
                         if(typeof(tile.items)==='undefined') {
-                            console.log('Error: tile at ['+ wk.x +','+ wk.y +'] doesnt have items list. Worker task cancelled');
-                            tile.items = []; // might as well add it now, right?
-                            wk.assignedBlock = 0;
-                            wk.task = '';
-                            return wk;
+                            // We can add the items list here, right?
+                            console.log(`Error: Tile at [${wo.x},${wo.y}] missing items list. It was added as empty`);
+                            tile.items = [];
                         }
-                        let slot = tile.items.findIndex(e=>e.name===wk.targetitem);
+
+                        // Now, see if we're at the pick-up place, or the put-down place
+                        if(block.x===wo.x && block.y===wo.y) {
+                            // This is where we need to place the item we picked up. First, find the slot of the item in our inventory
+                            let slot = wo.carrying.findIndex(e=>e.name===wo.targetitem);
+                            if(slot===-1) {
+                                console.log(`Error: ${wo.name} tried to place an item, but not carrying it now. Item=${wo.targetitem}, carrying size=${wo.carrying.length}. Worker task cancelled`);
+                                wo.assignedBlock = 0;
+                                wo.task = '';
+                                return wo;
+                            }
+                            let item = wo.carrying.splice(slot,1);
+                            tile.items.push(item);
+                            return block.getTask(wo);
+                        }
+
+                        // It's not the block location, so we should be picking up an item here
+                        let slot = tile.items.findIndex(e=>e.name===wo.targetitem);
                         if(slot===-1) {
                             // The target item was not found here. Don't worry, this can happen (and is common at the Forage Post)
-                            // Try to get a new task from the same block we got the previous task from
-                            let block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                            if(typeof(block)==='undefined') {
-                                console.log('Error: could not find block for worker '+ wk.name +'. Worker task cancelled');
-                                wk.assignedBlock = 0;
-                                wk.task = '';
-                                return wk;
-                            }
-                            wk = block.getTask(wk);
-                            return wk; // That should do it for this scenario
+                            // Try to get a new task from the same block
+                            return block.getTask(wo);
                         }
-                        wk.carrying.push(tile.items[slot]);
+                        wo.carrying.push(tile.items[slot]);
                         tile.items.splice(slot, 1);
-                        // Since we now have the item, we need to go to the block's location (as part of fetching an item)
-                        let block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                        if(typeof(block)==='undefined') {
-                            console.log('Error: could not find block for worker '+ wk.name +'. Worker task cancelled');
-                            wk.assignedBlock = 0;
-                            wk.task = '';
-                            return wk;
-                        }
-                        wk.targetx = block.x;
-                        wk.targety = block.y;
-                        return wk;
-                    }
+                        console.log(wo.name +' picked up a '+ wo.carrying[wo.carrying.length-1].name);
 
-                    // This worker is not at the correct location yet.
-                    if(wk.moveCounter>0) {
-                        wk.moveCounter--;
-                        return wk;
-                    }
-
-                    // This worker is ready to move to the next tile. First, fetch the correct block instance
-                    block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                    if(typeof(block)==='undefined') {
-                        console.log('Error: Did not find block id='+ wk.assignedBlock +' for worker '+ wk.name +' on move. Task cancelled');
-                        wk.assignedBlock = 0;
-                        wk.task = '';
-                        return wk;
-                    }
-                    wk.x += (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x); // This gives us -1,0 or 1 to decide which way to go
-                    wk.y += (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
-                    // Do those formulas again, for the new location
-                    let diffx = (block.x===wk.x)?0:(block.x - wk.x) / Math.abs(block.x - wk.x);
-                    let diffy = (block.y===wk.y)?0:(block.y - wk.y) / Math.abs(block.y - wk.y);
-                    let distance = 1.4;
-                    if(diffx===0 || diffy===0) distance = 1;
-                    let tile = game.tiles.find(e=>e.x===wk.x && e.y===wk.y);
-                    let landType = (tile.newlandtype===-1)? tile.landtype : tile.newlandtype;
-                    let tileType = minimapTiles.find(f=>f.id===landType);
-                    if(typeof(tileType)==='undefined') {
-                        wk.moveCounter = 51;
-                    } else {
-                        wk.moveCounter = tileType.walkLag * distance;
-                    }
-                    // Since this user's location has changed, we need to trigger map re-rendering
-                    hasWorkerUpdate = true;
+                        // Now, use the block's location as the worker's new target location
+                        wo.targetx = block.x;
+                        wo.targety = block.y;
+                        return wo;
+                    });
+                    
+                    hasWorkerUpdate = hasWorkerUpdate || workerUpdate;
                 break;
             }
             return wk;
@@ -362,8 +262,6 @@ export const game = {
             game.updateWorkers(game.workers);
             game.updateLocalMap([...game.tiles]);
         }
-        
-
         
         // This is a simple counter to represent seconds ticking by
         // game.clockCheck++;
@@ -383,3 +281,63 @@ export const game = {
         }, 50 - timeDiff);
     },
 };
+
+function moveWorker(worker, callback) {
+    // Handles worker movement. When they reach their destination, callback will be called
+    // Returns an array
+    // [0]: the worker object, which has been modified in some way
+    // [1]: true if a worker's location has been updated, or false if not
+
+    // First, some error checking
+    if(typeof(worker.targetx)==='undefined') {
+        console.log('Error: worker '+ worker.name +' has moving task but targetx not defined. Task cancelled');
+        worker.assignedBlock = 0;
+        worker.task = '';
+        return [worker, false];
+    }
+    if(typeof(worker.targety)==='undefined') {
+        console.log('Error: worker '+ worker.name +' has moving task but targety not defined. Task cancelled');
+        worker.assignedBlock = 0;
+        worker.task = '';
+        return [worker, false];
+    }
+    if(typeof(worker.moveCounter)==='undefined') {
+        console.log('Error: worker '+ worker.name +' has moving task but moveCounter not defined. It will be set to zero');
+        worker.moveCounter = 0;
+    }
+
+    // First, see if this worker is at the correct location yet
+    if(worker.x===worker.targetx && worker.y===worker.targety) {
+        return [callback(worker), false];
+    }
+
+    if(worker.moveCounter>0) {
+        worker.moveCounter--;
+        return [worker, false];
+    }
+
+    // This worker is ready to move to the next tile
+
+    worker.x += (worker.targetx===worker.x)?0:(worker.targetx - worker.x) / Math.abs(worker.targetx - worker.x); // This gives us -1,0 or 1 to decide which way to go
+    worker.y += (worker.targety===worker.y)?0:(worker.targety - worker.y) / Math.abs(worker.targety - worker.y);
+    // Do those formulas again, for the new location
+    let diffx = (worker.targetx===worker.x)?0:(worker.targetx - worker.x) / Math.abs(worker.targetx - worker.x);
+    let diffy = (worker.targety===worker.y)?0:(worker.targety - worker.y) / Math.abs(worker.targety - worker.y);
+    let distance = (diffx===0 || diffy===0)?1:1.4; // This manages extra time cost to move diagonally
+
+    let tile = game.tiles.find(e=>e.x===worker.x && e.y===worker.y);
+    if(typeof(tile)==='undefined') {
+        console.log(`Error: ${worker.name} moved to tile [${worker.x},${worker.y}] that doesn't exist.`);
+        worker.moveCounter = 1;  // Just so we can get this worker off that tile quickly
+        return [worker, true];
+    }
+    let landType = (tile.newlandtype===-1)? tile.landtype : tile.newlandtype;
+    let tileType = minimapTiles.find(f=>f.id===landType);
+    if(typeof(tileType)==='undefined') {
+        worker.moveCounter = 51;
+        console.log(`Error: ${worker.name} on tile that isn't in minimapTiles. Base tile ${tile.landtype}, new tile ${tile.newlandtype}`);
+    } else {
+        worker.moveCounter = tileType.walkLag * distance;
+    }
+    return [worker, true];
+}

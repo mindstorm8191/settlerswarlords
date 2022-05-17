@@ -54,7 +54,7 @@
         ['id'=>28, 'name'=>'Sludge Elemental',      'image'=>'', 'desc'=>'An abomination made of only water and sludge. Weapons do nothing to harm it'],
         ['id'=>29, 'name'=>'Necromancer',           'image'=>'', 'desc'=>'A magician, surrounding itself with undead, using its minions to do its bidding'],
         ['id'=>30, 'name'=>'Swamp Horror',          'image'=>'', 'desc'=>'A giant monster borne of the swamps, nothing seems to slow it down'],
-        ['id'=>31, 'name'=>'Swirl Altar',           'image'=>'', 'desc'=>'An altar making things around it twist and swirld. Is it safe to approach?'],
+        ['id'=>31, 'name'=>'Swirl Altar',           'image'=>'', 'desc'=>'An altar making things around it twist and swirl. Is it safe to approach?'],
         ['id'=>32, 'name'=>'Dolphin Pod',           'image'=>'', 'desc'=>'Intelligent sea creatures, hunting in packs'],
         ['id'=>33, 'name'=>'Water Elemental',       'image'=>'', 'desc'=>'A creature made entirely of water, nothing seems to harm it'],
         ['id'=>34, 'name'=>'Crustacean Cluster',    'image'=>'civcrustacean.png', 'desc'=>'Armored sea creatures large and small, using sharp pincers to kill their prey'],

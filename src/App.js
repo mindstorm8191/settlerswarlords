@@ -11,9 +11,13 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 1) Fix bug: Workers seem to never get a new task from a building, if it got cancelled somehow. This is because the building's workers
     list is never corrected when they stop working. We should streamline the task of clearing out work
 
-1) Add bush types to worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
-1) Get the Forage Post collecting food, as planned
 2) Create the Rock Knapper, get workers to automatically build things there
+
+Things to add later
+1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
+2) Have workers follow A* pathfinding for fastest route.
+3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
+    travel easier.
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

@@ -49,3 +49,5 @@ Non-player civilizations will be spread randomly across the map. I already have 
 The range of hostility to new players will have a major impact on how easily their map tiles can be explored. Friendly civilizations will invite explorers to trade with them, even sending explorers home with gifts. Hostile civilizations will kill any explorers they are able to, and can only be approached with an army of considerable size (or technology)
 
 Civilizations will be given a strength value during world gen. This determines the number of tiles that this civilization covers (which also influences how much they can trade, defend themselves or attack others). The random number generator for this is set to generate negative numbers (which is then set to zero); Zero-strength civilizations will represent abandoned lands.
+
+There are a lot of civilizations that can be generated. To see the full list and stats on them, look in server/globals.php for the array `$civData`. ...well, there's only a description, and a few have images. More stats will be generated when they become relevant in the code.

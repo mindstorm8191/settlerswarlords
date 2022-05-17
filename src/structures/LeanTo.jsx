@@ -34,6 +34,8 @@ export function LeanTo(tile) {
         hasWork: () => {
             // Returns true if this building has work available
             if(b.mode!=='build') return false;
+            // Before checking assigned workers, refresh the full list
+            b.assignedWorkers = game.blockCheckAssignedWorkers(b.id);
             if(b.assignedWorkers.length>0) return false; // Since this only has a build option, we only need one worker here
             return true;
         },

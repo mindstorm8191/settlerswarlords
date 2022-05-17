@@ -25,6 +25,9 @@ export function ForagePost(tile) {
         assignedWorkers: [],
         hasWork: () => {
             // Returns true if this building has work that can be assigned
+            
+            // Before checking assigned workers, refresh the full list
+            b.assignedWorkers = game.blockCheckAssignedWorkers(b.id);
             if(b.assignedWorkers.length>0) return false;  // This block can only accept one worker
             return true;
         },

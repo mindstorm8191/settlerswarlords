@@ -35,6 +35,14 @@ export const game = {
         return game.workers.find(e=>e.id===id);
     },
 
+    blockCheckAssignedWorkers: (blockId) => {
+        // Returns an updated list of all workers currently assigned to the given block.
+        // This will probably be moved to an add-on object for structures. But this is the only one we have right now
+
+        return game.workers.filter(wk=>wk.assignedBlock===blockId);
+        // ... well, that was a lot simpler than expected. Whatever
+    },
+
     blockTypes: [
         {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], unlocked:0, newFeatures:[]},
         {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], unlocked:0, newFeatures:[]}
@@ -97,15 +105,22 @@ export const game = {
         // To be honest, jobs haven't been fleshed out enough to push & pull from the database; lets not worry about that for now.
 
         let hasWorkerUpdate = false; // we only want to update the local map if any workers have actually moved, or something
+        let workerUpdate = false;
 
         // I would use forEach here, but that doesn't allow altering the state of the workers properly. However, we can use .map
         //game.workers.forEach((wk)=> {
         game.workers = game.workers.map(wk => {
             let block = null;
             // First, see if they are working at a particular building
-            if(wk.assignedBlock===0 || game.aiding!==0) {
+            if(wk.assignedBlock===0) {
                 // This worker currently has no work. Let's see if we can find an important task for it to work on
                 // Find a block that needs work done
+                // This worker may be assisting another worker, but they are still elligible to find work from another building that may need it
+
+                if(wk.name==='Eldar' && game.blockList.length>0) {
+                    console.log('Eldar assigned block is '+ wk.assignedBlock);
+                }
+                
                 let target = game.blockList.find(block=> {
                     // We could first check if there are blocks that need work, and then blocks that have work. That can be considered later
                     // First, check that the hasWork function exists
@@ -114,15 +129,16 @@ export const game = {
                 });
                 if(typeof(target)==='object') {
                     // We got a hit on a building. Let's get to work with it
-                    console.log(wk.name +' is getting work at '+ target.name);
                     target.assignWorker(wk);
                     wk.assignedBlock = target.id;
                     wk = target.getTask(wk);
+                    console.log(wk.name +' is getting work at '+ target.name +' (id='+ wk.assignedBlock +')');
                     console.log(wk.name +' has target ['+ wk.targetx +','+ wk.targety +']');
                     // We have to have the worker's instance returned from getTask. Otherwise that function cannot add additional
                     // fields to the worker instance
                     wk.aiding = 0;
                 }else{
+                    // Check if this worker is already helping someone else
                     if(wk.aiding===0) {
                         // Since no other buildings need work, go find someone to help out
                         let aid = game.workers.find(aa=> {
@@ -156,7 +172,7 @@ export const game = {
                 }
             }
             if(wk.assignedBlock===0) return wk;  // We should have received a task from above, but sometimes we don't
-            let workerUpdate = false;
+            
 
             // Now, our action depends on what task we currently have
             switch(wk.task) {
@@ -194,7 +210,7 @@ export const game = {
                         return wk;
                     }
                     if(typeof(wk.carrying)==='undefined') wk.carrying = [];  // This seems like an error we can just correct on the spot
-                    let workerUpdate = false;
+                    //let workerUpdate = false;
                     [wk, workerUpdate] = moveWorker(wk, wo => {
                         // returns the worker object when finished
                         

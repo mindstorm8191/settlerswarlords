@@ -1,6 +1,8 @@
 # Settlers and Warlords
 
-A MMO game like Evony or Travian (or Vesuvius), but focus on resource production and diplomatics instead of all-out war. It is a conceptual expansion of a previous project of mine, DanIdle, accounting for land expansion, travel limitations, and managing neighboring civilizations (some hostile).
+This game is a blend of an Idle game, a factory-builder and an MMO game. It is a conceptual expansion of a previous project of mine, DanIdle, accounting for land expansion, travel limitations, and managing neighboring civilizations (some hostile). Players will be encouraged to trade & negotiate with each other, instead of using all-out war for dominance. MMO player strength will be limited by challenges of holding large amounts of land.
+
+Players will start the game with a piece of land, and 4 workers - nothing else. They will have to manage survival needs (food, shelter, warmth, safety, health) while building their technology from the land around them. The world will be fraught with dangers, some magical and unnatural, and also other players.
 
 I have learned a lot about early technology through working on this project (How do you mine without a pickaxe? Where does twine come from? How do you ferment wine?) I hope to, if nothing else, spark interest in the subject for others.
 

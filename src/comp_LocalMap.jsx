@@ -82,7 +82,7 @@ export function LocalMap(props) {
                         );
                     })}
                 </div>
-                <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)'}}>
+                <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)', touchAction:'none'}}>
                     {props.localTiles.map((tile, key) => {
                         // For each location, we need to determine if a worker is here.
                         let hasWorker = props.localWorkers.some(ele => {

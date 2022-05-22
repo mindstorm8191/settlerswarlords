@@ -42,7 +42,8 @@ function App() {
 
     // Mobile display variables
     const [mobileMode, setMobileMode] = React.useState(false);
-    const [mobileLeftPane, setMobileLeftPane] = React.useState(false);
+    const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
+    const [mobileRightPane, setMobileRightPane] = React.useState(false); // Same for the right pane
 
     React.useEffect(() => {
         const handleResize = () => {
@@ -55,8 +56,9 @@ function App() {
             }
         };
         window.addEventListener("resize", handleResize);
-        console.log("Window update");
         return () => {
+            // This will remove the event listener when we're done with it... which I guess is when the app is closed. Which I think wouldn't
+            // really be necessary, but might as well keep it now
             window.removeEventListener("resize", handleResize);
         };
     }, []);

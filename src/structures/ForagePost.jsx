@@ -25,7 +25,7 @@ export function ForagePost(tile) {
         assignedWorkers: [],
         hasWork: () => {
             // Returns true if this building has work that can be assigned
-            
+
             // Before checking assigned workers, refresh the full list
             b.assignedWorkers = game.blockCheckAssignedWorkers(b.id);
             if(b.assignedWorkers.length>0) return false;  // This block can only accept one worker
@@ -69,6 +69,14 @@ export function ForagePost(tile) {
             worker.targetitem = 'Apple';
             //console.log(worker.name +' is to get '+ worker.targetitem +' at ['+ worker.targetx +','+ worker.targety +'] for building at ['+ b.x +','+ b.y +']');
             return worker;
+        },
+        SidePanel: ()=> {
+            // To see our inventory, we first need to grab the tile
+            let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
+            if(typeof(tile)==='undefined') {
+                return <>Error: Block's tile not found. Cannot access items</>;
+            }
+            return <>Food on hand: {tile.items.length}</>;
         }
     };
     return b;

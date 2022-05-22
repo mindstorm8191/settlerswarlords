@@ -29,5 +29,6 @@ There is a lot planned for this game, and a lot to get done. Ultimately, I want 
 -   [Automation Path](/automationtree.md)
 -   [Means of War](/wartree.md)
 -   [World Gen](/worldgen.md)
+-   [Worker Crafting](/workercrafting.md)
 
 Currently, players can start playing the game, but there's only two structures available: the lean-to and forage post. I am still working on getting workers to accept tasks properly.

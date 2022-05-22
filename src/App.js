@@ -14,6 +14,8 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 2) Create the Rock Knapper, get workers to automatically build things there
 
 Things to add later
+1) Determine a way to detect screen size, and when screen size changes within a React environment
+1) Figure out how to pick which task a new worker at the RockKnapper gets. We might pick based on any tools not already present at the block
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
@@ -37,6 +39,27 @@ function App() {
     const [localTiles, setLocalTiles] = React.useState(null);
     const [localWorkers, setLocalWorkers] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
+
+    // Mobile display variables
+    const [mobileMode, setMobileMode] = React.useState(false);
+    const [mobileLeftPane, setMobileLeftPane] = React.useState(false);
+
+    React.useEffect(() => {
+        const handleResize = () => {
+            console.log("win-width " + window.innerWidth);
+            if (window.innerWidth > 900) {
+                setMobileMode(false);
+                setMobileLeftPane(false);
+            } else {
+                setMobileMode(true);
+            }
+        };
+        window.addEventListener("resize", handleResize);
+        console.log("Window update");
+        return () => {
+            window.removeEventListener("resize", handleResize);
+        };
+    }, []);
 
     // Startup processes. We're primarily concerned about letting existing players log in automatically
     React.useEffect(() => {

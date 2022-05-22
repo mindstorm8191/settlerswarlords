@@ -108,7 +108,6 @@ export const game = {
         let workerUpdate = false;
 
         // I would use forEach here, but that doesn't allow altering the state of the workers properly. However, we can use .map
-        //game.workers.forEach((wk)=> {
         game.workers = game.workers.map(wk => {
             let block = null;
             // First, see if they are working at a particular building
@@ -117,9 +116,9 @@ export const game = {
                 // Find a block that needs work done
                 // This worker may be assisting another worker, but they are still elligible to find work from another building that may need it
 
-                if(wk.name==='Eldar' && game.blockList.length>0) {
-                    console.log('Eldar assigned block is '+ wk.assignedBlock);
-                }
+                //if(wk.name==='Eldar' && game.blockList.length>0) {
+                //    console.log('Eldar assigned block is '+ wk.assignedBlock);
+                //}
                 
                 let target = game.blockList.find(block=> {
                     // We could first check if there are blocks that need work, and then blocks that have work. That can be considered later

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Touch Test, to test drag&drop on mobile</title>
+        <!-- Set a fixed screen zoom level, even on mobile devices -->
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script src="jquery.js"></script>
+        <script>
+            function handleClick(e) {
+                console.log(e);
+            }
+        </script>
+    </head>
+    <body>
+        <div style="margin-left:100px; font-weight:bold;">Hello world!</div>
+        <p>
+            This is a test bed for Settlers & Warlords. The objective is to determine how to detect touch movements while on mobile. I hope to use
+            results from this to enable map panning on mobile.
+        </p>
+        <button id="mybutton">Mouse Over</button>
+        <div id="content"></div>
+        <script>
+            $("#mybutton").bind("click", function(e) {
+                console.log(e);
+            });
+            $("#mybutton").bind('mousemove', function(e) {
+                $("#content").html(`[${e.clientX},${e.clientY}]`);
+            });
+
+            // My knowledge of try-catch error handling is... weak. Here's a test to try it out
+            try {
+                fakeFunction(red);
+            } catch(err) {
+                console.log(err.message);
+            }
+        </script>
+    </body>
+</html>

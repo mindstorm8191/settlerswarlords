@@ -8,6 +8,10 @@ I have learned a lot about early technology through working on this project (How
 
 This is planned to be a community project. If you're interested in the game, download the project and check it out for yourself! Feel free to ask questions, post new issues, tackle existing issues and commit changes.
 
+### See it in action
+
+If you would like to see this project in action (no install necessary), I have it running at http://bookalong.x10host.com/settlerswarlords I update this on occasion, but the source here will be the latest content.
+
 ## Project Setup
 
 To get this running on your own computer, you will need WAMP (or equivalent based on your operating system) and NPM (provided when installing node.js). Make sure WAMP is running

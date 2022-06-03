@@ -10,9 +10,20 @@ import { DraggableMap } from "./comp_DraggableMap.jsx";
 
 
 export function LocalMap(props) {
+    // Displays the local map, along with everything connected to it
+    // prop fields - data
+    //      localTiles - list of all tiles of the map
+    //      localWorkers - list of all workers (and its data) on this map
+    //      mobileMode - This is set to true when the screen is too small to properly show the map and side panels too
+    // prop fields - functions
+    //      onTileUpdate - This is called when the contents of a tile changes (such as when a building is placed)
     
     const [selected, setSelected] = React.useState(null); // which tile is selected to show details on the right
     const [buildSelected, setBuildSelected] = React.useState(null); // which building is selected, or null otherwise
+
+    const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
+    const [mobileRightPane, setMobileRightPane] = React.useState(false); // Same for the right pane
+
 
     if(props.localTiles===null) {
         // This can happen when the player logs out
@@ -60,7 +71,7 @@ export function LocalMap(props) {
                 <div>Area details here</div>
             </div>
             <div style={{ display: "flex", width: "100%" }}>
-                <div style={{ width: 180 }}>
+                <div style={{ width: props.mobileMode?60:180 }}>
                     {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
                     <div>Save</div>
                     {/*List all building options currently available*/}

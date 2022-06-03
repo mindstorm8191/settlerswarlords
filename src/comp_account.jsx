@@ -20,6 +20,7 @@ export function AccountBox(props) {
     // prop fields - functions
     //      onLogin - Gets called when the user has requested to log in (or out)
     //                No, that's not correct. This gets called to handle updating app content after the server has replied
+    //      setErrorText - Allows us to change the error text shown on screen
 
     const [fields, setFields] = React.useState({ username: "", password: "" });
     const [userError, setUserError] = React.useState("");
@@ -57,6 +58,8 @@ export function AccountBox(props) {
                 }
                 props.onLogin(data);
             });
+        // While we wait for a response, let's show that we're doing something
+        props.setErrorText('Working...');
     }
 
     function handleLogout() {

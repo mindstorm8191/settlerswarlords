@@ -42,20 +42,18 @@ function App() {
     const [localWorkers, setLocalWorkers] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
 
-    // Mobile display variables
-    const [mobileMode, setMobileMode] = React.useState(false);
-    const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
-    const [mobileRightPane, setMobileRightPane] = React.useState(false); // Same for the right pane
+    // Mobile display variables. If the page is already under 900 pixels wide, enable Mobile Mode
+    const [mobileMode, setMobileMode] = React.useState(window.innerWidth > 900 ? false : true);
 
     React.useEffect(() => {
         const handleResize = () => {
-            console.log("win-width " + window.innerWidth);
             if (window.innerWidth > 900) {
                 setMobileMode(false);
-                setMobileLeftPane(false);
+                //setMobileLeftPane(false);
             } else {
                 setMobileMode(true);
             }
+            console.log("win-width " + window.innerWidth + ", " + mobileMode);
         };
         window.addEventListener("resize", handleResize);
         return () => {
@@ -143,7 +141,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} />;
+                return <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} mobileMode={mobileMode} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }
@@ -153,7 +151,7 @@ function App() {
         <div className="app">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
                 <div id="titleblock">
-                    <AccountBox onLogin={onLogin} user={userData} errorText={loginError} />
+                    <AccountBox onLogin={onLogin} user={userData} errorText={loginError} setErrorText={setLoginError} />
                     <div id="titletext">
                         Settlers & <br />
                         Warlords

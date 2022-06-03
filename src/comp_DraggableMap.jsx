@@ -82,7 +82,7 @@ export function DraggableMap(props) {
         let startX = parseInt(e.touches[0].clientX);
         let startY = parseInt(e.touches[0].clientY);
 
-        out = '[start: map '+ scrollPos.x +','+ scrollPos.y +', touch '+ startX +','+ startY +']';
+        //out = '[start: map '+ scrollPos.x +','+ scrollPos.y +', touch '+ startX +','+ startY +']';
 
         setScrollPos({...scrollPos, moveState: true, touchStartX: startX, touchStartY: startY});
         e.stopPropagation();
@@ -138,8 +138,10 @@ export function DraggableMap(props) {
             hasReported = true;
         }
         */
+        // preventDefault and stopPropagation MUST be first. Otherwise this won't function properly
+        e.preventDefault();
+        e.stopPropagation();
         try {
-            out += '[step: map '+ parseInt(e.touches[0].clientX) +','+ parseInt(e.touches[0].clientY) +', touch '+ scrollPos.touchStartX +','+ scrollPos.touchStartY +']';
             setScrollPos({
                 ...scrollPos,
                 x: scrollPos.x +(parseInt(e.touches[0].clientX) - scrollPos.touchStartX),
@@ -147,10 +149,7 @@ export function DraggableMap(props) {
                 touchStartX: parseInt(e.touches[0].clientX),
                 touchStartY: parseInt(e.touches[0].clientY)
             });
-            //touchStartX = parseInt(e.touches[0].clientX);
-            //touchStartY = parseInt(e.touches[0].clientY);
-            e.stopPropagation();
-            e.preventDefault();
+        
         } catch(err) {
             // the error object usually has a message property. Pass that to the server
             fetch(
@@ -164,6 +163,7 @@ export function DraggableMap(props) {
     }
 
     function endTouchPan(e) {
+        /*
         out += '[end: map '+ scrollPos.x +','+ scrollPos.y +', touch '+ scrollPos.touchStartX +','+ scrollPos.touchStartY +']';
         fetch(
             serverURL +'/routes/reporterror.php',
@@ -174,6 +174,7 @@ export function DraggableMap(props) {
             .then(data => {
                 // ... umm, nothing needs to be done here
             });
+        */
         setScrollPos({ ...scrollPos, moveState: false});
     }
 

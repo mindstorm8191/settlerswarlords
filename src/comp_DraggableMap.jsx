@@ -7,6 +7,19 @@ import { DAX } from "./libs/DanAjax.js";
 let hasReported = false;
 let out = '';
 
+// We need to prevent mouse drags from selecting tiles. This will be set to true when dragging starts, but not set to false by anything
+// Fortunately for us, onClick fires AFTER onMouseUp
+let dragFlag = false;
+let oldMapX = 0;
+let oldMapY = 0;
+
+// I would have exported only the dragFlag, but Javascript seems unwilling to share simple variables. It'll have to be a function
+export function clearDragFlag() {
+    let lastValue = dragFlag;
+    dragFlag = false;
+    return lastValue;
+}
+
 export function DraggableMap(props) {
     // Presents a larger-than-screen map that can be dragged by the mouse
     // props - data
@@ -20,11 +33,16 @@ export function DraggableMap(props) {
     // Note that, for all child components, any <img> tags must have `draggable="false"` included in its HTML parameters (not CSS)
 
     const [scrollPos, setScrollPos] = React.useState({ moveState: false, x: 0, y: 0, touchStartX: 0, touchStartY:0 });
+    //let oldMapX;
+    //let oldMapY;
 
     //let touchStartX = 0, touchStartY = 0;
     //let twotouchX = 0, twotouchY = 0;
 
     function startPan() {
+        //dragFlag = true;
+        oldMapX = scrollPos.x;
+        oldMapY = scrollPos.y;
         setScrollPos({ ...scrollPos, moveState: true });
     }
 
@@ -34,110 +52,35 @@ export function DraggableMap(props) {
     }
 
     function endPan() {
+        // Check if the user has moved the map's position any. We are using within() to allow for inaccuracies in the user's clicks.
+        // For example, if the user is trying to click something fast, and the mouse slides a little bit, this will still count as
+        // a non-drag click
+        if(!within(scrollPos.x, oldMapX, 5) || !within(scrollPos.y, oldMapY, 5)) {
+            dragFlag = true;
+        }
+        console.log('old spot '+ oldMapX +','+ oldMapY);
         setScrollPos({ ...scrollPos, moveState: false });
     }
 
     function startTouchPan(e) {
         // The touch interface works slightly different than the mouse interface. It has a touch array, containing all the points of contact
         // on the device... we are only concerned with the first one. We'll need to update based on first known coordinates, though
-        /*
-        if(!hasReported) {
-                // Create a full log of what data we have access to here
-            if(typeof(e.touches)==='undefined') {
-                out += '[start: e.touches isnt here]';
-            }else{
-                if(e.touches.length===0) {
-                    out += '[start: e.touches is empty]';
-                }else{
-                    if(typeof(e.touches[0].clientX)==='undefined') {
-                        out += '[start: e.touches[0].clientX isnt here]';
-                    }else{
-                        if(typeof(e.touches[0].clientY)==='undefined') {
-                            out += '[start: e.touches[0].clientY isnt here]';
-                        }else{
-                            out += '[start: e.touches[0] at '+ e.touches[0].clientX +','+ e.touches[0].clientY +']';
-            }   }   }   }
-
-            if(typeof(e.originalEvent)==='undefined') {
-                out += '[start: e.originalEvent isnt here]';
-            }else{
-                if(typeof(e.originalEvent.touches)==='undefined') {
-                    out += '[start: e.originalEvent.touches isnt here]';
-                }else{
-                    if(e.originalEvent.touches.length===0) {
-                        out += '[start: e.originalEvent.touches is empty]';
-                    }else{
-                        if(typeof(e.originalEvent.touches[0].clientX)==='undefined') {
-                            out += '[start: e.originalEvent.touches[0].clientX isnt here]';
-                        }else{
-                            if(typeof(e.originalEvent.touches[0].clientY)==='undefined') {
-                                out += '[start: e.originalEvent.touches[0].clientY isnt here]';
-                            }else{
-                                out += '[start: e.originalEvent.touches[0] at '+ e.originalEvent.touches[0].clientX +','+ e.originalEvent.touches[0].clientY +']';
-            }   }   }   }   }
-            // We don't want to update hasReported here. Wait until the first pass in continueTouchPan()
-        }
-        */
         
+        e.stopPropagation();
+        e.preventDefault();
+
         let startX = parseInt(e.touches[0].clientX);
         let startY = parseInt(e.touches[0].clientY);
+        oldMapX = scrollPos.x;
+        oldMapY = scrollPos.y;
 
         //out = '[start: map '+ scrollPos.x +','+ scrollPos.y +', touch '+ startX +','+ startY +']';
 
         setScrollPos({...scrollPos, moveState: true, touchStartX: startX, touchStartY: startY});
-        e.stopPropagation();
-        e.preventDefault();
     }
 
     function continueTouchPan(e) {
-        /*
-        if(!hasReported) {
-                // Create a full log of what data we have access to here
-            if(typeof(e.touches)==='undefined') {
-                out += '[going: e.touches isnt here]';
-            }else{
-                if(e.touches.length===0) {
-                    out += '[going: e.touches is empty]';
-                }else{
-                    if(typeof(e.touches[0].clientX)==='undefined') {
-                        out += '[going: e.touches[0].clientX isnt here]';
-                    }else{
-                        if(typeof(e.touches[0].clientY)==='undefined') {
-                            out += '[going: e.touches[0].clientY isnt here]';
-                        }else{
-                            out += '[going: e.touches[0] starts at '+ e.touches[0].clientX +','+ e.touches[0].clientY +']';
-            }   }   }   }
-
-            if(typeof(e.originalEvent)==='undefined') {
-                out += '[going: e.originalEvent isnt here]';
-            }else{
-                if(typeof(e.originalEvent.touches)==='undefined') {
-                    out += '[going: e.originalEvent.touches isnt here]';
-                }else{
-                    if(e.originalEvent.touches.length===0) {
-                        out += '[going: e.originalEvent.touches is empty]';
-                    }else{
-                        if(typeof(e.originalEvent.touches[0].clientX)==='undefined') {
-                            out += '[going: e.originalEvent.touches[0].clientX isnt here]';
-                        }else{
-                            if(typeof(e.originalEvent.touches[0].clientY)==='undefined') {
-                                out += '[going: e.originalEvent.touches[0].clientY isnt here]';
-                            }else{
-                                out += '[going: e.originalEvent.touches[0] starts at '+ e.originalEvent.touches[0].clientX +','+ e.originalEvent.touches[0].clientY +']';
-            }   }   }   }   }
-            
-            fetch(
-                serverURL + "/routes/reporterror.php",
-                DAX.serverMessage({location:'src/comp_DraggableMap->continueTouchPan()', content:out  }, false)
-            )
-                .then((res) => DAX.manageResponseConversion(res))
-                .catch((err) => console.log(err))
-                .then((data) => {
-                    // ...umm, we shouldn't receive anything other than a success... if it didn't work there's not a lot we can do
-                });
-            hasReported = true;
-        }
-        */
+        
         // preventDefault and stopPropagation MUST be first. Otherwise this won't function properly
         e.preventDefault();
         e.stopPropagation();
@@ -175,6 +118,9 @@ export function DraggableMap(props) {
                 // ... umm, nothing needs to be done here
             });
         */
+        if(!within(scrollPos.x, oldMapX, 5) || !within(scrollPos.y, oldMapY, 5)) {
+            dragFlag = true;
+        }
         setScrollPos({ ...scrollPos, moveState: false});
     }
 
@@ -194,4 +140,11 @@ export function DraggableMap(props) {
             </div>
         </div>
     );
+}
+
+function within(value, target, threshhold) {
+    // Returns true if the given value is close to the target value, within the threshhold. Aka 193 is near 200 +/- 10
+    if (value < target - threshhold) return false;
+    if (value > target + threshhold) return false;
+    return true;
 }

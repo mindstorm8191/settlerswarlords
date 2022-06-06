@@ -6,7 +6,7 @@
 import React from "react";
 import { imageURL, serverURL } from "./App.js";
 import { game } from "./game.jsx";
-import { DraggableMap } from "./comp_DraggableMap.jsx";
+import { DraggableMap, clearDragFlag } from "./comp_DraggableMap.jsx";
 
 
 export function LocalMap(props) {
@@ -21,8 +21,8 @@ export function LocalMap(props) {
     const [selected, setSelected] = React.useState(null); // which tile is selected to show details on the right
     const [buildSelected, setBuildSelected] = React.useState(null); // which building is selected, or null otherwise
 
-    const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
-    const [mobileRightPane, setMobileRightPane] = React.useState(false); // Same for the right pane
+    //const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
+    const [mobileRightPane, setMobileRightPane] = React.useState(props.mobileMode?false:true); // Same for the right pane
 
 
     if(props.localTiles===null) {
@@ -120,11 +120,17 @@ export function LocalMap(props) {
                                     backgroundImage: `url(${imageURL}localtiles/${targetTile})`,
                                 }}
                                 onClick={()=>{
+                                    let flag = clearDragFlag();
+                                    console.log('Drag flag: '+ flag);
+                                    if(flag) {
+                                        return;
+                                    }
                                     if(buildSelected!==null) {
                                         addBuilding(tile);
                                     }
                                     // Later on, when we have pickMode, we will manage that here. For now, there is only one.
                                     setSelected(tile);
+                                    setMobileRightPane(true);
                                 }}
                             >
                                 {/*Display contents of the tile. This is a multiple-choice result */}
@@ -144,7 +150,14 @@ export function LocalMap(props) {
                         );
                     })}
                 </DraggableMap>
+                {mobileRightPane?(
+                    <LocalMapRightPanel mobileMode={props.mobileMode} selected={selected} buildSelected={buildSelected} onClose={()=>setMobileRightPane(false)} />
+                ):('')}
+                {/*
                 <div id="localmaprightpanel">
+                    {props.mobileMode? (
+                        <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}}/></p>
+                    ):''}
                     {buildSelected !== null ? (
                         "Click a map tile to place this building"
                     ) : (selected===null)? (
@@ -158,8 +171,65 @@ export function LocalMap(props) {
                         <LocalMapBuildingDetail bid={selected.buildid} />
                     )}
                 </div>
+                */}
             </div>
         </>
+    );
+}
+
+function LocalMapRightPanel(props) {
+    // Handles displaying (or keeping it hidden) the right-side panel
+    // props - data
+    //      mobileMode: set to true if we are working with a small display
+    //      selected: which tile of the local map is selected
+    //      buildSelected: which structure on the left is selected
+    // props - functions
+    //      onClose - called when the close button is pressed. This does not manage whether the side panel is displayed or not
+
+    const [hideState, setHideState] = React.useState(props.mobileMode?true:false);
+
+    // Actual output will depend wildly on what state we're in
+    if(props.buildSelected !== null) {
+        return (
+            <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
+                ):''}
+                Click a map tile to place this building
+            </div>
+        );
+    }
+    if(props.selected === null) {
+        return (
+            <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
+                ):''}
+                Click a map tile to view information
+            </div>
+        );
+    }
+    console.log('Props.selected: ', props.selected);
+    if(parseInt(props.selected.buildid)===0) {
+        return (
+            <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
+                ):''}
+                <EmptyLandDescription tile={props.selected} />
+                <p className="singleline">Nothing is built here. Click a block from the left to place it here</p>
+            </div>
+        );
+    }
+
+    // The default case!
+    return (
+        <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
+            {props.mobileMode? (
+                <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
+            ):''}
+            <LocalMapBuildingDetail bid={props.selected.buildid} />
+        </div>
     );
 }
 

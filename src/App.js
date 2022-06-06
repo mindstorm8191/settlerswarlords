@@ -8,7 +8,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Build a test HTML page that can view event variables so we can determine how to manage touch movements
+1) Mobile display: have the side panel hide when the eXit button is clicked
 2) Figure out how to pick which task a new worker at the RockKnapper gets. We might pick based on any tools not already present at the block
 3) Finish the Rock Knapper, get workers to automatically build things there
 

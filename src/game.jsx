@@ -196,6 +196,7 @@ export const game = {
                         }
                         return wo;
                     });
+                    if(workerUpdate) hasWorkerUpdate = true;
                 break;
 
                 case 'fetchitem':
@@ -265,8 +266,8 @@ export const game = {
                         wo.targety = block.y;
                         return wo;
                     });
-                    
-                    hasWorkerUpdate = hasWorkerUpdate || workerUpdate;
+                    if(workerUpdate) hasWorkerUpdate = true;
+                    //hasWorkerUpdate = hasWorkerUpdate || workerUpdate;
                 break;
             }
             return wk;

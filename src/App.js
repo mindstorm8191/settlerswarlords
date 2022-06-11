@@ -8,16 +8,13 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Mobile display: have the side panel hide when the eXit button is clicked
-2) Figure out how to pick which task a new worker at the RockKnapper gets. We might pick based on any tools not already present at the block
-3) Finish the Rock Knapper, get workers to automatically build things there
+1) Get back to finishing the Rock Knapper. Start working on new buildings
 
 Mobile user access
 Currently, we have a means to detect screen width. We have found a way to keep browser-scrolling from happening on the map (on mobile), but no
 way to actually scroll the map
 
 Things to add later
-1) Make a jQuery test to try out the touch event variables, see how to detect movement with it.
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker

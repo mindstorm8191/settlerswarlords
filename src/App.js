@@ -8,6 +8,10 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Disable the code that automatically assigns workers and helpers.
+2) Set up the lean-to to allow a worker to be assigned to build it. Include a list of materials needed (for this, it is none)
+3) For the lean-to, show clearly that progress is being made in its construction
+3) Set up the Forage Post to have a worker be assigned to find foods.
 1) Get back to finishing the Rock Knapper. Start working on new buildings
 
 Mobile user access
@@ -138,7 +142,14 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap localTiles={localTiles} localWorkers={localWorkers} onTileUpdate={onLocalTileUpdate} mobileMode={mobileMode} />;
+                return (
+                    <LocalMap
+                        localTiles={localTiles}
+                        localWorkers={localWorkers}
+                        onTileUpdate={onLocalTileUpdate}
+                        mobileMode={mobileMode}
+                    />
+                );
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }
@@ -164,8 +175,8 @@ function HomePage(props) {
     return (
         <>
             <p>
-                Settlers and Warlords is an online multiplayer game mixing Idle game concepts with Civilization-style strategy. Start from natural land with a
-                few workers.
+                Settlers and Warlords is an online multiplayer game mixing Idle game concepts with Civilization-style strategy. Start from
+                natural land with a few workers.
             </p>
             <img src={imageURL + "homepage_basicland.png"} alt="basic land" />
             <p>Harness your lands to develop technology, unlocking new resources and abilities</p>
@@ -173,18 +184,18 @@ function HomePage(props) {
             <p>Explore the world, discovering exotic structures, creatures and civilizations. Some helpful, others dangerous</p>
             <img src={imageURL + "homepage_worldmap.png"} alt="world map" />
             <p>
-                Trade with neighboring players to access greater abilities. Or wage war to conquer their lands. The more land you control, the more neighbors
-                you must manage.
+                Trade with neighboring players to access greater abilities. Or wage war to conquer their lands. The more land you control,
+                the more neighbors you must manage.
             </p>
             <img src={imageURL + "homepage_neighbors.png"} alt="neighbor negotiations" />
             <p>Develop your land to dominate the world</p>
             <RegisterForm onLogin={props.onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
-                Guess what? We're starting version 7! Maybe I AM a little crazy... but nevermind that. After spending a lot of time on version 6, I started to
-                realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious, but this was TOO tedious. This time, work
-                will be centered around a per-worker level. Workers are assigned tasks (or a series of tasks) and they determine how to accomplish that. This
-                may feel a lot more like Dwarf Fortress, but I don't mind.
+                Guess what? We're starting version 7! Maybe I AM a little crazy... but nevermind that. After spending a lot of time on
+                version 6, I started to realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious,
+                but this was TOO tedious. This time, work will be centered around a per-worker level. Workers are assigned tasks (or a
+                series of tasks) and they determine how to accomplish that. This may feel a lot more like Dwarf Fortress, but I don't mind.
             </p>
             <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>

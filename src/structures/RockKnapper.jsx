@@ -62,7 +62,34 @@ export function RockKnapper(tile) {
         assignWorker: (newWorker) => {
             b.assignedWorkers.push(newWorker.id);
         },
+        getTask: (worker) => {
+            // Gives a worker a task to complete at this building
 
+            // Unlike previous buildings, we have a selection of tasks that can be completed. If a worker requests work here,
+            // first determine if we have items laying around; we don't need to build more of those. If items aren't found,
+            // have them build one. Otherwise, workers cannot receive tasks automatically; the player can request work be
+            // done anyway, however.
+
+            // Check items at this block's tile
+            let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
+            if(typeof(tile)==='undefined') {
+                console.log('Error in RockKnapper->hasWork(): could not find root tile');
+                return false;
+            }
+            if(typeof(tile.items)==='undefined') {
+                console.log('Warning in RockKnapper->hasWork(): items list does not exist in tile. A blank one will be added');
+                tile.items = [];
+                return true; // We already know this will be empty
+            }
+            
+            // Search for a flint knife
+            if(!tile.items.some(e=>e.name==='Flint Knife')) {
+                // There isn't a Flint Knife here. Have this worker build one
+                
+            }
+
+
+        }
     }
     return b;
 }

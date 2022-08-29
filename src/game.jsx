@@ -199,6 +199,28 @@ export const game = {
                     if(workerUpdate) hasWorkerUpdate = true;
                 break;
 
+                case "workonsite":
+                    // Here, we need to move the worker to the location, and they will be able to perform the work there
+                    [wk,workerUpdate] = moveWorker(wk, (wo) => {
+                        // Now grab the block instance
+                        block = game.blockList.find(e=>e.id===wk.assignedBlock);
+                        if(typeof(block)==='undefined') {
+                            console.log(`${wo.name} tried to work at building id=${wk.assignedBlock} but it doesn't exist? Task cancelled`);
+                            wo.assignedBlock = 0;
+                            wo.task = '';
+                            return wo;
+                        }
+
+                        let hasMoreWork = block.doWork(wo);
+                        if(!hasMoreWork) {
+                            wo.assignedBlock = 0;
+                            wo.task = '';
+                        }
+                        return wo;
+                    });
+                    if(workerUpdate) hasWorkerUpdate = true;
+                break;
+
                 case 'fetchitem':
                     // Here, we need to (again) get to a certain location. This time, the location is stored in targetx and targety
                     // of the worker.

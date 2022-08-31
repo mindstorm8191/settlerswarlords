@@ -8,21 +8,45 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Disable the code that automatically assigns workers and helpers.
-2) Set up the lean-to to allow a worker to be assigned to build it. Include a list of materials needed (for this, it is none)
-3) For the lean-to, show clearly that progress is being made in its construction
+1) Get the forage post working
+2) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
 3) Set up the Forage Post to have a worker be assigned to find foods.
-1) Get back to finishing the Rock Knapper. Start working on new buildings
-
-Mobile user access
-Currently, we have a means to detect screen width. We have found a way to keep browser-scrolling from happening on the map (on mobile), but no
-way to actually scroll the map
+4) Get back to finishing the Rock Knapper. Start working on new buildings
+5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
 
 Things to add later
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
     travel easier.
+
+Wine
+Wine will be an important item in early tech. Not only is it a very safe form of hydration, it can be stored long term and travels easily. Some
+players will be lucky and find grape vines growing on their map.
+Tech pre-reqs
+Players must be able to produce ceramic jars (from clay) and be able to cut wood logs (for a smashing bowl).
+Process
+1) Pick the grapes, then smash them. The simplest method is stomping on them with bare feet. A smashing bowl can be cut from a log chunk,
+    1 per log (only 1 is needed).
+2) Ferment the juices. Unwashed grapes have a 1 in 5 chance of fermenting into wine instead of crude vinegar. Juices can be poured into jars and
+    capped loosely (to let CO2 escape but keep bugs out).
+3) After 2 hours of gameplay time, wine is ready for use. It can be poured into other jars or containers. Jars that produce wine will become wine
+    jars and will keep producing wine when used (Yeast will remain usable from the jars). Jars that produce vinegar will become vinegar jars; they
+    can be used for other jobs.
+
+Project size (because it's fun to watch this grow)
+src/App.js                         src/libs/DanInput.jsx            server/mapContent.php          worldgen.md
+    src/libs/DanAjax.js               src/comp_ErrorOverlay.jsx         server/routes/autologin.php   workercrafting.md
+       src/game.jsx                      server/common.php                 server/routes/login.php
+           src/comp_LocalMap.jsx             server/jsarray.php               server/routes/logout.php
+               src/libs/DraggableMap             server/config.php               server/routes/reporterror.php
+                   src/libs/DanCommon.js           server/DanGlobal.php             server/routes/signup.php
+                      src/structures/LeanTo.jsx       server/finishLogin.php            README.md
+                         src/stuctures/ForagePost.jsx    server/globals.php                techtree.md
+                            src/structures/RockKnapper.jsx   server/weightedRandom.php        automationtree.md
+                               src/comp_account.jsx              server/getInput.php             wartree.md
+243+49+322+372+141+74+98+83+95+228+65+68+285+221+8+37+38+318+126+33+391+36+43+30+25+216+38+37+12+8+53+11
+8/31/2022 = 3804 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

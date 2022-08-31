@@ -49,8 +49,26 @@ export const DanCommon = {
 
     hasAny(searchable, options) {
         // Returns true if any character in the options list is found in the searchable string
-        return !options.split("").every(ele => {
+        return !options.split("").every((ele) => {
             return searchable.indexOf(ele) === -1;
         });
-    }
+    },
+
+    arraySplit(elements, callback) {
+        // Splits an array into multiple parts, depending on the return value of callback. Think of this as using array.filter, but keeping
+        // the fail states as well. This can split an array into more than 2 parts, though.
+        // elements - array to split
+        // callback - function called for each element of the array. Its return value determines what return object this goes into
+
+        let outputs = {};
+        for (let i = 0; i < elements.length; i++) {
+            let result = callback(elements[i]);
+            if (typeof outputs[result] === "undefined") {
+                // This doesn't exist yet. Make it now.
+                outputs[result] = [];
+            }
+            outputs[result].push(elements[i]);
+        }
+        return outputs;
+    },
 };

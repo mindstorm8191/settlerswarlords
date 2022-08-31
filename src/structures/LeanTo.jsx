@@ -30,53 +30,99 @@ export function LeanTo(tile) {
         progressBarMax: 1800, // This totals 1.5 minutes. But with 4 workers building it, it'll be done in ~22 seconds
         progressBarColor: 'green',
         assignedWorkers: [], // This will only hold ids of workers
-
-        hasWork: () => {
-            // Returns true if this building has work available
-            if(b.mode!=='build') return false;
-            // Before checking assigned workers, refresh the full list
-            b.assignedWorkers = game.blockCheckAssignedWorkers(b.id);
-            if(b.assignedWorkers.length>0) return false; // Since this only has a build option, we only need one worker here
-            return true;
-        },
-        canAssist: ()=>{
-            // Returns true or false if other workers can assist someone on a task at this building
-            return true;
-        },
-        assignWorker: (newWorker) => {
-            // Marks a given worker as working at this building
-            b.assignedWorkers.push(newWorker.id);
-        },
-        getTask: (worker) => {
-            // Gives a worker a task to complete at this building
-            if(b.mode!=='build') return;
-            worker.task = 'construct';
-            worker.targetx = b.x;
-            worker.targety = b.y;
-            
-            return worker;
-            // 'construct' requires that the worker goes to the structure's location. Once there, they can doWork().
-        },
-        doWork: (action) => {
-            // Allows a worker to do work at this building
-            // Since there is only one action here, we won't worry about the action value we get
-            if(b.mode!=='build') return false;
-            b.progressBar++;
-            //if(b.progressBar%100===0) console.log("Lean-to building...");
-            
-            if(b.progressBar>=b.progressBarMax) {
-                b.mode = 'use';
-                console.log("Lean-to is ready for use!");
-                return false;
+        blinkState:0,
+        activeTasks: [], // list of active tasks at this building, coupled with its progress and the worker
+        
+        tasks: [
+            {
+                name: 'Build',
+                taskType: 'construct',
+                canAssign: () => {
+                    if(b.mode==='use') return false; // if the lean-to runs out of time during use, its mode will become Collapsed
+                    if(b.activeTasks.length!==0) return false; // This can't be assigned twice
+                    return true;
+                },
+                canAssist: true,
+                hasQuantity: false, // set to true if the player can set a specific quantity to make of this
+                itemsNeeded: [],
+                buildTime: (20*30*3), // 1.5 minutes
+                getTask: (workerx,workery)=>{
+                    // Returns the current task that needs completing
+                    // Since this is only construction, we have a single return value
+                    return {task:'construct', targetx:b.x, targety:b.y};
+                },
+                onComplete: ()=> {
+                    b.mode = 'use';
+                    b.progressBar = (20*60*20); // aka 20 minutes
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
+                }
+            },{
+                name: 'Repair',
+                taskType: 'construct',
+                canAssign: ()=> {
+                    if(b.mode!=='use') return false;
+                    if(b.activeTasks.length!==0) return false; // This can't be assigned twice
+                    if(b.progressBar> (20*60*15)) return false; // This can't be repaired unless it's been standing for 5 minutes
+                    return true;
+                },
+                canAssist: true,
+                hasQuantity:false,
+                itemsNeeded: [],
+                buildTime: (20*30), // 30 seconds
+                getTask: ()=>({task:'construct', targetx:b.x, targety:b.y}),
+                onComplete: ()=>{
+                    b.progressBar += (20*60*5); // adds 5 minutes of life
+                }
             }
-            return true;
-        },
-
-        SidePanel: (props)=>{
+        ],
+        update: ()=>{
+            if(b.mode==='use') {
+                // This building's health will degrade over time
+                b.progressBar--;
+                if(typeof(b.blinker)==='function') {
+                    b.blinkState++;
+                    b.blinker(b.blinkState);
+                    // Perhaps updating this every frame, when actual display only happens occasionally, is overkill. But better than
+                    // nothing, and it's simpler to manage.
+                }
+                if(b.progressBar>0) return;
+                // This has run out of wear time. Set back to the pre-built state
+                b.mode = 'build';
+                b.progressBar = 0;
+            }
             if(b.mode==='build') {
-                return <>Under construction.</>;
+                // First, see if we have an active construction task going
+                if(b.activeTasks.length===0) return;
+                // Check if we still have access to the correct object here
+                if(typeof(b.blinker)==='function') {
+                    b.blinkState++;
+                    b.blinker(b.blinkState);
+                }
             }
-            return <>In use.</>;
+        },
+
+        //hasWork: () => {}, This can now be found programmatically by running canAssign on each of the above tasks
+        //canAssist: ()=>{}, Players now manually assign helpers; this is decided on the task at hand
+        //assignWorker: newWorker=>{}, Assigning workers is now done via LocalMapBuildingDetail, and handled the same way for all structures
+        //getTask: worker=>{}, Getting tasks is done through the task object, not here
+        //doWork: action=>{}, Work progress is (for now) handled in game.tick, where progress is updated through the active task
+        
+        SidePanel: (props)=>{
+            // Here, we want to show when this building is in construction, and how much progress has been made
+
+            const [blink,setBlink] = React.useState(0);
+            b.blinker = setBlink;
+
+            if(b.mode==='build') {
+                if(b.activeTasks.length===0) {
+                    return <>Needs construction</>;
+                }
+                return <>Under construction: {Math.floor((parseFloat(b.activeTasks[0].progress)/parseInt(b.activeTasks[0].progressTarget))*100)}%</>;
+            }
+            return <>In use. Health: {Math.round((parseFloat(b.progressBar)/(20*60*20))*100)}%</>;
         }
     }
     return b;

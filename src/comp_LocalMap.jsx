@@ -6,7 +6,8 @@
 import React from "react";
 import { imageURL, serverURL } from "./App.js";
 import { game } from "./game.jsx";
-import { DraggableMap, clearDragFlag } from "./comp_DraggableMap.jsx";
+import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
+import { DanCommon } from "./libs/DanCommon.js";
 
 
 export function LocalMap(props) {
@@ -93,7 +94,7 @@ export function LocalMap(props) {
                         );
                     })}
                 </div>
-                <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)', touchAction:'none'}}>
+                <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)', touchAction:'none'}} threshhold={5}>
                     {props.localTiles.map((tile, key) => {
                         // For each location, we need to determine if a worker is here.
                         let hasWorker = props.localWorkers.some(ele => {
@@ -153,25 +154,6 @@ export function LocalMap(props) {
                 {mobileRightPane?(
                     <LocalMapRightPanel mobileMode={props.mobileMode} selected={selected} buildSelected={buildSelected} onClose={()=>setMobileRightPane(false)} />
                 ):('')}
-                {/*
-                <div id="localmaprightpanel">
-                    {props.mobileMode? (
-                        <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}}/></p>
-                    ):''}
-                    {buildSelected !== null ? (
-                        "Click a map tile to place this building"
-                    ) : (selected===null)? (
-                        "Click a tile to view options"
-                    ) : parseInt(selected.buildid)===0?(
-                        <>
-                            <EmptyLandDescription tile={selected} />
-                            <p className="singleline">Nothing is built here. Click a block from the left to place it here</p>
-                        </>
-                    ) : (
-                        <LocalMapBuildingDetail bid={selected.buildid} />
-                    )}
-                </div>
-                */}
             </div>
         </>
     );
@@ -209,7 +191,7 @@ function LocalMapRightPanel(props) {
             </div>
         );
     }
-    console.log('Props.selected: ', props.selected);
+    
     if(parseInt(props.selected.buildid)===0) {
         return (
             <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
@@ -238,6 +220,8 @@ function LocalMapBuildingDetail(props) {
     // prop fields - data
     //      bid - ID of the correct building to show
 
+    const [selectedTask, setSelectedTask] = React.useState(null);
+
     // Start with verifying input
     if(typeof(props.bid)!=='number') return <>Error: LocalMapBuildingDetail requires a bid (id of the building), what it received isn't a number</>;
 
@@ -253,7 +237,82 @@ function LocalMapBuildingDetail(props) {
         <p>{block.descr}</p>
         <p>{block.usage}</p>
         <SidePanel />
+        {/* Now show the tasks this building offers */}
+        {(selectedTask===null)?(
+            <>
+                
+                {(block.tasks.filter(t=>t.canAssign())).length>0?(
+                    <>
+                        <p className="singleline" style={{fontWeight:'bold'}}>Available Tasks:</p>
+                        {block.tasks.filter(t=>t.canAssign()).map((t,key)=>(
+                            <p className="singleline fakelink" key={key} onClick={()=>setSelectedTask(t)}>{t.name}</p>
+                        ))}
+                    </>
+                ):( 
+                    <p className="singleline" style={{fontWeight:'bold'}}>No available tasks</p>
+                )}
+            </>
+        ):(
+            <>
+                <p className="singleline" style={{fontWeight:'bold'}}>{selectedTask.name}; Assign Worker</p>
+                <WorkersByAvailability onPick={(worker,action)=>{
+                    block.activeTasks.push({
+                        worker:worker,
+                        task:selectedTask,
+                        progress:0,
+                        progressTarget:selectedTask.buildTime
+                    });
+                    // Also update worker stats
+                    let pack = selectedTask.getTask(worker.x,worker.y);
+                    worker.status = 'working';
+                    worker.task = selectedTask;
+                    worker.subtask = pack.task;
+                    worker.targetx = pack.targetx;
+                    worker.targety = pack.targety;
+                    worker.atBuilding = block;
+                    worker.taskInstance = block.activeTasks[block.activeTasks.length-1]; // attach the active task that we just added
+
+                    console.log(game.workers);
+
+                    // Clear the selected action, to reset the building's display
+                    setSelectedTask(null);
+                }}/>
+            </>
+        )}
     </>
+}
+
+function WorkersByAvailability(props) {
+    // Lists all workers available, ordered by availability
+    //  prop fields - data
+    //      showActivity - set to true to show the current activity of a worker
+    //  prop fields - functions
+    //      onPick - called when a user clicks on a worker
+
+    // We will need to generate multiple lists for this; that is why we need this component
+    // Splitting this into 3 lists isn't as straight-forward as it might seem. We'll need a generic function for this
+    let workList = DanCommon.arraySplit(game.workers, worker=>{
+        // Uhh, wait. I don't even know how to determine worker types, until I have tasks assigned. So everyone's idle - for now
+        return 'idle';
+    });
+    return (
+        <>
+            {typeof(workList.idle)==='undefined'?'':(
+                workList.idle.map((worker,key)=>(
+                    <p className="singleline fakelink" key={key}>
+                        {worker.name} (idle)
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'assign')}>Assign</button>
+                    </p>
+                ))
+            )}
+            {typeof(workList.aiding)==='undefined'?'':(
+                workList.aiding.map((worker,key)=>(<p className="singleline fakelink" key={key}>{worker.name} (aiding)</p>))
+            )}
+            {typeof(workList.busy)==='undefined'?'':(
+                workList.busy.map((worker,key)=>(<p className="singleline fakelink" key={key}>{worker.name} (working)</p>))
+            )}
+        </>
+    );
 }
 
 function EmptyLandDescription(props) {
@@ -290,9 +349,9 @@ export const minimapTiles = [
     {id:14, img:'appletreeone.jpg',  desc: 'Apple trees. Delicious fruits that everyone enjoys',                          walkLag: 8},
     {id:15, img:'peartreeone.jpg',   desc: 'Pear trees. Tasty fruits that excel in colder climates',                      walkLag: 8},
     {id:16, img:'orangetreeone.jpg', desc: 'Orange trees. Sweet fruits that enjoy warmer climates',                       walkLag: 8},
-    {id:17, img:'mapletreeone.jpg',  desc: 'Hawthorne trees. It seems to pulse with extra energy',                        walkLag: 8},
+    {id:17, img:'mapletreeone.jpg',  desc: 'Hawthorne trees. It seems to pulse with extra energy',                        walkLag: 30}, // this tree has thorns
     {id:18, img:'mapletreeone.jpg',  desc: "Dogwood trees. You wouldn't think this would grow here, but it's determined", walkLag: 8},
-    {id:19, img:'mapletreeone.jpg',  desc: 'Locust trees. It seems to have an extra glow in the sunlight',                walkLag: 8},
+    {id:19, img:'mapletreeone.jpg',  desc: 'Locust trees. It seems to have an extra glow in the sunlight',                walkLag: 30}, // this also has thorns
     {id:20, img:'pinetreeone.jpg',   desc: 'Juniper trees. It seems to come alive at night',                              walkLag: 8},
     {id:21, img:'basicrock.jpg',     desc: 'Barren rock. Easy source of stone materials and building on',                 walkLag: 5},
     {id:22, img:'desert.jpg',        desc: 'Desert sands. Hot, dusty and hard to build on',                               walkLag: 6},

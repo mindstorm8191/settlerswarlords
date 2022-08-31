@@ -83,10 +83,10 @@ export const game = {
     startGame: () => {
         // A public function to handle starting the game's timer
         game.tickTime = new Date().valueOf();
+        game.runState = 1;
         game.timeout = setTimeout(function () {
             window.requestAnimationFrame(game.tick);
         }, 50);
-        game.runState = 1;
     },
 
     stopGame: () => {
@@ -111,89 +111,30 @@ export const game = {
         game.workers = game.workers.map(wk => {
             let block = null;
             // First, see if they are working at a particular building
-            if(wk.assignedBlock===0) {
-                // This worker currently has no work. Let's see if we can find an important task for it to work on
-                // Find a block that needs work done
-                // This worker may be assisting another worker, but they are still elligible to find work from another building that may need it
 
-                //if(wk.name==='Eldar' && game.blockList.length>0) {
-                //    console.log('Eldar assigned block is '+ wk.assignedBlock);
-                //}
-                
-                let target = game.blockList.find(block=> {
-                    // We could first check if there are blocks that need work, and then blocks that have work. That can be considered later
-                    // First, check that the hasWork function exists
-                    if(typeof(block.hasWork)==='undefined') return false;
-                    return block.hasWork();
-                });
-                if(typeof(target)==='object') {
-                    // We got a hit on a building. Let's get to work with it
-                    target.assignWorker(wk);
-                    wk.assignedBlock = target.id;
-                    wk = target.getTask(wk);
-                    console.log(wk.name +' is getting work at '+ target.name +' (id='+ wk.assignedBlock +')');
-                    console.log(wk.name +' has target ['+ wk.targetx +','+ wk.targety +']');
-                    // We have to have the worker's instance returned from getTask. Otherwise that function cannot add additional
-                    // fields to the worker instance
-                    wk.aiding = 0;
-                }else{
-                    // Check if this worker is already helping someone else
-                    if(wk.aiding===0) {
-                        // Since no other buildings need work, go find someone to help out
-                        let aid = game.workers.find(aa=> {
-                            if(aa.id===wk.id) return false; // Make sure we're not checking ourselves first; each worker has a unique ID
-                            if(aa.assignedBlock===0) return false; // This worker doesn't have an assigned block
-                            // Sometimes workers will already be aiding others. We want all workers to be aiding only one - they'll be in charge
-                            if(aa.aiding!==0) return false;
-                            // Load the building, then check if it allows others to aid this guy
-                            let block = game.blockList.find(b=>b.id===aa.assignedBlock);
-                            if(typeof(block)==='undefined') {
-                                console.log('Error - block id='+ aa.assignedBlock +' not found when worker checking to give aid');
-                                return false;
-                            }
-                            return block.canAssist();
-                        });
-                        if(typeof(aid)!=='undefined') {
-                            wk.assignedBlock = aid.assignedBlock; // This only copies over the block's id
-                            wk.aiding = aid.id;
-                            block = game.blockList.find(b=>b.id===wk.assignedBlock);
-                            if(typeof(block)==='undefined') {
-                                console.log("Error - block id="+ wk.assignedBlock +" not found when worker aids another");
-                                return wk;
-                            }
-                            block.assignWorker(wk);
-                            wk = block.getTask(wk); // This will modify the worker to include multiple fields
-                            
-                            console.log(wk.name +' will help out '+ aid.name);
-                        }
-                        // If that didn't work, well I guess there's nothing for them to do
-                    }
-                }
-            }
-            if(wk.assignedBlock===0) return wk;  // We should have received a task from above, but sometimes we don't
-            
+           // if(wk.name==='Eldar') console.log(wk);
 
             // Now, our action depends on what task we currently have
-            switch(wk.task) {
+            switch(wk.subtask) {
                 case "construct":
                     // Here, we need to get to the building location, then doWork().
                     // Start by comparing this worker's location to the building's location
-
                     [wk,workerUpdate] = moveWorker(wk, (wo) => {
-                        // Now, we need the block instance, so we can call its functions
-                        block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                        if(typeof(block)==='undefined') {
-                            console.log(`${wo.name} tried to work at building id=${wo.assignedBlock} but it doesn't exist? Task cancelled`);
-                            wo.assignedBlock = 0;
-                            wo.task = '';
-                            return wo;
-                        }
+                        // We have reached our destination. Next, we need to do work at this building. Specific work will be tied to the
+                        // active task at hand.
+                        wo.taskInstance.progress++;
+                        if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
 
-                        let hasMoreWork = block.doWork();
-                        if(!hasMoreWork) {
-                            wo.assignedBlock = 0;
-                            wo.task = '';
-                        }
+                        // Now handle when a worker completes their task. Run onComplete for the given task
+                        wo.task.onComplete();
+                        // Clear the active task from the structure
+                        wo.atBuilding.activeTasks.splice(wo.atBuilding.activeTasks.findIndex(ta=>ta.worker.name===wo.name), 1);
+                        // Clear the task from the worker
+                        wo.status = 'idle';
+                        wo.task = null;
+                        wo.subtask = '';
+                        wo.atBuilding = null;
+                        wo.taskInstance = null;
                         return wo;
                     });
                     if(workerUpdate) hasWorkerUpdate = true;
@@ -300,10 +241,11 @@ export const game = {
             game.updateWorkers(game.workers);
             game.updateLocalMap([...game.tiles]);
         }
-        
-        // This is a simple counter to represent seconds ticking by
-        // game.clockCheck++;
-        // if (game.clockCheck % 20 === 0) console.log("tick...");
+
+        // Next, run updates of all structures
+        for(let i=0;i<game.blockList.length;i++) {
+            if(typeof(game.blockList[i].update)==='function') game.blockList[i].update();
+        }
 
         // Handle time management
         let newTime = new Date().valueOf();

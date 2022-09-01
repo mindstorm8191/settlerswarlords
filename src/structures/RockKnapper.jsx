@@ -13,10 +13,11 @@ export function RockKnapper(tile) {
         if(tile.landtype!==21) {
             return 'wrong land type';
         }
-    }
-    if(tile.newlandtype!==21 || tile.landtype!==21) {
-        // Both must be 21 or this won't work
-        return 'wrong land type';
+    }else{
+        if(tile.newlandtype!==21) {
+            // Both must be 21 or this won't work
+            return 'wrong land type';
+        }
     }
 
     let b = {
@@ -30,65 +31,46 @@ export function RockKnapper(tile) {
         progressBar: 0,
         progressBarMax: 8,
         progressBarColor: 'green',
-        assignedWorkers: [],
-        hasWork: ()=> {
-            // Returns true if this building has work that can be auto-assigned
+        activeTasks: [],
+        tasks: [
+            {
+                name: 'Craft Flint Knife',
+                taskType: 'craft on site',
+                canAssign: ()=>true,
+                canAssist: true,
+                hasQuantity: true,
+                itemsNeeded: [],
+                buildTime: 20*20,
+                getTask: (workerx,workery) =>{
+                    return {task:'workonsite', targetx:b.x, targety:b.y};
+                },
+                onComplete: (worker)=>{
+                    // Add an item to this block's inventory
+                    let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                    if(typeof(tile)==='undefined') {
+                        console.log('Error in RockKnapper->tasks->Flint Knife->onComplete(): tile not found at '+ b.x +','+ b.y);
+                        return;
+                    }
+                    if(typeof(tile.items)==='undefined') {
+                        // This tile is missing an inventory... why not just add it now?
+                        tile.items = [];
+                    }
+                    // Well, I was going to put all similar items together, but each one can have different endurance values & efficiency
+                    // rates... it'll be better to keep each one separate
+                    tile.items.push({name:'Flint Knife', amount:1, efficiency:1, endurance:100});
+                    // at 1 use per tick... that's about 5 seconds of use
+                }
+            }
+        ],
 
-            // While here, update the assigned workers list
-            b.assignedWorkers = game.blockCheckAssignedWorkers(b.id);
-            if(b.assignedWorkers.length>=2) return false;  // This will need to be updated when more tool types become available
+        update:()=>{}, // don't really need to do anything with this one...
 
-            // Check this tile's inventory to determine if we have all the available tools that can be crafted here
+        SidePanel: ()=> {
             let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
             if(typeof(tile)==='undefined') {
-                console.log('Error in RockKnapper->hasWork(): could not find root tile');
-                return false;
+                return <>Error: Block's tile not found. Cannot access items</>;
             }
-            if(typeof(tile.items)==='undefined') {
-                console.log('Warning in RockKnapper->hasWork(): items list does not exist in tile. A blank one will be added');
-                tile.items = [];
-                return true; // We already know this will be empty
-            }
-            if(tile.items.length===0) return true; // nothing here anyway!
-            return (
-                tile.items.findIndex(e=>e.name==='Flint Knife')===-1 ||
-                tile.items.findIndex(e=>e.name==='Flint Stabber')===-1
-            ); // so, return true if it can't find a knife or a stabber. If it finds both, it'll return false
-        },
-        canAssist: ()=> {
-            // returns true/false if other workers can assist someone at this building.
-            return false;
-        },
-        assignWorker: (newWorker) => {
-            b.assignedWorkers.push(newWorker.id);
-        },
-        getTask: (worker) => {
-            // Gives a worker a task to complete at this building
-
-            // Unlike previous buildings, we have a selection of tasks that can be completed. If a worker requests work here,
-            // first determine if we have items laying around; we don't need to build more of those. If items aren't found,
-            // have them build one. Otherwise, workers cannot receive tasks automatically; the player can request work be
-            // done anyway, however.
-
-            // Check items at this block's tile
-            let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
-            if(typeof(tile)==='undefined') {
-                console.log('Error in RockKnapper->hasWork(): could not find root tile');
-                return false;
-            }
-            if(typeof(tile.items)==='undefined') {
-                console.log('Warning in RockKnapper->hasWork(): items list does not exist in tile. A blank one will be added');
-                tile.items = [];
-                return true; // We already know this will be empty
-            }
-            
-            // Search for a flint knife
-            if(!tile.items.some(e=>e.name==='Flint Knife')) {
-                // There isn't a Flint Knife here. Have this worker build one
-                
-            }
-
-
+            return <>Items on hand: {tile.items.length}</>;
         }
     }
     return b;

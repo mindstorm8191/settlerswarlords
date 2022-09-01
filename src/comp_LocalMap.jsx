@@ -121,11 +121,7 @@ export function LocalMap(props) {
                                     backgroundImage: `url(${imageURL}localtiles/${targetTile})`,
                                 }}
                                 onClick={()=>{
-                                    let flag = clearDragFlag();
-                                    console.log('Drag flag: '+ flag);
-                                    if(flag) {
-                                        return;
-                                    }
+                                    if(clearDragFlag()) return;
                                     if(buildSelected!==null) {
                                         addBuilding(tile);
                                     }
@@ -221,6 +217,8 @@ function LocalMapBuildingDetail(props) {
     //      bid - ID of the correct building to show
 
     const [selectedTask, setSelectedTask] = React.useState(null);
+    const [blink,setBlink] = React.useState(0);
+
 
     // Start with verifying input
     if(typeof(props.bid)!=='number') return <>Error: LocalMapBuildingDetail requires a bid (id of the building), what it received isn't a number</>;
@@ -229,6 +227,7 @@ function LocalMapBuildingDetail(props) {
     const block = game.blockList.find(ele=>parseInt(ele.id)===parseInt(props.bid));
     if(typeof(block)==='undefined') return <div style={{backgroundColor:'pink'}}>Error: Did not find building id={props.bid}</div>;
     if(typeof(block.SidePanel)==='undefined') return <div style={{backgroundColor:'pink'}}>Error: Block missing SidePanel function (type={block.name})</div>;
+    block.blinker = setBlink;
 
     const SidePanel = block.SidePanel; // This lets us use the block's function as a fully functioning React component. Makes it easy!
 
@@ -237,10 +236,9 @@ function LocalMapBuildingDetail(props) {
         <p>{block.descr}</p>
         <p>{block.usage}</p>
         <SidePanel />
-        {/* Now show the tasks this building offers */}
+        {/* Now show the tasks this building offers. If one is selected, we will show details of that one only. */}
         {(selectedTask===null)?(
             <>
-                
                 {(block.tasks.filter(t=>t.canAssign())).length>0?(
                     <>
                         <p className="singleline" style={{fontWeight:'bold'}}>Available Tasks:</p>
@@ -260,7 +258,9 @@ function LocalMapBuildingDetail(props) {
                         worker:worker,
                         task:selectedTask,
                         progress:0,
-                        progressTarget:selectedTask.buildTime
+                        progressTarget:selectedTask.buildTime,
+                        count:0,
+                        targetCount:1
                     });
                     // Also update worker stats
                     let pack = selectedTask.getTask(worker.x,worker.y);
@@ -269,6 +269,7 @@ function LocalMapBuildingDetail(props) {
                     worker.subtask = pack.task;
                     worker.targetx = pack.targetx;
                     worker.targety = pack.targety;
+                    worker.targetitem = pack.targetitem;
                     worker.atBuilding = block;
                     worker.taskInstance = block.activeTasks[block.activeTasks.length-1]; // attach the active task that we just added
 
@@ -279,6 +280,14 @@ function LocalMapBuildingDetail(props) {
                 }}/>
             </>
         )}
+
+        {/* Show any active tasks, and their progress */}
+        {block.activeTasks.map((task,key)=>(
+            <p className="singleline" key={key}>
+                Task {task.task.name}, by {task.worker.name}, 
+                {" "+ Math.floor((parseFloat(task.progress)/parseInt(task.progressTarget))*100)}% complete
+            </p>
+        ))}
     </>
 }
 

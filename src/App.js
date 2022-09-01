@@ -8,9 +8,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get the forage post working
 2) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
-3) Set up the Forage Post to have a worker be assigned to find foods.
+3) Have the Forage Post show all foods at its location
 4) Get back to finishing the Rock Knapper. Start working on new buildings
 5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
 

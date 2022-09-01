@@ -6,6 +6,7 @@
 import {minimapTiles} from "./comp_LocalMap.jsx";
 import {LeanTo} from "./structures/LeanTo.jsx";
 import {ForagePost} from "./structures/ForagePost.jsx";
+import {RockKnapper} from "./structures/RockKnapper.jsx";
 
 let clockCounter = 0;
 
@@ -45,7 +46,8 @@ export const game = {
 
     blockTypes: [
         {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], unlocked:0, newFeatures:[]}
+        {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], unlocked:0, newFeatures:[]},
+        {name:'Rock Knapper', image:'rockknapper.png', create:RockKnapper, prereq:[], unlocked:0, newFeatures:[]}
     ],
 
     prepWorkers: (workers) => {
@@ -143,20 +145,29 @@ export const game = {
                 case "workonsite":
                     // Here, we need to move the worker to the location, and they will be able to perform the work there
                     [wk,workerUpdate] = moveWorker(wk, (wo) => {
-                        // Now grab the block instance
-                        block = game.blockList.find(e=>e.id===wk.assignedBlock);
-                        if(typeof(block)==='undefined') {
-                            console.log(`${wo.name} tried to work at building id=${wk.assignedBlock} but it doesn't exist? Task cancelled`);
-                            wo.assignedBlock = 0;
-                            wo.task = '';
+                        // Similar to the construct task, we will increment progress on this until complete
+                        wo.taskInstance.progress++;
+                        if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
+
+                        // This work has been completed
+                        wo.task.onComplete();
+                        wo.taskInstance.count++;
+                        if(wo.taskInstance.count<wo.taskInstance.countTarget) {
+                            // We made one, now make the next
+                            let pack = wo.task.getTask(wo.x,wo.y);
+                            wo.subtask = pack.task;
+                            wo.targetx = pack.targetx;
+                            wo.targety = pack.targety;
+                            wo.targetitem = pack.targetitem;
                             return wo;
                         }
 
-                        let hasMoreWork = block.doWork(wo);
-                        if(!hasMoreWork) {
-                            wo.assignedBlock = 0;
-                            wo.task = '';
-                        }
+                        // There is no more work to do. Close out the task
+                        wo.status = 'idle';
+                        wo.task = null;
+                        wo.subtask = '';
+                        wo.atBuilding = null;
+                        wo.taskInstance = null;
                         return wo;
                     });
                     if(workerUpdate) hasWorkerUpdate = true;
@@ -168,65 +179,76 @@ export const game = {
 
                     if(typeof(wk.targetitem)==='undefined') {
                         console.log('Error: worker '+ wk.name +' has task fetchitem but target item not defined. Task cancelled');
-                        wk.assignedBlock = 0;
-                        wk.task = '';
+                        wk.subtask = '';
+                        return wk;
+                    }
+                    if(wk.targetitem==='') {
+                        console.log('Error: worker '+ wk.name +' has task fetchitem but no target item to fetch. Task cancelled');
+                        wk.subtask = '';
                         return wk;
                     }
                     if(typeof(wk.carrying)==='undefined') wk.carrying = [];  // This seems like an error we can just correct on the spot
-                    //let workerUpdate = false;
                     [wk, workerUpdate] = moveWorker(wk, wo => {
                         // returns the worker object when finished
                         
                         // Before doing anything, we need data about both the block we're working for, and the tile the worker is at
-                        block = game.blockList.find(e=>e.id===wo.assignedBlock);
-                        if(typeof(block)==='undefined') {
+                        if(typeof(wo.atBuilding)==='undefined') {
                             console.log('Error: could not find target block with id='+ wo.assignedBlock +'. Worker task cancelled');
-                            wo.assignedBlock = 0;
-                            wo.task = '';
+                            wo.subtask = '';
                             return wo;
                         }
-                        let tile = game.tiles.find(e=>e.x===wo.x && e.y===wo.y);
-                        if(typeof(tile)==='undefined') {
+                        let workertile = game.tiles.find(e=>e.x===wo.x && e.y===wo.y);
+                        if(typeof(workertile)==='undefined') {
                             console.log(`Error: ${wo.name} tried to get/place an item, but tile not found at [${wo.x},${wo.y}]. Task cancelled`);
-                            wo.assignedBlock = 0;
-                            wo.task = ''
+                            wo.subtask = ''
                             return wo;
                         }
-                        if(typeof(tile.items)==='undefined') {
+                        if(typeof(workertile.items)==='undefined') {
                             // We can add the items list here, right?
                             console.log(`Error: Tile at [${wo.x},${wo.y}] missing items list. It was added as empty`);
-                            tile.items = [];
+                            workertile.items = [];
                         }
 
                         // Now, see if we're at the pick-up place, or the put-down place
-                        if(block.x===wo.x && block.y===wo.y) {
+                        if(wo.atBuilding.x===wo.x && wo.atBuilding.y===wo.y) {
                             // This is where we need to place the item we picked up. First, find the slot of the item in our inventory
                             let slot = wo.carrying.findIndex(e=>e.name===wo.targetitem);
                             if(slot===-1) {
                                 console.log(`Error: ${wo.name} tried to place an item, but not carrying it now. Item=${wo.targetitem}, carrying size=${wo.carrying.length}. Worker task cancelled`);
-                                wo.assignedBlock = 0;
                                 wo.task = '';
                                 return wo;
                             }
+                            // Also get the tile the worker is standing at
+
                             let item = wo.carrying.splice(slot,1);
-                            tile.items.push(item);
-                            return block.getTask(wo);
+                            workertile.items.push(item);
+                            let pack = wo.task.getTask(wo.x,wo.y);
+                            wo.subtask = pack.task;
+                            wo.targetx = pack.targetx;
+                            wo.targety = pack.targety;
+                            wo.targetitem = pack.targetitem;
+                            return wo;
                         }
 
                         // It's not the block location, so we should be picking up an item here
-                        let slot = tile.items.findIndex(e=>e.name===wo.targetitem);
+                        let slot = workertile.items.findIndex(e=>e.name===wo.targetitem);
                         if(slot===-1) {
                             // The target item was not found here. Don't worry, this can happen (and is common at the Forage Post)
                             // Try to get a new task from the same block
-                            return block.getTask(wo);
+                            let pack = wo.task.getTask(wo.x,wo.y);
+                            wo.subtask = pack.task;
+                            wo.targetx = pack.targetx;
+                            wo.targety = pack.targety;
+                            wo.targetitem = pack.targetitem;
+                            return wo;
                         }
-                        wo.carrying.push(tile.items[slot]);
-                        tile.items.splice(slot, 1);
+                        wo.carrying.push(workertile.items[slot]);
+                        workertile.items.splice(slot, 1);
                         console.log(wo.name +' picked up a '+ wo.carrying[wo.carrying.length-1].name);
 
                         // Now, use the block's location as the worker's new target location
-                        wo.targetx = block.x;
-                        wo.targety = block.y;
+                        wo.targetx = wo.atBuilding.x;
+                        wo.targety = wo.atBuilding.y;
                         return wo;
                     });
                     if(workerUpdate) hasWorkerUpdate = true;

@@ -10,7 +10,7 @@ export function LeanTo(tile) {
     // Allows a new building to be created - our first! The lean-to is a crude shelter made from a fallen tree branch and leaves piled
     // on top. It is certainly not a great shelter, but can be made on the fly in the wilderness, and doesn't even require tools
 
-    // Start by checking the land type chosen. Lean-tos can only be created from trees
+    // Start by checking the land type chosen. Lean-tos can only be created from trees... we seem to have a lot of those...
     if(![5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].includes(parseInt(tile.newlandtype) === -1 ? tile.landtype : tile.newlandtype)) {
         return 'wrong land type';
     }
@@ -32,7 +32,7 @@ export function LeanTo(tile) {
         assignedWorkers: [], // This will only hold ids of workers
         blinkState:0,
         activeTasks: [], // list of active tasks at this building, coupled with its progress and the worker
-        
+
         tasks: [
             {
                 name: 'Build',
@@ -113,8 +113,9 @@ export function LeanTo(tile) {
         SidePanel: (props)=>{
             // Here, we want to show when this building is in construction, and how much progress has been made
 
-            const [blink,setBlink] = React.useState(0);
-            b.blinker = setBlink;
+            //const [blink,setBlink] = React.useState(0);
+            //b.blinker = setBlink;
+            // instead of watching Blink here, we need to watch it in localMap
 
             if(b.mode==='build') {
                 if(b.activeTasks.length===0) {

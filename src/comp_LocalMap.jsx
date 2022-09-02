@@ -318,7 +318,7 @@ function WorkersByAvailability(props) {
     // Splitting this into 3 lists isn't as straight-forward as it might seem. We'll need a generic function for this
     let workList = DanCommon.arraySplit(game.workers, worker=>{
         // Uhh, wait. I don't even know how to determine worker types, until I have tasks assigned. So everyone's idle - for now
-        return 'idle';
+        return worker.status;
     });
     return (
         <>
@@ -333,8 +333,15 @@ function WorkersByAvailability(props) {
             {typeof(workList.aiding)==='undefined'?'':(
                 workList.aiding.map((worker,key)=>(<p className="singleline fakelink" key={key}>{worker.name} (aiding)</p>))
             )}
-            {typeof(workList.busy)==='undefined'?'':(
-                workList.busy.map((worker,key)=>(<p className="singleline fakelink" key={key}>{worker.name} (working)</p>))
+            {typeof(workList.working)==='undefined'?'':(
+                workList.working.map((worker,key)=>(
+                    <p className="singleline fakelink" key={key}>
+                        {worker.name} (working)
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'first')} title={"Pause current task and complete this instead"}>Do First</button>
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'queue')} title={"Start this task after current task completes"}>Do After</button>
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'reassign')} title={"Cancel current task and do this instead"}>Do Instead</button>
+                    </p>
+                ))
             )}
         </>
     );

@@ -8,10 +8,14 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Allow production of items to be cancelled
-2) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
-3) Have the Forage Post show all foods at its location
-4) Get back to finishing the Rock Knapper. Start working on new buildings
+1) Start building a data structure for a worker's current task. That way they can be stored in a list instead, and they'll work them in order
+2) Write a function to produce a task structure for workers.
+3) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
+4) Have the Forage Post show all foods at its location
+5) Show information about workers when a user clicks on a tile where they're at
+6) Provide a drop-down list (or something) at the top of the page showing 
+5) Write a function to manage updating the Blinker tool when progress is made on a task
+5) Add a Flint Stabber to the Rock Knapper. Make sure they can be built
 5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
 
 Things to add later
@@ -216,7 +220,7 @@ function HomePage(props) {
             <RegisterForm onLogin={props.onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
-                Guess what? We're starting version 7! Maybe I AM a little crazy... but nevermind that. After spending a lot of time on
+                Guess what? We're starting version 7! Maybe I AM a little crazy... but it doesn't matter. After spending a lot of time on
                 version 6, I started to realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious,
                 but this was TOO tedious. This time, work will be centered around a per-worker level. Workers are assigned tasks (or a
                 series of tasks) and they determine how to accomplish that. This may feel a lot more like Dwarf Fortress, but I don't mind.

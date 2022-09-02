@@ -269,14 +269,13 @@ function LocalMapBuildingDetail(props) {
                     });
                     // Also update worker stats
                     let pack = selectedTask.getTask(worker.x,worker.y);
+                    pack.task = selectedTask;
+                    pack.atBuilding = block;
+                    pack.taskInstance = block.activeTasks[block.activeTasks.length-1]; // attach the active task that we just added
+
                     worker.status = 'working';
-                    worker.task = selectedTask;
-                    worker.subtask = pack.task;
-                    worker.targetx = pack.targetx;
-                    worker.targety = pack.targety;
-                    worker.targetitem = pack.targetitem;
-                    worker.atBuilding = block;
-                    worker.taskInstance = block.activeTasks[block.activeTasks.length-1]; // attach the active task that we just added
+                    if(typeof(worker.tasks)==='undefined') worker.tasks = []; // make sure we have this structure before continuing
+                    worker.tasks.push(pack);
 
                     console.log(game.workers);
 

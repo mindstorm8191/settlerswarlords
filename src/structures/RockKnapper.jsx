@@ -44,7 +44,7 @@ export function RockKnapper(tile) {
                 itemsNeeded: [],
                 buildTime: 20*20,
                 getTask: (workerx,workery) =>{
-                    return {task:'workonsite', targetx:b.x, targety:b.y};
+                    return {subtask:'workonsite', targetx:b.x, targety:b.y};
                 },
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task

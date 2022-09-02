@@ -50,7 +50,7 @@ export function LeanTo(tile) {
                 getTask: (workerx,workery)=>{
                     // Returns the current task that needs completing
                     // Since this is only construction, we have a single return value
-                    return {task:'construct', targetx:b.x, targety:b.y};
+                    return {subtask:'construct', targetx:b.x, targety:b.y};
                 },
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task
@@ -80,7 +80,7 @@ export function LeanTo(tile) {
                 hasQuantity:false,
                 itemsNeeded: [],
                 buildTime: (20*30), // 30 seconds
-                getTask: ()=>({task:'construct', targetx:b.x, targety:b.y}),
+                getTask: ()=>({subtask:'construct', targetx:b.x, targety:b.y}),
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task
                     if(typeof(b.blinker)==='function') {

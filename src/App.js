@@ -8,9 +8,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Start building a data structure for a worker's current task. That way they can be stored in a list instead, and they'll work them in order
-2) Write a function to produce a task structure for workers.
-3) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
+2) Split workers into their own file; the code specifically for them is getting large
+3) Set up the ability to assign other tasks to workers
 4) Have the Forage Post show all foods at its location
 5) Show information about workers when a user clicks on a tile where they're at
 6) Provide a drop-down list (or something) at the top of the page showing 

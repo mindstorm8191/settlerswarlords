@@ -114,32 +114,26 @@ export const game = {
             let block = null;
             // First, see if they are working at a particular building
 
-           // if(wk.name==='Eldar') console.log(wk);
+            // if(wk.name==='Eldar') console.log(wk);
+            if(typeof(wk.tasks)==='undefined') wk.tasks=[];
+            if(wk.tasks.length===0) return wk; // This worker has no current tasks
 
             // Now, our action depends on what task we currently have
-            switch(wk.subtask) {
+            switch(wk.tasks[0].subtask) {
                 case "construct":
                     // Here, we need to get to the building location, then doWork().
                     // Start by comparing this worker's location to the building's location
                     [wk,workerUpdate] = moveWorker(wk, (wo) => {
                         // We have reached our destination. Next, we need to do work at this building. Specific work will be tied to the
                         // active task at hand.
-                        wo.taskInstance.progress++;
-                        wo.task.onProgress();
-                        if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
+                        wo.tasks[0].taskInstance.progress++;
+                        wo.tasks[0].task.onProgress();
+                        if(wo.tasks[0].taskInstance.progress<wo.tasks[0].taskInstance.progressTarget) return wo;
                         
-
                         // Now handle when a worker completes their task. Run onComplete for the given task
-                        wo.task.onComplete();
-                        // Clear the active task from the structure
-                        wo.atBuilding.activeTasks.splice(wo.atBuilding.activeTasks.findIndex(ta=>ta.worker.name===wo.name), 1);
-                        // Clear the task from the worker
-                        wo.status = 'idle';
-                        wo.task = null;
-                        wo.subtask = '';
-                        wo.atBuilding = null;
-                        wo.taskInstance = null;
-                        return wo;
+                        wo.tasks[0].task.onComplete();
+                        // Clear the active task from the structure, and return the updated worker
+                        return workerClearTask(wo);
                     });
                     if(workerUpdate) hasWorkerUpdate = true;
                 break;
@@ -148,32 +142,30 @@ export const game = {
                     // Here, we need to move the worker to the location, and they will be able to perform the work there
                     [wk,workerUpdate] = moveWorker(wk, (wo) => {
                         // Similar to the construct task, we will increment progress on this until complete
-                        wo.taskInstance.progress++;
-                        wo.task.onProgress();
-                        if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
+                        wo.tasks[0].taskInstance.progress++;
+                        wo.tasks[0].task.onProgress();
+                        if(wo.tasks[0].taskInstance.progress<wo.tasks[0].taskInstance.progressTarget) return wo;
                         
                         // This work has been completed
-                        wo.task.onComplete();
-                        wo.taskInstance.count++;
-                        if(wo.taskInstance.count<wo.taskInstance.targetCount) {
+                        wo.tasks[0].task.onComplete();
+                        wo.tasks[0].taskInstance.count++;
+
+                        if(wo.tasks[0].taskInstance.count<wo.tasks[0].taskInstance.targetCount) {
                             // We made one, now make the next
-                            wo.taskInstance.progress -= wo.taskInstance.progressTarget; // don't forget to reset the progress!
-                            let pack = wo.task.getTask(wo.x,wo.y);
-                            wo.subtask = pack.task;
-                            wo.targetx = pack.targetx;
-                            wo.targety = pack.targety;
-                            wo.targetitem = pack.targetitem;
+
+                            let pack = wo.tasks[0].task.getTask(wo.x, wo.y);
+                            wo.tasks[0].taskInstance.progress -= wo.tasks[0].taskInstance.progressTarget // don't forget to reset the progress!
+                            wo.tasks[0].subtask = pack.subtask;
+                            wo.tasks[0].targetx = pack.targetx;
+                            wo.tasks[0].targety = pack.targety;
+                            wo.tasks[0].atBuilding.blinker(0);
                             return wo;
                         }
 
                         // There is no more work to do. Close out the task
-                        wo.atBuilding.activeTasks.splice(wo.atBuilding.activeTasks.findIndex(ta=>ta.worker.name===wo.name), 1);
-                        wo.atBuilding.blinker(0); // This is a little hacky, but...
-                        wo.status = 'idle';
-                        wo.task = null;
-                        wo.subtask = '';
-                        wo.atBuilding = null;
-                        wo.taskInstance = null;
+                        let building = wo.tasks[0].atBuilding;
+                        wo = workerClearTask(wo);
+                        building.blinker(0);
                         return wo;
                     });
                     if(workerUpdate) hasWorkerUpdate = true;
@@ -183,31 +175,27 @@ export const game = {
                     // Here, we need to (again) get to a certain location. This time, the location is stored in targetx and targety
                     // of the worker.
 
-                    if(typeof(wk.targetitem)==='undefined') {
+                    if(typeof(wk.tasks[0].targetitem)==='undefined') {
                         console.log('Error: worker '+ wk.name +' has task fetchitem but target item not defined. Task cancelled');
-                        wk.subtask = '';
-                        return wk;
+                        return workerClearTask(wk);
                     }
-                    if(wk.targetitem==='') {
+                    if(wk.tasks[0].targetitem==='') {
                         console.log('Error: worker '+ wk.name +' has task fetchitem but no target item to fetch. Task cancelled');
-                        wk.subtask = '';
-                        return wk;
+                        return workerClearTask(wk);
                     }
                     if(typeof(wk.carrying)==='undefined') wk.carrying = [];  // This seems like an error we can just correct on the spot
                     [wk, workerUpdate] = moveWorker(wk, wo => {
                         // returns the worker object when finished
                         
                         // Before doing anything, we need data about both the block we're working for, and the tile the worker is at
-                        if(typeof(wo.atBuilding)==='undefined') {
-                            console.log('Error: could not find target block with id='+ wo.assignedBlock +'. Worker task cancelled');
-                            wo.subtask = '';
-                            return wo;
+                        if(typeof(wo.tasks[0].atBuilding)==='undefined') {
+                            console.log('Error: could not find target structure. Worker task cancelled');
+                            return workerClearTask(wo);
                         }
                         let workertile = game.tiles.find(e=>e.x===wo.x && e.y===wo.y);
                         if(typeof(workertile)==='undefined') {
                             console.log(`Error: ${wo.name} tried to get/place an item, but tile not found at [${wo.x},${wo.y}]. Task cancelled`);
-                            wo.subtask = ''
-                            return wo;
+                            return workerClearTask(wo);
                         }
                         if(typeof(workertile.items)==='undefined') {
                             // We can add the items list here, right?
@@ -215,39 +203,41 @@ export const game = {
                             workertile.items = [];
                         }
 
-                        wo.task.onProgress();
+                        //wo.tasks[0].task.onProgress();
 
                         // Now, see if we're at the pick-up place, or the put-down place
-                        if(wo.atBuilding.x===wo.x && wo.atBuilding.y===wo.y) {
+                        if(wo.tasks[0].atBuilding.x===wo.x && wo.tasks[0].atBuilding.y===wo.y) {
                             // This is where we need to place the item we picked up. First, find the slot of the item in our inventory
-                            let slot = wo.carrying.findIndex(e=>e.name===wo.targetitem);
+                            let slot = wo.carrying.findIndex(e=>e.name===wo.tasks[0].targetitem);
                             if(slot===-1) {
-                                console.log(`Error: ${wo.name} tried to place an item, but not carrying it now. Item=${wo.targetitem}, carrying size=${wo.carrying.length}. Worker task cancelled`);
-                                wo.task = '';
-                                return wo;
+                                console.log(`Error: ${wo.name} tried to place an item, but not carrying it now. Item=${wo.tasks[0].targetitem}, carrying size=${wo.carrying.length}. Worker task cancelled`);
+                                return workerClearTask(wo);
                             }
                             // Also get the tile the worker is standing at
 
                             let item = wo.carrying.splice(slot,1);
                             workertile.items.push(item);
-                            let pack = wo.task.getTask(wo.x,wo.y);
-                            wo.subtask = pack.task;
-                            wo.targetx = pack.targetx;
-                            wo.targety = pack.targety;
-                            wo.targetitem = pack.targetitem;
+                            let pack = wo.tasks[0].task.getTask(wo.x,wo.y);
+                            wo.tasks[0].subtask = pack.subtask;
+                            wo.tasks[0].targetx = pack.targetx;
+                            wo.tasks[0].targety = pack.targety;
+                            wo.tasks[0].targetitem = pack.targetitem;
+                            wo.tasks[0].task.onProgress();
                             return wo;
                         }
 
                         // It's not the block location, so we should be picking up an item here
-                        let slot = workertile.items.findIndex(e=>e.name===wo.targetitem);
+                        let slot = workertile.items.findIndex(e=>e.name===wo.tasks[0].targetitem);
                         if(slot===-1) {
                             // The target item was not found here. Don't worry, this can happen (and is common at the Forage Post)
                             // Try to get a new task from the same block
-                            let pack = wo.task.getTask(wo.x,wo.y);
-                            wo.subtask = pack.task;
-                            wo.targetx = pack.targetx;
-                            wo.targety = pack.targety;
-                            wo.targetitem = pack.targetitem;
+                            console.log(wo.name +' didnt find food');
+                            let pack = wo.tasks[0].task.getTask(wo.x,wo.y);
+                            wo.tasks[0].subtask = pack.subtask;
+                            wo.tasks[0].targetx = pack.targetx;
+                            wo.tasks[0].targety = pack.targety;
+                            wo.tasks[0].targetitem = pack.targetitem;
+                            console.log(wo.name +' old location '+ wo.x +','+ wo.y +' new location '+ wo.tasks[0].targetx +','+ wo.tasks[0].targety);
                             return wo;
                         }
                         wo.carrying.push(workertile.items[slot]);
@@ -255,12 +245,11 @@ export const game = {
                         console.log(wo.name +' picked up a '+ wo.carrying[wo.carrying.length-1].name);
 
                         // Now, use the block's location as the worker's new target location
-                        wo.targetx = wo.atBuilding.x;
-                        wo.targety = wo.atBuilding.y;
+                        wo.tasks[0].targetx = wo.tasks[0].atBuilding.x;
+                        wo.tasks[0].targety = wo.tasks[0].atBuilding.y;
                         return wo;
                     });
                     if(workerUpdate) hasWorkerUpdate = true;
-                    //hasWorkerUpdate = hasWorkerUpdate || workerUpdate;
                 break;
             }
             return wk;
@@ -299,25 +288,30 @@ function moveWorker(worker, callback) {
     // [1]: true if a worker's location has been updated, or false if not
 
     // First, some error checking
-    if(typeof(worker.targetx)==='undefined') {
-        console.log('Error: worker '+ worker.name +' has moving task but targetx not defined. Task cancelled');
-        worker.assignedBlock = 0;
-        worker.task = '';
+    if(typeof(worker.tasks)==='undefined') {
+        console.log('Error: worker '+ worker.name +' missing their tasks array. We will re-add it now');
+        worker.tasks = [];
         return [worker, false];
     }
-    if(typeof(worker.targety)==='undefined') {
-        console.log('Error: worker '+ worker.name +' has moving task but targety not defined. Task cancelled');
-        worker.assignedBlock = 0;
-        worker.task = '';
+    if(worker.tasks.length===0) {
+        console.log('Error: worker '+ worker.name +' has no tasks assigned')
         return [worker, false];
+    }
+    if(typeof(worker.tasks[0].targetx)==='undefined') {
+        console.log('Error: worker '+ worker.name +' has moving task but targetx not defined. Task cancelled');
+        return [workerClearTask(worker), false];
+    }
+    if(typeof(worker.tasks[0].targety)==='undefined') {
+        console.log('Error: worker '+ worker.name +' has moving task but targety not defined. Task cancelled');
+        return [workerClearTask(worker), false];
     }
     if(typeof(worker.moveCounter)==='undefined') {
         console.log('Error: worker '+ worker.name +' has moving task but moveCounter not defined. It will be set to zero');
         worker.moveCounter = 0;
     }
 
-    // First, see if this worker is at the correct location yet
-    if(worker.x===worker.targetx && worker.y===worker.targety) {
+    // If this worker is at the correct location, we need to use the callback function
+    if(worker.x===worker.tasks[0].targetx && worker.y===worker.tasks[0].targety) {
         return [callback(worker), false];
     }
 
@@ -328,11 +322,11 @@ function moveWorker(worker, callback) {
 
     // This worker is ready to move to the next tile
 
-    worker.x += (worker.targetx===worker.x)?0:(worker.targetx - worker.x) / Math.abs(worker.targetx - worker.x); // This gives us -1,0 or 1 to decide which way to go
-    worker.y += (worker.targety===worker.y)?0:(worker.targety - worker.y) / Math.abs(worker.targety - worker.y);
+    worker.x += (worker.tasks[0].targetx===worker.x)?0:(worker.tasks[0].targetx - worker.x) / Math.abs(worker.tasks[0].targetx - worker.x); // This gives us -1,0 or 1 to decide which way to go
+    worker.y += (worker.tasks[0].targety===worker.y)?0:(worker.tasks[0].targety - worker.y) / Math.abs(worker.tasks[0].targety - worker.y);
     // Do those formulas again, for the new location
-    let diffx = (worker.targetx===worker.x)?0:(worker.targetx - worker.x) / Math.abs(worker.targetx - worker.x);
-    let diffy = (worker.targety===worker.y)?0:(worker.targety - worker.y) / Math.abs(worker.targety - worker.y);
+    let diffx = (worker.tasks[0].targetx===worker.x)?0:(worker.tasks[0].targetx - worker.x) / Math.abs(worker.tasks[0].targetx - worker.x);
+    let diffy = (worker.tasks[0].targety===worker.y)?0:(worker.tasks[0].targety - worker.y) / Math.abs(worker.tasks[0].targety - worker.y);
     let distance = (diffx===0 || diffy===0)?1:1.4; // This manages extra time cost to move diagonally
 
     let tile = game.tiles.find(e=>e.x===worker.x && e.y===worker.y);
@@ -350,4 +344,66 @@ function moveWorker(worker, callback) {
         worker.moveCounter = tileType.walkLag * distance;
     }
     return [worker, true];
+}
+
+function workerClearTask(worker) {
+    // Clears the current task of a worker. Simply splicing out the worker's task won't work, as there's tie-ins with the building as well
+
+    // First, error checking
+    if(typeof(worker)==='undefined') {
+        console.log('Error in workerClearTask: worker provided is undefined');
+        return worker;
+    }
+    if(typeof(worker.id)==='undefined') {
+        console.log('Error in workerClearTask: worker used has no id. Adding one now');
+        game.lastWorkerId++;
+        worker.id = game.lastWorkerId;
+        return worker;
+    }
+    if(typeof(worker.tasks)==='undefined') {
+        console.log('Error in workerClearTask: worker does not have tasks array. We will add it here');
+        worker.tasks = [];
+        return worker;
+    }
+    if(worker.tasks.length===0) {
+        console.log('Error in workerClearTask: worker has no tasks. No action taken');
+        return worker;
+    }
+    if(typeof(worker.tasks[0].atBuilding)==='undefined') {
+        console.log('Error in workerClearTask: worker target building not found. Task deleted anyway');
+        worker.tasks.splice(1,0);
+        return worker;
+    }
+    if(typeof(worker.tasks[0].atBuilding.activeTasks)==='undefined') {
+        console.log('Error in workerClearTask: target building missing activeTasks array. Task deleted anyway');
+        worker.tasks.splice(1,0);
+        return worker;
+    }
+    if(worker.tasks[0].atBuilding.activeTasks.length===0) {
+        console.log('Error in workerClearTask: target building has no active tasks. Task deleted anyway');
+        worker.tasks.splice(1,0);
+        return worker;
+    }
+    
+    // We want to validate all tasks, but we only need to find the correct index of the task we need
+    let slot = worker.tasks[0].atBuilding.activeTasks.findIndex((task,index)=>{
+        if(typeof(task.worker)==='undefined') {
+            console.log('Error in workerClearTask: found task without worker (task index='+ index +'). Task deleted anyway');
+            return false;
+        }
+        if(typeof(task.worker.id)==='undefined') {
+            console.log('Error in workerClearTask: found worker in tasks without an id (task index='+ index +'). Task deleted anyway');
+            return false;
+        }
+        return (worker.id===task.worker.id);
+    });
+    if(slot===-1) {
+        worker.tasks.splice(1,0);
+        return worker;
+    }
+
+    // Finally! We are ready to complete the actual work here
+    worker.tasks[0].atBuilding.ativeTasks.splice(slot,1);
+    worker.tasks.splice(0,1);
+    return worker;
 }

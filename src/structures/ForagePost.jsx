@@ -41,14 +41,18 @@ export function ForagePost(tile) {
                 getTask: (workerx, workery)=>{
                     // Here, we need to define a location for the worker to go. We want to find a block that is somewhere near the
                     // worker, so that they can check there.
-                    let searchminx = Math.max(workerx-5, 0);
-                    let searchmaxx = Math.min(workerx+5, 40);
-                    let searchminy = Math.max(workery-5, 0);
-                    let searchmaxy = Math.min(workery+5, 40);
-                    let searchsizex = searchmaxx-searchminx;
-                    let searchsizey = searchmaxy-searchminy;
-                    let targetx = Math.floor(Math.random()*searchsizex) +searchminx;
-                    let targety = Math.floor(Math.random()*searchsizey) +searchminy;
+                    let targetx=b.x;
+                    let targety=b.y;
+                    while(targetx===b.x && targety===b.y) {
+                        let searchminx = Math.max(workerx-5, 0);
+                        let searchmaxx = Math.min(workerx+5, 40);
+                        let searchminy = Math.max(workery-5, 0);
+                        let searchmaxy = Math.min(workery+5, 40);
+                        let searchsizex = searchmaxx-searchminx;
+                        let searchsizey = searchmaxy-searchminy;
+                        targetx = Math.floor(Math.random()*searchsizex) +searchminx;
+                        targety = Math.floor(Math.random()*searchsizey) +searchminy;
+                    }
                     // There is a 1 in 5 chance that this venture will be successful
                     if(Math.floor(Math.random()*5)===0) {
                         // This trip will be successful. Go ahead and find the tile, and place a food item there for them to pick up
@@ -60,7 +64,7 @@ export function ForagePost(tile) {
                         tile.items.push({name:'Apple', amount:1});
                     }
                     // Now, return the object that gets applied to the worker
-                    return {task:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
+                    return {subtask:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
                 },
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task
@@ -77,12 +81,12 @@ export function ForagePost(tile) {
                         console.log('Error: tile not found at ['+ b.x +','+ b.y +']');
                         return;
                     }
-                    let slot = wo.carrying.findIndex(e=>e.name===wo.targetitem);
+                    let slot = worker.carrying.findIndex(e=>e.name===worker.targetitem);
                     if(slot===-1) {
-                        console.log(`Error: ${wo.name} tried to place an item, but not carrying it now. Item=${wo.targetitem}, carrying size=${wo.carrying.length}. Worker task cancelled`);
-                        wo.assignedBlock = 0;
-                        wo.task = '';
-                        return wo;
+                        console.log(`Error: ${worker.name} tried to place an item, but not carrying it now. Item=${worker.targetitem}, carrying size=${worker.carrying.length}. Worker task cancelled`);
+                        worker.assignedBlock = 0;
+                        worker.task = '';
+                        return worker;
                     }
                 }
             }

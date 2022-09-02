@@ -8,6 +8,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Allow production of items to be cancelled
 2) Show busy workers correctly, and provide ways to change a task of a given worker, so work can be queued.
 3) Have the Forage Post show all foods at its location
 4) Get back to finishing the Rock Knapper. Start working on new buildings

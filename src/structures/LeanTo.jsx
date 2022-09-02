@@ -31,6 +31,7 @@ export function LeanTo(tile) {
         progressBarColor: 'green',
         assignedWorkers: [], // This will only hold ids of workers
         blinkState:0,
+        blinker:null,
         activeTasks: [], // list of active tasks at this building, coupled with its progress and the worker
 
         tasks: [
@@ -50,6 +51,13 @@ export function LeanTo(tile) {
                     // Returns the current task that needs completing
                     // Since this is only construction, we have a single return value
                     return {task:'construct', targetx:b.x, targety:b.y};
+                },
+                onProgress: ()=>{
+                    // Allows context updates whenever progress is made on this task
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
                 },
                 onComplete: ()=> {
                     b.mode = 'use';
@@ -73,6 +81,13 @@ export function LeanTo(tile) {
                 itemsNeeded: [],
                 buildTime: (20*30), // 30 seconds
                 getTask: ()=>({task:'construct', targetx:b.x, targety:b.y}),
+                onProgress: ()=>{
+                    // Allows context updates whenever progress is made on this task
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
+                },
                 onComplete: ()=>{
                     b.progressBar += (20*60*5); // adds 5 minutes of life
                 }
@@ -87,6 +102,8 @@ export function LeanTo(tile) {
                     b.blinker(b.blinkState);
                     // Perhaps updating this every frame, when actual display only happens occasionally, is overkill. But better than
                     // nothing, and it's simpler to manage.
+                }else{
+                    console.log('Lean-To: Blinker is no longer a function... huh?');
                 }
                 if(b.progressBar>0) return;
                 // This has run out of wear time. Set back to the pre-built state

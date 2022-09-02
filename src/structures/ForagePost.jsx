@@ -62,6 +62,13 @@ export function ForagePost(tile) {
                     // Now, return the object that gets applied to the worker
                     return {task:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
                 },
+                onProgress: ()=>{
+                    // Allows context updates whenever progress is made on this task
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
+                },
                 onComplete: (worker)=>{
                     // Workers need to drop the item they're carrying at this block.
                     // Start by fetching the tile this structure is on

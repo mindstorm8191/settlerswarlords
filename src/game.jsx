@@ -125,7 +125,9 @@ export const game = {
                         // We have reached our destination. Next, we need to do work at this building. Specific work will be tied to the
                         // active task at hand.
                         wo.taskInstance.progress++;
+                        wo.task.onProgress();
                         if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
+                        
 
                         // Now handle when a worker completes their task. Run onComplete for the given task
                         wo.task.onComplete();
@@ -147,13 +149,15 @@ export const game = {
                     [wk,workerUpdate] = moveWorker(wk, (wo) => {
                         // Similar to the construct task, we will increment progress on this until complete
                         wo.taskInstance.progress++;
+                        wo.task.onProgress();
                         if(wo.taskInstance.progress<wo.taskInstance.progressTarget) return wo;
-
+                        
                         // This work has been completed
                         wo.task.onComplete();
                         wo.taskInstance.count++;
-                        if(wo.taskInstance.count<wo.taskInstance.countTarget) {
+                        if(wo.taskInstance.count<wo.taskInstance.targetCount) {
                             // We made one, now make the next
+                            wo.taskInstance.progress -= wo.taskInstance.progressTarget; // don't forget to reset the progress!
                             let pack = wo.task.getTask(wo.x,wo.y);
                             wo.subtask = pack.task;
                             wo.targetx = pack.targetx;
@@ -163,6 +167,8 @@ export const game = {
                         }
 
                         // There is no more work to do. Close out the task
+                        wo.atBuilding.activeTasks.splice(wo.atBuilding.activeTasks.findIndex(ta=>ta.worker.name===wo.name), 1);
+                        wo.atBuilding.blinker(0); // This is a little hacky, but...
                         wo.status = 'idle';
                         wo.task = null;
                         wo.subtask = '';
@@ -208,6 +214,8 @@ export const game = {
                             console.log(`Error: Tile at [${wo.x},${wo.y}] missing items list. It was added as empty`);
                             workertile.items = [];
                         }
+
+                        wo.task.onProgress();
 
                         // Now, see if we're at the pick-up place, or the put-down place
                         if(wo.atBuilding.x===wo.x && wo.atBuilding.y===wo.y) {

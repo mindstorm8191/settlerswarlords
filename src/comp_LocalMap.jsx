@@ -4,10 +4,11 @@
 */
 
 import React from "react";
-import { imageURL, serverURL } from "./App.js";
+import { imageURL } from "./App.js";
 import { game } from "./game.jsx";
 import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
 import { DanCommon } from "./libs/DanCommon.js";
+import { DanInput } from "./libs/DanInput.jsx";
 
 
 export function LocalMap(props) {
@@ -218,6 +219,7 @@ function LocalMapBuildingDetail(props) {
 
     const [selectedTask, setSelectedTask] = React.useState(null);
     const [blink,setBlink] = React.useState(0);
+    const [makeCount,setMakeCount] = React.useState(1);
 
 
     // Start with verifying input
@@ -253,6 +255,9 @@ function LocalMapBuildingDetail(props) {
         ):(
             <>
                 <p className="singleline" style={{fontWeight:'bold'}}>{selectedTask.name}; Assign Worker</p>
+                {selectedTask.hasQuantity?(
+                    <># to craft: <DanInput placeholder={"enter quantity"} default={1} onUpdate={(a,b)=>setMakeCount(b)} /></>
+                ):('')}
                 <WorkersByAvailability onPick={(worker,action)=>{
                     block.activeTasks.push({
                         worker:worker,
@@ -260,7 +265,7 @@ function LocalMapBuildingDetail(props) {
                         progress:0,
                         progressTarget:selectedTask.buildTime,
                         count:0,
-                        targetCount:1
+                        targetCount:makeCount
                     });
                     // Also update worker stats
                     let pack = selectedTask.getTask(worker.x,worker.y);
@@ -286,6 +291,17 @@ function LocalMapBuildingDetail(props) {
             <p className="singleline" key={key}>
                 Task {task.task.name}, by {task.worker.name}, 
                 {" "+ Math.floor((parseFloat(task.progress)/parseInt(task.progressTarget))*100)}% complete
+                <input type="button" value="Cancel" onClick={()=>{
+                    // I think we will simply abandon this entire task. Start by clearing the task from the worker
+                    task.worker.status = 'idle';
+                    task.worker.task = null;
+                    task.worker.subtask = '';
+                    task.worker.atBuilding = null;
+                    task.worker.taskInstance = null;
+                    // Now simply delete this task
+                    block.activeTasks.splice(block.activeTasks.findIndex(t=>t.worker.name===task.worker.name), 1);
+                    setBlink(blink+1);
+                }} />
             </p>
         ))}
     </>

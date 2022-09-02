@@ -31,6 +31,8 @@ export function RockKnapper(tile) {
         progressBar: 0,
         progressBarMax: 8,
         progressBarColor: 'green',
+        blinkState:0,
+        blinker:null,
         activeTasks: [],
         tasks: [
             {
@@ -43,6 +45,13 @@ export function RockKnapper(tile) {
                 buildTime: 20*20,
                 getTask: (workerx,workery) =>{
                     return {task:'workonsite', targetx:b.x, targety:b.y};
+                },
+                onProgress: ()=>{
+                    // Allows context updates whenever progress is made on this task
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
                 },
                 onComplete: (worker)=>{
                     // Add an item to this block's inventory
@@ -59,6 +68,11 @@ export function RockKnapper(tile) {
                     // rates... it'll be better to keep each one separate
                     tile.items.push({name:'Flint Knife', amount:1, efficiency:1, endurance:100});
                     // at 1 use per tick... that's about 5 seconds of use
+
+                    if(typeof(b.blinker)==='function') {
+                        b.blinkState++;
+                        b.blinker(b.blinkState);
+                    }
                 }
             }
         ],

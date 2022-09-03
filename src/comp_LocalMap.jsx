@@ -10,10 +10,10 @@ import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
 import { DanCommon } from "./libs/DanCommon.js";
 import { DanInput } from "./libs/DanInput.jsx";
 
-
 export function LocalMap(props) {
     // Displays the local map, along with everything connected to it
     // prop fields - data
+    //      stats - general info about this map of land
     //      localTiles - list of all tiles of the map
     //      localWorkers - list of all workers (and its data) on this map
     //      mobileMode - This is set to true when the screen is too small to properly show the map and side panels too
@@ -70,7 +70,10 @@ export function LocalMap(props) {
     return (
         <>
             <div style={{ display: "flex", width: "100%" }}>
-                <div>Area details here</div>
+                <div>
+                    <span>Biome: {props.stats.biome}</span>
+                    <span style={{marginLeft:20}}>Population: {game.workers.length}</span>
+                </div>
             </div>
             <div style={{ display: "flex", width: "100%" }}>
                 <div style={{ width: props.mobileMode?60:180 }}>
@@ -169,6 +172,7 @@ function LocalMapRightPanel(props) {
 
     // Actual output will depend wildly on what state we're in
     if(props.buildSelected !== null) {
+        // User has selected a new structure to place, from the left.
         return (
             <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
                 {props.mobileMode? (
@@ -179,6 +183,7 @@ function LocalMapRightPanel(props) {
         );
     }
     if(props.selected === null) {
+        // No tiles are selected - at all. This is the beginning state of viewing maps
         return (
             <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
                 {props.mobileMode? (
@@ -188,15 +193,25 @@ function LocalMapRightPanel(props) {
             </div>
         );
     }
-    
+
+    // Also see if there is a worker here
+    let worker = game.workers.find(w=>w.x===props.selected.x && w.y===props.selected.y);
+
     if(parseInt(props.selected.buildid)===0) {
+        // The tile selected has no development on it
+
         return (
             <div id="localmaprightpanel" style={{width:props.mobileMode?150:300}}>
                 {props.mobileMode? (
                     <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
                 ):''}
                 <EmptyLandDescription tile={props.selected} />
-                <p className="singleline">Nothing is built here. Click a block from the left to place it here</p>
+                <p>Nothing is built here. Click a block from the left to place it here</p>
+                {typeof(worker)==='undefined'?'':(
+                    <>
+                        <p style={{fontWeight:'bold'}} className="singleline">{worker.name}, {worker.status}</p>
+                    </>
+                )}
             </div>
         );
     }
@@ -208,6 +223,11 @@ function LocalMapRightPanel(props) {
                 <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
             ):''}
             <LocalMapBuildingDetail bid={props.selected.buildid} />
+            {typeof(worker)==='undefined'?'':(
+                <>
+                    <p style={{fontWeight:'bold'}} className="singleline">{worker.name}, {worker.status}</p>
+                </>
+            )}
         </div>
     );
 }
@@ -259,28 +279,13 @@ function LocalMapBuildingDetail(props) {
                     <># to craft: <DanInput placeholder={"enter quantity"} default={1} onUpdate={(a,b)=>setMakeCount(b)} /></>
                 ):('')}
                 <WorkersByAvailability onPick={(worker,action)=>{
-                    block.activeTasks.push({
-                        worker:worker,
-                        task:selectedTask,
-                        progress:0,
-                        progressTarget:selectedTask.buildTime,
-                        count:0,
-                        targetCount:makeCount
-                    });
-                    // Also update worker stats
-                    let pack = selectedTask.getTask(worker.x,worker.y);
-                    pack.task = selectedTask;
-                    pack.atBuilding = block;
-                    pack.taskInstance = block.activeTasks[block.activeTasks.length-1]; // attach the active task that we just added
-
-                    worker.status = 'working';
-                    if(typeof(worker.tasks)==='undefined') worker.tasks = []; // make sure we have this structure before continuing
-                    worker.tasks.push(pack);
-
-                    console.log(game.workers);
+                    // The worker has a convenient function to let us do all this in a single action
+                    worker.addTask(block,selectedTask.name,action,makeCount);
 
                     // Clear the selected action, to reset the building's display
                     setSelectedTask(null);
+                    setMakeCount(1); // We seem to need to reset this value. Otherwise the next use of this will be the same - but
+                    // look like it was set back to 1.
                 }}/>
             </>
         )}
@@ -291,14 +296,8 @@ function LocalMapBuildingDetail(props) {
                 Task {task.task.name}, by {task.worker.name}, 
                 {" "+ Math.floor((parseFloat(task.progress)/parseInt(task.progressTarget))*100)}% complete
                 <input type="button" value="Cancel" onClick={()=>{
-                    // I think we will simply abandon this entire task. Start by clearing the task from the worker
-                    task.worker.status = 'idle';
-                    task.worker.task = null;
-                    task.worker.subtask = '';
-                    task.worker.atBuilding = null;
-                    task.worker.taskInstance = null;
-                    // Now simply delete this task
-                    block.activeTasks.splice(block.activeTasks.findIndex(t=>t.worker.name===task.worker.name), 1);
+                    // Clearing the task from the worker will handle updating the task's structure
+                    task.worker.clearTask();
                     setBlink(blink+1);
                 }} />
             </p>
@@ -337,8 +336,8 @@ function WorkersByAvailability(props) {
                     <p className="singleline fakelink" key={key}>
                         {worker.name} (working)
                         <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'first')} title={"Pause current task and complete this instead"}>Do First</button>
-                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'queue')} title={"Start this task after current task completes"}>Do After</button>
-                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'reassign')} title={"Cancel current task and do this instead"}>Do Instead</button>
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'queue')} title={"Start this task after all current tasks are completes"}>Do Last</button>
+                        <button style={{marginLeft:8}} onClick={()=>props.onPick(worker, 'reassign')} title={"Cancel all current tasks and do this instead"}>Do Instead</button>
                     </p>
                 ))
             )}

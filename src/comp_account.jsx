@@ -10,7 +10,7 @@ import { DanCommon } from "./libs/DanCommon.js";
 import { DAX } from "./libs/DanAjax.js";
 
 import { serverURL } from "./App.js"; // For messages to the server, we need the server's URL
-import { ErrorOverlay } from "./comp_ErrorOverlay.jsx"; // A convenient tool to show errors
+import { ErrorOverlay } from "./libs/ErrorOverlay.jsx"; // A convenient tool to show errors
 
 export function AccountBox(props) {
         // Handles displaying account access at the top right of the page
@@ -226,4 +226,5 @@ export function RegisterForm(props) {
         </div>
     );
 }
+
 

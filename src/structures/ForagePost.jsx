@@ -100,8 +100,34 @@ export function ForagePost(tile) {
             if(typeof(tile)==='undefined') {
                 return <>Error: Block's tile not found. Cannot access items</>;
             }
-            return <>Food on hand: {tile.items.length}</>;
+            return (
+                <>
+                    <p className="singleline">Food on hand:</p>
+                    {b.groupItems().map((item,key)=>(
+                        <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>
+                    ))}
+                </>
+            );
+        },
+
+        groupItems: ()=>{
+            // takes the block's items list, and groups all items by type
+            // Returns the completed groupings as an array
+
+            let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
+            let list = [];
+            for(let i=0; i<tile.items.length; i++) {
+                let slot = list.findIndex(l=>l.name===tile.items[i].name);
+                if(slot===-1) {
+                    list.push({name:tile.items[i].name, qty:tile.items[i].amount || 1});
+                }else{
+                    list[slot].qty += tile.items[i].amount || 1;
+                }
+            }
+            return list;
         }
     };
     return b;
 }
+
+

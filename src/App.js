@@ -4,24 +4,26 @@ import "./App.css";
 import { DAX } from "./libs/DanAjax.js"; // A library to make Fetch calls a little easier
 
 import { game } from "./game.jsx";
+
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-2) Split workers into their own file; the code specifically for them is getting large
-3) Set up the ability to assign other tasks to workers
-4) Have the Forage Post show all foods at its location
-5) Show information about workers when a user clicks on a tile where they're at
-6) Provide a drop-down list (or something) at the top of the page showing 
-5) Write a function to manage updating the Blinker tool when progress is made on a task
-5) Add a Flint Stabber to the Rock Knapper. Make sure they can be built
-5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
+1) Decide how to better show workers when a user has clicked on their tile
+2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
+3) Have the game object include an object maker. This will add newly made items to a list of unlocked items
+4) Add the Loggers Post structure, and allow players to collect raw twine. The Loggers Post can be placed anywhere
+
 
 Things to add later
+1) Forage post
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
     travel easier.
+5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
+6) Give all workers a health, nourishment, strength & speed values. Also include attack and armor values that can be modified by equipment.
+7) Add wine to the game
 
 Wine
 Wine will be an important item in early tech. Not only is it a very safe form of hydration, it can be stored long term and travels easily. Some
@@ -38,18 +40,19 @@ Process
     can be used for other jobs.
 
 Project size (because it's fun to watch this grow)
-src/App.js                         src/libs/DanInput.jsx            server/mapContent.php          worldgen.md
-    src/libs/DanAjax.js               src/comp_ErrorOverlay.jsx         server/routes/autologin.php   workercrafting.md
-       src/game.jsx                      server/common.php                 server/routes/login.php
-           src/comp_LocalMap.jsx             server/jsarray.php               server/routes/logout.php
-               src/libs/DraggableMap             server/config.php               server/routes/reporterror.php
-                   src/libs/DanCommon.js           server/DanGlobal.php             server/routes/signup.php
-                      src/structures/LeanTo.jsx       server/finishLogin.php            README.md
-                         src/stuctures/ForagePost.jsx    server/globals.php                techtree.md
-                            src/structures/RockKnapper.jsx   server/weightedRandom.php        automationtree.md
-                               src/comp_account.jsx              server/getInput.php             wartree.md
-243+49+322+372+141+74+98+83+95+228+65+68+285+221+8+37+38+318+126+33+391+36+43+30+25+216+38+37+12+8+53+11
+src/App.js                           src/structures/RockKnapper.jsx    server/getInput.php             wartree.md
+    src/libs/DanAjax.js                 src/comp_account.jsx              server/mapContent.php          worldgen.md
+       src/game.jsx                         src/libs/ErrorOverlay.jsx         server/routes/autoLogin.php   workercrafing.md
+           src/comp_LocalMap.jsx               server/common.php                 server/routes/login.php
+               src/libs/DraggableMap               server/jsarray.php               server/routes/logout.php
+                   src/libs/DanCommon.js               server/config.php               server/routes/reporterror.php
+                      src/libs/DanInput.jsx              server/DanGlobal.php             server/routes/signup.php
+                         src/workers.jsx                    server/finishLogin.php            README.md
+                             src/structures/LeanTo.jsx         server/globals.php                techtree.md
+                                 src/stuctures/ForagePost.jsx      server/weightedRandom.php        automationtree.md
+245+49+125+380+153+74+65+235+147+107+91+228+68+285+221+8+37+38+318+126+33+391+36+43+30+25+216+38+27+12+8+53+11
 8/31/2022 = 3804 lines
+9/3/2022 = 3923 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -66,6 +69,7 @@ export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http:/
 function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
+    const [localStats, setLocalStats] = React.useState(null);
     const [localTiles, setLocalTiles] = React.useState(null);
     const [localWorkers, setLocalWorkers] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
@@ -121,6 +125,7 @@ function App() {
             game.stopGame();
             setPage("HomePage");
             setUserData(null);
+            setLocalStats(null);
             setLocalTiles(null);
             setLocalWorkers(null);
             //setWorldMap(null); // we need to clear this too, so the new user can load content
@@ -135,7 +140,7 @@ function App() {
         });
 
         // Turn the worker data into objects. For new players, this will be relatively blank. This is now in the game object
-        pack.workers = game.prepWorkers(pack.workers);
+        //pack.workers = game.prepWorkers(pack.workers);
 
         // Use localStorage to keep the user's ID & access code
         localStorage.setItem("userid", pack.userid);
@@ -145,6 +150,7 @@ function App() {
         game.startGame();
 
         setUserData({ id: pack.userid, ajax: pack.ajaxcode });
+        setLocalStats(pack.localContent);
         setLocalTiles(pack.localTiles);
         setLocalWorkers(pack.workers);
         setPage("LocalMap");
@@ -171,6 +177,7 @@ function App() {
             case "LocalMap":
                 return (
                     <LocalMap
+                        stats={localStats}
                         localTiles={localTiles}
                         localWorkers={localWorkers}
                         onTileUpdate={onLocalTileUpdate}

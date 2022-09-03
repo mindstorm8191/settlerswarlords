@@ -74,6 +74,27 @@ export function RockKnapper(tile) {
                         b.blinker(b.blinkState);
                     }
                 }
+            },{
+                name:'Craft Flint Stabber',
+                taskType: 'craft on site',
+                canAssign: ()=>true,
+                canAssist: true,
+                hasQuantity: true,
+                itemsNeeded: [],
+                buildTime: 20*20,
+                getTask: (workerx,workery) => {
+                    return {subtask:'workonsite', targetx:b.x, targety:b.y};
+                },
+                onProgress: ()=>{
+                    // Allows context updates whenever progress is made on this task
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                },
+                onComplete: ()=>{
+                    let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                    if(typeof(tile.items)==='undefined') tile.items = [];
+                    tile.items.push({name:'Flint Stabber', amount:1, efficiency:1, endurance:100});
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                }
             }
         ],
 

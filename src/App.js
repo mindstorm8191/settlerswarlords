@@ -11,14 +11,14 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 /* Task List
 1) Decide how to better show workers when a user has clicked on their tile
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
-3) Have the game object include an object maker. This will add newly made items to a list of unlocked items
 4) Add the Loggers Post structure, and allow players to collect raw twine. The Loggers Post can be placed anywhere
+5) For empty tiles, show any items existing on that tile
 
 
 Things to add later
-1) Forage post
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
+3) Have item searches be based on A* pathfinding, so a worker will go after the item closest to them based on actual time needed to reach it.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
     travel easier.
 5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
@@ -79,13 +79,8 @@ function App() {
 
     React.useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth > 900) {
-                setMobileMode(false);
-                //setMobileLeftPane(false);
-            } else {
-                setMobileMode(true);
-            }
-            console.log("win-width " + window.innerWidth + ", " + mobileMode);
+            setMobileMode(window.innerWidth <= 900);
+            console.log("win-width " + window.innerWidth + ", mode=" + mobileMode);
         };
         window.addEventListener("resize", handleResize);
         return () => {

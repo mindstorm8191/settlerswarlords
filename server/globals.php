@@ -180,7 +180,7 @@
                 ['name'=>'cherry',   'amount'=>2],
                 ['name'=>'apple',    'amount'=>2],
                 ['name'=>'orange',   'amount'=>2],
-                ['name'=>'hawthorne', 'amount'=>2],
+                ['name'=>'hawthorn', 'amount'=>2],
                 ['name'=>'rock',      'amount'=>15]
             ])
         ],[
@@ -217,7 +217,7 @@
                 ['name'=>'apple',     'amount'=>5],
                 ['name'=>'orange',    'amount'=>10],
                 ['name'=>'dogwood',   'amount'=>5],
-                ['name'=>'hawthorne', 'amount'=>3],
+                ['name'=>'hawthorn', 'amount'=>3],
                 ['name'=>'juniper',   'amount'=>2],
                 ['name'=>'wheat',     'amount'=>4],
                 ['name'=>'oat',   'amount'=>4],
@@ -233,7 +233,7 @@
     //     0       1      2       3          4
         'wheat', 'oat', 'rye', 'barley', 'millet',
     //     5        6       7         8        9       10       11      12         13       14       15       16          17         18         19         20
-        'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorne', 'dogwood', 'locust', 'juniper',
+        'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorn', 'dogwood', 'locust', 'juniper',
     //    21       22       23      24      25     26        27       28         29        30            31
         'rock', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank'
     ];
@@ -243,7 +243,8 @@
     // * We will support apple trees in forest areas, and orange & banana trees in jungle areas. If we add a cold climate forest, we'll
     //   see if there are any fruits to utilize there (pears work!)
     // Keepers list
-    // * Maple - Sap can be used to make syrups. Grows everywhere, very common
+    // * Maple - Sap can be used to make syrups. Grows everywhere, very common. They also produce Samaras (helicopter seed pods) that can
+    //           be boiled & eaten when collected from the tree, but we won't include them here
     // * Birch - Grows tall and narrow. A lot of trees can cluster together. Bark can be used for making ropes
     // * Oak - provides acorns. Acorns can be used as food in a pinch, even for early tech; but you'll need a lot to feed people
     // * Mahogany - Medium height tree, doesn't grow straight
@@ -258,7 +259,7 @@
     // * Pear   - Grows well in cold areas
     // * Orange - Grows best in warm areas
     // Magical trees to use
-    // * Hawthorne - nothing special, but has historic religious significance, for fertility and warding
+    // * Hawthorn - nothing special, but has historic religious significance, for fertility and warding
     // * Dogwood - Grows best in shaded areas (under other trees). Has a hint of firey determination about it
     // * Locust - Grows best in sunny areas by itself. Can turn grasslands into more forestry areas
     // * Juniper - an evergreen. Maybe we can use this one for magical purposes?

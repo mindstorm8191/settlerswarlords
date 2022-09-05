@@ -79,6 +79,7 @@ export function createNewWorker(pack) {
             // Returns true if any workers have updated their position (thus needing the map to be redrawn), or false if not
 
             if(w.tasks.length===0) return;  // We later plan on having them wander around - or even help other workers. But for now they'll just sit idle
+            let p = null;
 
             return w.move(()=>{
                 switch(w.tasks[0].subtask) {
@@ -116,12 +117,40 @@ export function createNewWorker(pack) {
                         }
 
                         // There is no more work here. Close out the building task; but we also need to trigger progress
-                        let p = w.tasks[0].task.onProgress;
+                        p = w.tasks[0].task.onProgress;
                         w.clearTask();
                         p();
                         return;
-                    
-                    case 'fetchitem':
+
+                    case 'workatspot':
+                        // We are going to a particular spot to do work, instead of a specific block.
+                        // By the time we reach here we should already be at the place. We just need to make progress.
+                        w.tasks[0].taskInstance.progress++;
+                        if(w.tasks[0].taskInstance.progress < w.tasks[0].taskInstance.progressTarget) {
+                            w.tasks[0].task.onProgress();  // This basically calls the structure's Blinker function
+                            return;
+                        }
+
+                        // Work here is done
+                        w.tasks[0].task.onComplete(w);
+                        w.tasks[0].taskInstance.count++;
+                        if(w.tasks[0].taskInstance.count < w.tasks[0].taskInstance.targetCount) {
+                            // We made one, now onto the next
+                            w.tasks[0].taskInstance.progress -= w.tasks[0].taskInstance.progressTarget; // Don't forget to reset progress!
+                            let pack = w.tasks[0].task.getTask(w.x, w.y);
+                            w.tasks[0] = {...w.tasks[0], ...pack};
+                            // Remember, spread operator will overwrite previously posted attributes
+                            w.tasks[0].task.onProgress();
+                            return;
+                        }
+
+                        // There is no more work here. Close out the building task; but we also need to trigger progress
+                        p = w.tasks[0].task.onProgress;
+                        w.clearTask();
+                        p();
+                        return;
+
+                    case 'moveitem':
                         // We are going to a location to pick something up, then bringing it to our structure
 
                         // Assertions
@@ -133,7 +162,12 @@ export function createNewWorker(pack) {
 
                         if(!(w.tasks[0].atBuilding.x===w.x && w.tasks[0].atBuilding.y===w.y)) {
                             // This is where we pick an item up at. First, find the item in this tile's inventory
-                            let slot = workertile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
+                            let slot = workertile.items.findIndex((i,index)=>{
+                                if(typeof(i)==='undefined') {
+                                    console.log(workertile.items); //workertile.landtype +','+ workertile.x +','+ workertile.y +','+ index);
+                                }
+                                return i.name===w.tasks[0].targetitem;
+                            });
                             if(slot===-1) {
                                 // We didn't find the item we were looking for. Don't worry, this can happen, especially for the Forage Post
                                 // Let's get a new task from the same source

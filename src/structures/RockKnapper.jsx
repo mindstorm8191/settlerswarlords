@@ -66,7 +66,7 @@ export function RockKnapper(tile) {
                     }
                     // Well, I was going to put all similar items together, but each one can have different endurance values & efficiency
                     // rates... it'll be better to keep each one separate
-                    tile.items.push({name:'Flint Knife', amount:1, efficiency:1, endurance:100});
+                    tile.items.push(game.createItem('Flint Knife', 'tool', {efficiency:1, endurance:100}));
                     // at 1 use per tick... that's about 5 seconds of use
 
                     if(typeof(b.blinker)==='function') {
@@ -92,7 +92,7 @@ export function RockKnapper(tile) {
                 onComplete: ()=>{
                     let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                     if(typeof(tile.items)==='undefined') tile.items = [];
-                    tile.items.push({name:'Flint Stabber', amount:1, efficiency:1, endurance:100});
+                    tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60*3}));
                     if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 }
             }

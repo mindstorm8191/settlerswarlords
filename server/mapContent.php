@@ -318,34 +318,91 @@ function ensureMinimap($worldTile, $newPlayer) {
                 // fruits on them. But... I guess this can be calculated later on, when we start actually using the trees.
                 // We don't even really need a seed count here. When a tree starts getting used, this count will decrement; this
                 // also controls 
-                case 'maple':    $wide['items'] = [ ['name'=>'Maple Trees',    'amount'=>rand(3,12)] ]; break;
-                case 'birch':    $wide['items'] = [ ['name'=>'Birch Trees',    'amount'=>rand(8,60)] ]; break;
-                case 'oak':      $wide['items'] = [ ['name'=>'Oak Trees',      'amount'=>rand(4,16)] ]; break;
-                case 'mahogany':  $wide['items'] = [ ['name'=>'Mahogany Trees', 'amount'=>rand(3, 8)] ]; break;
-                case 'pine':      $wide['items'] = [ ['name'=>'Pine Trees',     'amount'=>rand(7,20)] ]; break;
-                case 'cedar':     $wide['items'] = [ ['name'=>'Cedar Trees',    'amount'=>rand(4,20)] ]; break;
-                case 'fir':       $wide['items'] = [ ['name'=>'Fir Trees',      'amount'=>rand(5,16)] ]; break;
-                case 'hemlock':   $wide['items'] = [ ['name'=>'Hemlock Trees',  'amount'=>rand(8,50)] ]; break;
-                case 'cherry':    $wide['items'] = [ ['name'=>'Cherry Trees',   'amount'=>rand(5,10)] ]; break;
-                case 'apple':     $wide['items'] = [ ['name'=>'Apple Trees',    'amount'=>rand(5,10)] ]; break;
-                case 'pear':      $wide['items'] = [ ['name'=>'Pear Trees',     'amount'=>rand(4, 8)] ]; break;
-                case 'orange':    $wide['items'] = [ ['name'=>'Orange Trees',   'amount'=>rand(5,12)] ]; break;
-                case 'hawthorne': $wide['items'] = [ ['name'=>'Hawthorne Trees', 'amount'=>rand(8,20)] ]; break;
-                case 'dogwood':   $wide['items'] = [ ['name'=>'Dogwood Trees',   'amount'=>rand(3, 8)] ]; break;
-                case 'locust':    $wide['items'] = [ ['name'=>'Locust Trees',    'amount'=>rand(3, 8)] ]; break;
-                case 'juniper':   $wide['items'] = [ ['name'=>'Juniper Trees',   'amount'=>rand(5,10)] ]; break;
+                case 'maple':
+                    $wide['items'] = [ ['name'=>'Maple Tree', 'amount'=>rand(3,12)] ];
+                    // Maple trees produce Samaras, the helicopter style seeds, which are edible... we won't include them here
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,5)]); // aka 2 in 3 chances of having Fallen Logs here
+                break;
+                case 'birch':
+                    $wide['items'] = [ ['name'=>'Birch Tree', 'amount'=>rand(8,60)] ];
+                    // Birch trees produce seeds but aren't edible
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,8)]);
+                break;
+                case 'oak':
+                    $wide['items'] = [ ['name'=>'Oak Tree', 'amount'=>rand(4,16)] ];
+                    // Oak trees produce acorns... we should add them at some point
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,7)]);
+                break;
+                case 'mahogany':
+                    $wide['items'] = [ ['name'=>'Mahogany Tree', 'amount'=>rand(3, 8)] ];
+                    // Mahogany trees produce large fruits, and the insides are edible, but the outsides are poisonous
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,4)]);
+                break;
+                case 'pine':
+                    $pineAmount = rand(7,20);
+                    $wide['items'] = [ ['name'=>'Pine Tree', 'amount'=>$pineAmount], ['name'=>'Pine Cone', 'amount'=>$pineAmount*5] ];
+                    // Pine trees produce pinecones, which contain edible nuts
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,10)]);
+                break;
+                case 'cedar':
+                    $wide['items'] = [ ['name'=>'Cedar Tree', 'amount'=>rand(4,20)] ];
+                    // Cedar trees produce nuts. While they're edible, are still poisonous in large numbers
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,9)]);
+                break;
+                case 'fir':
+                    $wide['items'] = [ ['name'=>'Fir Tree', 'amount'=>rand(5,16)] ];
+                    // Fir trees also produce pine cones, but of a smaller variety. I think, for now, we will leave this out
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,11)]);
+                break;
+                case 'hemlock':
+                    $wide['items'] = [ ['name'=>'Hemlock Tree', 'amount'=>rand(8,50)] ];
+                    // Hemlock trees produce even smaller pine cones
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,4)]);
+                break;
+                case 'cherry':
+                    // We will treat cherries as unit piles, not individual items. Also, the fruit trees are all too small to support fallen logs
+                    $cherryAmount = rand(5,10);
+                    $wide['items'] = [ ['name'=>'Cherry Tree', 'amount'=>$cherryAmount], ['name'=>'Cherries', 'amount'=>$cherryAmount*2] ];
+                break;
+                case 'apple':
+                    $appleAmount = rand(5,10);
+                    $wide['items'] = [ ['name'=>'Apple Tree', 'amount'=>$appleAmount], ['name'=>'Apple', 'amount'=>$appleAmount*5] ];
+                break;
+                case 'pear':
+                    $pearAmount = rand(4,8);
+                    $wide['items'] = [ ['name'=>'Pear Tree', 'amount'=>$pearAmount], ['name'=>'Pear', 'amount'=>$pearAmount*3] ];
+                break;
+                case 'orange':
+                    $orangeAmount = rand(5,12);
+                    $wide['items'] = [ ['name'=>'Orange Tree', 'amount'=>$orangeAmount], ['name'=>'Orange', 'amount'=>$orangeAmount*4] ];
+                break;
+                case 'hawthorn': // Hawthorne and Dogwood trees are small, too, they cannot produce Fallen Logs
+                    // Hawthorn trees produce small red berries... I don't know if we'll use them or not
+                    $wide['items'] = [ ['name'=>'Hawthorn Tree', 'amount'=>rand(8,20)] ];
+                break;
+                case 'dogwood': // Dogwoods also produce small red berries
+                    $wide['items'] = [ ['name'=>'Dogwood Tree', 'amount'=>rand(3, 8)] ];
+                break;
+                case 'locust': // Most lucust tree fruits are not edible; only one variety is
+                    $wide['items'] = [ ['name'=>'Locust Tree',    'amount'=>rand(3, 8)] ];
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(4,12)]);
+                break;
+                case 'juniper': // Junipers produce small blue berries that are edible
+                    $wide['items'] = [ ['name'=>'Juniper Tree',   'amount'=>rand(5,10)] ];
+                    if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,3)]);
+                break;
+                case 'rock':  $wide['items'] = [['name'=>'Gravel', 'amount'=>rand(0,10)]]; break;
                 // I think, for the remaining items, they'll start out void of items... for now. We can change that later, though
-                case 'rock':  $wide['items'] = [];
-                case 'sands': $wide['items'] = [];
-                case 'water': $wide['items'] = [];
-                case 'lava':  $wide['items'] = [];
-                case 'ice':   $wide['items'] = [];
-                case 'snow':   $wide['items'] = [];
-                case 'stream':  $wide['items'] = [];
-                case 'wetland': $wide['items'] = [];
-                case 'cliff':   $wide['items'] = [];
-                case 'creekwash': $wide['items'] = []; // This will be an ideal source of gravel and raw metals... but we're not there yet
-                case 'creekbank': $wide['items'] = [];
+                case 'sands': $wide['items'] = []; break;
+                case 'water': $wide['items'] = []; break;
+                case 'lava':  $wide['items'] = []; break;
+                case 'ice':   $wide['items'] = []; break;
+                case 'snow':   $wide['items'] = []; break;
+                case 'stream':  $wide['items'] = []; break;
+                case 'wetland': $wide['items'] = []; break;
+                case 'cliff':   $wide['items'] = []; break;
+                case 'creekwash': $wide['items'] = []; break; // This will be an ideal source of gravel and raw metals... but we're not there yet
+                case 'creekbank': $wide['items'] = []; break;
             }
             return $wide;
         }, $long);

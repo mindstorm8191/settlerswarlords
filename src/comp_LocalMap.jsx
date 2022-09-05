@@ -80,7 +80,7 @@ export function LocalMap(props) {
                     {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
                     <div>Save</div>
                     {/*List all building options currently available*/}
-                    {game.blockTypes.map((block, key) => {
+                    {game.blockTypes.filter(block=>block.locked===0).map((block, key) => {
                         // First, determine if this is the currently selected building
                         let bColor = 'black'; if(buildSelected!==null && block.name===buildSelected.name) bColor = 'red';
 
@@ -379,7 +379,7 @@ export const minimapTiles = [
     {id:14, img:'appletreeone.jpg',  desc: 'Apple trees. Delicious fruits that everyone enjoys',                          walkLag: 8},
     {id:15, img:'peartreeone.jpg',   desc: 'Pear trees. Tasty fruits that excel in colder climates',                      walkLag: 8},
     {id:16, img:'orangetreeone.jpg', desc: 'Orange trees. Sweet fruits that enjoy warmer climates',                       walkLag: 8},
-    {id:17, img:'mapletreeone.jpg',  desc: 'Hawthorne trees. It seems to pulse with extra energy',                        walkLag: 30}, // this tree has thorns
+    {id:17, img:'mapletreeone.jpg',  desc: 'Hawthorn trees. It seems to pulse with extra energy',                         walkLag: 30}, // this tree has thorns
     {id:18, img:'mapletreeone.jpg',  desc: "Dogwood trees. You wouldn't think this would grow here, but it's determined", walkLag: 8},
     {id:19, img:'mapletreeone.jpg',  desc: 'Locust trees. It seems to have an extra glow in the sunlight',                walkLag: 30}, // this also has thorns
     {id:20, img:'pinetreeone.jpg',   desc: 'Juniper trees. It seems to come alive at night',                              walkLag: 8},

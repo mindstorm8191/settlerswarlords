@@ -61,32 +61,27 @@ export function ForagePost(tile) {
                             console.log('Error - tile not found at ['+ targetx +','+ targety +']');
                             return '';
                         }
-                        tile.items.push({name:'Apple', amount:1});
+                        tile.items.push(game.createItem('Apple', 'food', {}));
                     }
                     // Now, return the object that gets applied to the worker
-                    return {subtask:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
+                    return {subtask:'moveitem', targetx:targetx, targety:targety, targetitem:'Apple'};
                 },
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task
-                    if(typeof(b.blinker)==='function') {
-                        b.blinkState++;
-                        b.blinker(b.blinkState);
-                    }
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 },
                 onComplete: (worker)=>{
                     // Workers need to drop the item they're carrying at this block.
                     // Start by fetching the tile this structure is on
                     let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
                     if(typeof(tile)==='undefined') {
-                        console.log('Error: tile not found at ['+ b.x +','+ b.y +']');
+                        console.log('Error: tile not found at ['+ b.x +','+ b.y +']. This should be the Forage Post tile.');
                         return;
                     }
                     let slot = worker.carrying.findIndex(e=>e.name===worker.targetitem);
                     if(slot===-1) {
                         console.log(`Error: ${worker.name} tried to place an item, but not carrying it now. Item=${worker.targetitem}, carrying size=${worker.carrying.length}. Worker task cancelled`);
-                        worker.assignedBlock = 0;
-                        worker.task = '';
-                        return worker;
+                        worker.clearTask()
                     }
                 }
             }
@@ -103,7 +98,7 @@ export function ForagePost(tile) {
             return (
                 <>
                     <p className="singleline">Food on hand:</p>
-                    {b.groupItems().map((item,key)=>(
+                    {game.groupItems(tile.items).map((item,key)=>(
                         <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>
                     ))}
                 </>

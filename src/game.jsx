@@ -8,6 +8,7 @@ import { createNewWorker } from "./workers.jsx";
 import {LeanTo} from "./structures/LeanTo.jsx";
 import {ForagePost} from "./structures/ForagePost.jsx";
 import {RockKnapper} from "./structures/RockKnapper.jsx";
+import {LoggersPost} from "./structures/LoggersPost.jsx";
 
 let clockCounter = 0;
 
@@ -24,6 +25,7 @@ export const game = {
     clockCheck: 0,
     lastBlockId: 0,
     lastWorkerId: 0,
+    unlockedItems: [], // array of item names. This gets added to for every item the user crafts
 
     getNextBlockId: ()=> {
         // Returns the next available block id (for this map area)
@@ -46,9 +48,10 @@ export const game = {
     },
 
     blockTypes: [
-        {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], unlocked:0, newFeatures:[]},
-        {name:'Rock Knapper', image:'rockknapper.png', create:RockKnapper, prereq:[], unlocked:0, newFeatures:[]}
+        {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], locked:0, newFeatures:[]},
+        {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], locked:0, newFeatures:[]},
+        {name:'Rock Knapper', image:'rockknapper.png', create:RockKnapper, prereq:[], locked:0, newFeatures:[]},
+        {name:'Loggers Post', image:'loggerspost.png', create:LoggersPost, prereq:[['Flint Knife', 'Flint Stabber']], locked:1, newFeatures:[]}
     ],
 
     setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
@@ -81,6 +84,52 @@ export const game = {
         game.runState = 0;
     },
 
+    createItem:(itemname, itemgroup, extras)=>{
+        // Creates a new item, returning its structure. New items are added to the unlock list, if they don't already exist in it
+        // itemname - name of this new object
+        // itemgroup - what type of object this is. Pick between: item, tool, food, dust, liquid, gas
+        // itemextras - extra fields for this item, depending on what type it is
+        //    endurance (as float): for tools, determines how long this item lasts
+        //    efficiency (as float): for tools, determines how fast this item completes work
+        //    lifetime (as int): for food, how long (in seconds) this food will last
+        //    temperature (as float): for food, liquids & gasses, how hot this item is
+        // Returns the completed object; it is not attached to anything specific
+
+        // First, check if this item type is in the unlocked items list yet
+        if(!game.unlockedItems.some(i=>i===itemname)) {
+            game.unlockedItems.push(itemname);
+            // Also determine if this unlocks a specific building type
+            for(let i=0; i<game.blockTypes.length; i++) {
+                if(game.blockTypes[i].locked===0) continue;
+                // Run through each element of the prereq array. The outer array denotes AND clauses, the inner array denotes OR clauses
+                if(game.blockTypes[i].prereq.every(outer=>(
+                    outer.some(inner=>game.unlockedItems.some(item=>item===inner))
+                ))) {
+                    game.blockTypes[i].locked = 0;
+                    game.updateWorkers([...game.workers]); // We need to trigger a page update, so that this building will display
+                }
+            }
+        }
+
+        // The rest is easy...
+        return {name:itemname, group:itemgroup, ...extras};
+    },
+    groupItems: original=>{
+        // takes a list of items, and groups them into name & amount sets
+        // Returns the completed groupings as an array
+
+        let list = [];
+        for(let i=0; i<original.length; i++) {
+            let slot = list.findIndex(l=>l.name===original[i].name);
+            if(slot===-1) {
+                list.push({name:original[i].name, qty:original[i].amount || 1});
+            }else{
+                list[slot].qty += original[i].amount || 1;
+            }
+        }
+        return list;
+    },
+
     tick: () => {
         // Handles updates to the local world. This function should run about once every 50 ticks, or 20 times a second
         if(game.runState===0) return; // Break the continuous cycle if the game has actually stopped
@@ -88,14 +137,9 @@ export const game = {
         // Start with managing workers
         // The database will provide us with a name, location, and, well, is supposed to provide with the current job (or none).
         // To be honest, jobs haven't been fleshed out enough to push & pull from the database; lets not worry about that for now.
-
         let hasWorkerUpdate = false; // we only want to update the local map if any workers have actually moved, or something
-        let workerUpdate = false;
-
-        // I would use forEach here, but that doesn't allow altering the state of the workers properly. However, we can use .map
         for(let i=0; i<game.workers.length; i++) {
             hasWorkerUpdate ||= game.workers[i].work();
-            //game.workers[i].work();
         }
 
         // Before continuing, determine if we need to udpate rendering from worker changes

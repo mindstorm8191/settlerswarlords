@@ -32,7 +32,7 @@ export function createNewWorker(pack) {
             // counter influencing movement. The game will Tick 20 times a second, but workers will take longer to travel each square of the map
         tasks:[],    // list of tasks this worker is completing. The first task is always what they are currently working on
         carrying:[],  // list of items this worker is carrying. Some items will enable workers to carry more
-        addTask: (building, taskName,assignStyle,amount) => {
+        addTask: (building, taskName,assignStyle,amount,toolName='') => {
             // Gives a new task to a worker
             // No return value. The building and worker will be modified.
 
@@ -43,6 +43,15 @@ export function createNewWorker(pack) {
             w.status = 'working';
             
             let task = building.tasks.find(t=>(t.name===taskName));
+            if(typeof(task)==='undefined') {
+                console.log(`Error: could not find task ${taskName} at building ${building.name}`);
+                return;
+            }
+
+            if(typeof(task.buildTime)==='undefined') {
+                console.log(`Task ${building.name}->${taskName} missing buildTime`, task);
+            }
+
             let taskInstance = {
                 worker:w,
                 task:task,
@@ -56,7 +65,7 @@ export function createNewWorker(pack) {
                 task:task,
                 atBuilding:building,
                 taskInstance:taskInstance,
-                ...task.getTask(w.x,w.y)
+                ...task.getTask(w)
             }
 
             // Giving the task to the worker depends on the assignStyle given
@@ -72,7 +81,19 @@ export function createNewWorker(pack) {
                     w.tasks.splice(0,0,taskPack);
                 break;
             }
-            // And... that should be it, actually
+
+            // So, that gives us a completed task... except for gathering tools for a job
+            if(typeof(task.toolsNeeded)==='undefined') return;
+            if(task.toolsNeeded.length===0) return;
+            // Find the getTool task for this building. Each building that uses tools should have one
+            //let toolTask = building.tasks.find(t=>t.name==='Get Tool');
+            // For each tool, add a new task to fetch the target tool
+            for(let i=0; i<task.toolsNeeded.length; i++) {
+                w.addTask(building, "gettool", 'first', 0, task.toolsNeeded[i]);
+            }
+            
+            console.log(w.tasks);
+            
         },
         work: ()=>{
             // Has the worker do another tick of the current task, if one is assigned
@@ -83,6 +104,60 @@ export function createNewWorker(pack) {
 
             return w.move(()=>{
                 switch(w.tasks[0].subtask) {
+                    case 'cantwork':
+                        // Whatever work was assigned to this worker can't be done right now. Some tasks need reassignment to do something else;
+                        // for example, getting a tool when none is available means going to make it instead.
+                        if(w.tasks[0].toolNeeded) {
+                            // In this case, the worker needs a tool, but none exists to equip. They need to go make one. They will also
+                            // need to equip that tool once completed.
+
+                            // We actually have two scenarios to encounter this: when the task is first assigned and the worker needs to
+                            // craft the tool. And then when the worker has just finished crafting the tool and needs to pick it up.
+                            // So, determine if we have the target tool at this worker's location
+                            let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                            let slot = tile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
+                            if(slot===-1) {
+                                // Find a building - and its task - that can craft this item... that means a new attribute for each task
+                                let taskSlot = 0;
+                                for(let b=0; b<game.blocks.length; b++) {
+                                    taskSlot = game.blocks[b].tasks.findIndex(t=>{
+                                        return t.outputItems.includes(w.tasks[0].targetitem);
+                                    });
+                                    if(taskSlot!==-1) {
+                                        w.addTask(game.blocks[b], game.blocks[b].tasks[taskSlot].name, 'first', 1, '');
+                                        w.tasks[0].onProgress();
+                                        return; // That should be all we need here
+                                    }
+                                }
+                                // If we go through all the buildings and can't find the correct task, we'll reach here
+                                console.log(`${w.name} can't find a building to make ${w.tasks[0].targetitem}. Task cancelled.`);
+                                w.clearTask();
+                            }
+
+                            // We should be able to equip this tool, and the next task in line should use it (or gather another tool).
+                            w.carrying.push(...tile.items.splice(slot,1));
+                            console.log('CantWork task completed');
+                            w.clearTask();
+                        }
+                        return;
+                    
+                    case 'gettool':
+                        // We should be able to pick up a tool where we have arrived
+                        let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                        let islot = tile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
+                        if(islot===-1) {
+                            // We didn't find the tool here. Replace this task with a can't-work task so we can craft one
+                            // Actually, replacing this with a cant-work task might just be easier
+                            w.tasks[0].subtask = 'cantwork';
+                            w.tasks[0].toolNeeded = true;
+                            return;
+                        }
+
+                        // Pick up the tool here; that will conclude this task
+                        w.carrying.push(...tile.items.splice(islot,1));
+                        w.clearTask();
+                        console.log('getTool task completed');
+                        return;
                     case 'construct':
                         // Worker is at the location to complete construction. Let's make progress on it.
                         w.tasks[0].taskInstance.progress++;
@@ -124,10 +199,20 @@ export function createNewWorker(pack) {
 
                     case 'workatspot':
                         // We are going to a particular spot to do work, instead of a specific block.
+
+                        // Before making progress here, we need to ensure we have everything needed
+                        if(!w.carrying.some(i=>i.name==='Flint Knife')) {
+                            // We don't have the necessary materials on hand. Create a pickupItem task to retrieve this item
+                            w.addTask(w.tasks[0].atBuilding, 'moveItem', 'first', 1);
+                            // Okay but where are we moving it to?!?
+                            return;
+                        }
+
                         // By the time we reach here we should already be at the place. We just need to make progress.
                         w.tasks[0].taskInstance.progress++;
                         if(w.tasks[0].taskInstance.progress < w.tasks[0].taskInstance.progressTarget) {
                             w.tasks[0].task.onProgress();  // This basically calls the structure's Blinker function
+                            //w.tasks[0].atBuilding.blinker(++w.tasks[0].atBuilding.blink);
                             return;
                         }
 
@@ -195,7 +280,6 @@ export function createNewWorker(pack) {
                         w.tasks[0] = {...w.tasks[0], ...w.tasks[0].task.getTask(w.x,w.y)};
                         w.tasks[0].task.onProgress();
                         return;
-                        
                 }
             });
         },
@@ -229,7 +313,7 @@ export function createNewWorker(pack) {
 
             let tile = game.tiles.find(e=>e.x===w.x && e.y===w.y);
             if(typeof(tile)==='undefined') {
-                console.log(`Error in worker->move: ${w.name} moved to [${w.x},${w.y}] that doesn't exist`);
+                console.log(`Error in worker->move: ${w.name} moved to [${w.x},${w.y}] that doesn't exist. Target:[${w.targetx},${w.targety}]`);
                 w.moveCounter = 1;
                 return true;
             }

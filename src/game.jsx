@@ -3,7 +3,6 @@
     For the game Settlers & Warlords
 */
 
-import {minimapTiles} from "./comp_LocalMap.jsx";
 import { createNewWorker } from "./workers.jsx";
 import {LeanTo} from "./structures/LeanTo.jsx";
 import {ForagePost} from "./structures/ForagePost.jsx";
@@ -25,7 +24,7 @@ export const game = {
     clockCheck: 0,
     lastBlockId: 0,
     lastWorkerId: 0,
-    unlockedItems: [], // array of item names. This gets added to for every item the user crafts
+    unlockedItems: [], // array of item names. This gets added to for every new item the user crafts
 
     getNextBlockId: ()=> {
         // Returns the next available block id (for this map area)
@@ -113,6 +112,37 @@ export const game = {
 
         // The rest is easy...
         return {name:itemname, group:itemgroup, ...extras};
+    },
+    findItem: (workerx, workery, targetItem) => {
+        // Searches for a specific item on the map, locating the closest one to the worker's current location
+        // workerx, workery - current location of the worker to search for
+        // targetItem - name of the item to locate
+        // Returns an array of x & y coordinates that has the item. Or, if the target item cannot be located, returns [-1,-1].
+
+        // Let's start with a function
+        function hasItem(x,y,name) {
+            // returns true if the tile location has a fallen log in it
+            if(x<0 || x>41) return false;
+            if(y<0 || y>41) return false;
+
+            let tile = game.tiles.find(t=>t.x===x && t.y===y);
+            if(typeof(tile)==='undefined') return false;
+
+            return tile.items.some(i=>i.name===name);
+        }
+
+        let distance = 1;
+        if(hasItem(workerx,workery,targetItem)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
+        while(workerx+distance<=41 && workerx-distance>=0 && workery+distance<=41 && workery-distance>=0) {
+            for(let line=-distance; line<distance; line++) {
+                if(hasItem(workerx+line, workery-distance, targetItem)) return [workerx+line, workery-distance]; // right across the top
+                if(hasItem(workerx+distance, workery+line, targetItem)) return [workerx+distance, workery+line]; // down the right
+                if(hasItem(workerx-line, workery+distance, targetItem)) return [workerx-line, workery+distance]; // left across the bottom
+                if(hasItem(workerx-distance, workery-line, targetItem)) return [workerx-distance, workery-line]; // up the left
+            }
+            distance++;
+        }
+        return [-1,-1];
     },
     groupItems: original=>{
         // takes a list of items, and groups them into name & amount sets

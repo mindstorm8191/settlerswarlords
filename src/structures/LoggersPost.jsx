@@ -24,6 +24,29 @@ export function LoggersPost(tile) {
         activeTasks:[],
         tasks: [
             {
+                name:'gettool',
+                canAssign: ()=>false,  // This is assigned automatically, not by the user
+                canAssist: false,
+                hasQuantity: false,
+                itemsNeeded: [],
+                toolsNeeded: [],
+                buildTime: 0,
+                outputItems: [],
+                getTask: (workerx,workery,targettool) => {
+                    // Locate a tool on the map, which-ever is closest to the worker.
+                    const [targetx, targety] = game.findItem(workerx,workery,targettool);
+                    if(targetx===-1 && targety===-1) {
+                        // No such tool exists... it likely needs to be made again.
+                        // Crafting a new tool will actually need two tasks generated. We will use a different subtask to make that happen
+                        return {subtask:'cantwork', targetx:workerx, targety:workery, targetitem:targettool, toolNeeded:true, message:targettool +' must be crafted first'};
+                    }
+                    return {subtask:'gettool', targetx:targetx, targety:targety, targetitem:targettool};
+                },
+                onProgress: ()=> {
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                }
+            },
+            {
                 name:'Get Twine from Aged Wood',
                 taskType: 'work at location',
                 canAssign: ()=>true,    // This can be assigned at any point
@@ -32,37 +55,30 @@ export function LoggersPost(tile) {
                 itemsNeeded: [],
                 toolsNeeded: ['Flint Knife'],
                 buildTime: 20*25, // aka 25 seconds
-                getTask: (workerx,workery) => {
+                outputItems: ['Twine Strips', 'Debarked Fallen Tree'],
+                getTask: (worker) => {
+                    // We need to locate a tree tile that has fallen logs on it.
+                    // Before we can do that, we must make sure that this worker is carrying all the required tools.
+                    if(!worker.carrying.some(i=>i.name==='Flint Knife')) {
+                        // Worker isn't carrying the needed item. We'll have to wait for the refresh to get the correct location
+                        return {subtask: 'workatspot', targetx:worker.x, targety:worker.y, targetitem:'Fallen Log'};
+                    }
+
                     // Here, we need to locate a tree tile that has fallen logs in it.
                     // On that note, we need to have a way to detect when all fallen bark has been used up
 
-                    // Start from the worker's location, and expand in all directions to find some fallen wood
-                    let distance = 0;
-                    let flag = 0;
-                    let targetx = 0;
-                    let targety = 0;
-                    if(tileHasLog(workerx,workery)) {
-                        targetx = workerx;
-                        targety = workery;
-                    }else{
-                        while(flag===0 || (workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0)) {
-                            for(let line=-distance; line<distance; line++) {
-                                if(tileHasLog(workerx+line,workery-distance)) { // across the top
-                                    flag = 1; targetx = workerx+line; targety = workery-distance;
-                                }else if(tileHasLog(workerx+distance, workery+line)) { // down the right
-                                    flag = 1; targetx = workerx+distance; targety = workery+line;
-                                }else if(tileHasLog(workerx-line, workery+distance)) { // across the bottom
-                                    flag = 1; targetx = workerx-line; targety = workery+distance;
-                                }else if(tileHasLog(workerx-distance, workery-line)) { // up the left
-                                    flag = 1; targetx = workerx-distance; targety = workery-line;
-                                }
-                            }
-                            distance++;
-                        }
+                    const [targetx, targety] = game.findItem(workerx,workery,'Fallen Log');
+                    if(targetx===-1 && targety===-1) {
+                        // We searched the whole area, and there isn't any to find!
+                        return {subtask:'cantwork', toolNeeded:false, targetx:workerx, targety:workery, message:`We searched the whole map, there's none to find! Try something else`};
                     }
+
                     return {subtask:'workatspot', targetx:targetx, targety:targety, targetitem:'Fallen Log'};
                 },
                 onProgress: ()=>{
+                    // Find the worker that has this task
+                    //let active = b.activeTasks.find(a=>a.task.name="Get Twine from Aged Wood");
+                    //console.log(active.worker);
                     if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 },
                 onComplete: (worker)=>{

@@ -16,6 +16,9 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 
 
 Things to add later
+1) Implement new rule: Extra tasks are not added when creating other tasks. Instead, we will create new tasks when trying to begin
+    a task. When one task is complete and there are more in queue, a task will be refreshed. So when a task can't be completed,
+    that task's location will be set to the worker's location.
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Have item searches be based on A* pathfinding, so a worker will go after the item closest to them based on actual time needed to reach it.
@@ -40,19 +43,19 @@ Process
     can be used for other jobs.
 
 Project size (because it's fun to watch this grow)
-src/App.js                           src/structures/RockKnapper.jsx    server/getInput.php             wartree.md
-    src/libs/DanAjax.js                 src/comp_account.jsx              server/mapContent.php          worldgen.md
-       src/game.jsx                         src/libs/ErrorOverlay.jsx         server/routes/autoLogin.php   workercrafing.md
-           src/comp_LocalMap.jsx               server/common.php                 server/routes/login.php
-               src/libs/DraggableMap               server/jsarray.php               server/routes/logout.php
-                   src/libs/DanCommon.js               server/config.php               server/routes/reporterror.php
-                      src/libs/DanInput.jsx              server/DanGlobal.php             server/routes/signup.php
-                         src/workers.jsx                    server/finishLogin.php            README.md
-                             src/structures/LeanTo.jsx         server/globals.php                techtree.md
-                                 src/stuctures/ForagePost.jsx      server/weightedRandom.php        automationtree.md
-245+49+125+380+153+74+65+235+147+107+91+228+68+285+221+8+37+38+318+126+33+391+36+43+30+25+216+38+27+12+8+53+11
+src/App.js                           src/structures/ForagePost.jsx      server/globals.php                techtree.md
+    src/App.css                          src/structures/RockKnapper.jsx     server/weightedRandom.php        automationtree.md
+        src/libs/DanAjax.js                  src/structures/LoggersPost.jsx     server/getInput.php             wartree.md
+           src/game.jsx                          src/comp_account.jsx              server/mapContent.php           worldgen.md
+               src/workers.jsx                       src/libs/ErrorOverlay.jsx         server/routes/autologin.php   workercrafting.md
+                   src/comp_LocalMap.jsx                server/common.php                 server/routes/login.php
+                       src/libs/DraggableMap.jsx            server/jsarray.php               server/routes/logout.php
+                           src/libs/DanCommon.js                server/config.php               server/routes/reporterror.php
+                              src/libs/DanInput.jsx               server/DanGlobal.php             server/signup.php
+                                 src/stuctures/LeanTo.jsx            server/finishLogin.php            README.md
+245+129+49+168+272+401+153+74+65+147+126+112+114+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+216+38+27+12+8+53+11
 8/31/2022 = 3804 lines
-9/3/2022 = 3923 lines
+9/5/2022 = 4365 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

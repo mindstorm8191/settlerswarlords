@@ -43,7 +43,8 @@ export function RockKnapper(tile) {
                 hasQuantity: true,
                 itemsNeeded: [],
                 buildTime: 20*20,
-                getTask: (workerx,workery) =>{
+                outputItems: ['Flint Knife'],
+                getTask: (worker) =>{
                     return {subtask:'workonsite', targetx:b.x, targety:b.y};
                 },
                 onProgress: ()=>{
@@ -82,7 +83,8 @@ export function RockKnapper(tile) {
                 hasQuantity: true,
                 itemsNeeded: [],
                 buildTime: 20*20,
-                getTask: (workerx,workery) => {
+                outputItems: ['Flint Stabber'],
+                getTask: (workerx,workery,toolname) => {
                     return {subtask:'workonsite', targetx:b.x, targety:b.y};
                 },
                 onProgress: ()=>{

@@ -47,7 +47,8 @@ export function LeanTo(tile) {
                 hasQuantity: false, // set to true if the player can set a specific quantity to make of this
                 itemsNeeded: [],
                 buildTime: (20*30*3), // 1.5 minutes
-                getTask: (workerx,workery)=>{
+                outputItems: [],
+                getTask: (worker)=>{
                     // Returns the current task that needs completing
                     // Since this is only construction, we have a single return value
                     return {subtask:'construct', targetx:b.x, targety:b.y};
@@ -80,7 +81,7 @@ export function LeanTo(tile) {
                 hasQuantity:false,
                 itemsNeeded: [],
                 buildTime: (20*30), // 30 seconds
-                getTask: ()=>({subtask:'construct', targetx:b.x, targety:b.y}),
+                getTask: (worker)=>({subtask:'construct', targetx:b.x, targety:b.y}),
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task
                     if(typeof(b.blinker)==='function') {

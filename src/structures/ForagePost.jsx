@@ -38,16 +38,17 @@ export function ForagePost(tile) {
                 hasQuantity:false,
                 itemsNeeded:[],
                 buildTime:0,
-                getTask: (workerx, workery)=>{
+                outputItems: ['Apple'],
+                getTask: (worker)=>{
                     // Here, we need to define a location for the worker to go. We want to find a block that is somewhere near the
                     // worker, so that they can check there.
                     let targetx=b.x;
                     let targety=b.y;
                     while(targetx===b.x && targety===b.y) {
-                        let searchminx = Math.max(workerx-5, 0);
-                        let searchmaxx = Math.min(workerx+5, 40);
-                        let searchminy = Math.max(workery-5, 0);
-                        let searchmaxy = Math.min(workery+5, 40);
+                        let searchminx = Math.max(worker.x-5, 0);
+                        let searchmaxx = Math.min(worker.x+5, 40);
+                        let searchminy = Math.max(worker.y-5, 0);
+                        let searchmaxy = Math.min(worker.y+5, 40);
                         let searchsizex = searchmaxx-searchminx;
                         let searchsizey = searchmaxy-searchminy;
                         targetx = Math.floor(Math.random()*searchsizex) +searchminx;

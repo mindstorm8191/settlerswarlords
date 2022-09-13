@@ -32,7 +32,7 @@ export function createNewWorker(pack) {
             // counter influencing movement. The game will Tick 20 times a second, but workers will take longer to travel each square of the map
         tasks:[],    // list of tasks this worker is completing. The first task is always what they are currently working on
         carrying:[],  // list of items this worker is carrying. Some items will enable workers to carry more
-        addTask: (building, taskName,assignStyle,amount,toolName='') => {
+        addTask: (building, taskName,assignStyle,amount,targetItem='') => {
             // Gives a new task to a worker
             // No return value. The building and worker will be modified.
 
@@ -44,7 +44,8 @@ export function createNewWorker(pack) {
             
             let task = building.tasks.find(t=>(t.name===taskName));
             if(typeof(task)==='undefined') {
-                console.log(`Error: could not find task ${taskName} at building ${building.name}`);
+                console.log(`Error: could not find task ${taskName} at building ${building.name}. Current worker tasks: `+
+                            w.tasks.reduce((c,t)=>(c+', '+ t.subtask),''));
                 return;
             }
 
@@ -82,6 +83,7 @@ export function createNewWorker(pack) {
                 break;
             }
 
+            /*
             // So, that gives us a completed task... except for gathering tools for a job
             if(typeof(task.toolsNeeded)==='undefined') return;
             if(task.toolsNeeded.length===0) return;
@@ -93,7 +95,85 @@ export function createNewWorker(pack) {
             }
             
             console.log(w.tasks);
-            
+            */
+        },
+        addMoveItemTask: (building, targetItem, amount, targetx, targety)=>{
+            // Creates a new task that specifically moves an item from one location to another. This task will be done before any other
+            // task for this worker. If the target item doesn't exist, another task will be created & inserted before this, to craft
+            // that item. This process will continue until a crafting solution can be completed.
+            // building - what building the base task is for
+            // targetItem - name of the item to move
+            // amount - number of items to pick up at the target location
+            // targetx & targety - location on the map to move the items to
+
+            // Assertions
+            // Building - is a valid building to get work from
+            // targetItem - valid string of an item in the game
+            // amount - non-zero number of items 
+            // targetx & targety - valid map coordinates that a worker can go to
+
+            let taskSlot;
+            let targetBuilding;
+
+            let [sourcex, sourcey] = game.findItem(w.x, w.y, targetItem);
+            if(sourcex===-1 && sourcey===-1) {
+                // No items currently exist on the map. Instead, we need to find a building capable of crafting that item
+                taskSlot = 0;
+                targetBuilding = game.blockList.find(b=> {
+                    if(typeof(b.tasks)==='undefined') return false; // This structure has no tasks (not sure why, yet...)
+                    // Find a task with the correct output items
+                    return b.tasks.some((t,index)=> {
+                        // every task should have an outputItems list
+                        if(typeof(t.outputItems)==='undefined') {
+                            console.log('Error in workers->addMoveItemTask->find producer building: block '+ b.name +' task '+ t.name +' missing outputItems array. Continuing without...');
+                            return false;
+                        }
+                        if(t.outputItems.includes(targetItem)) {
+                            taskSlot = index;
+                            return true;
+                        }
+                        return false;
+                    });
+                     
+                });
+                // From this... pile, we should have a target building we can assign a new task to. That is, if any such building exists; let's check
+                if(typeof(targetBuilding)==='undefined') {
+                    console.log('Did not find item='+ targetItem +' on map. Action aborted');
+                    return;
+                }
+                // We can go ahead and set the sourcex & y to this building's location
+                sourcex = targetBuilding.x;
+                sourcey = targetBuilding.y;
+            }
+
+            let taskInstance = {
+                worker:w,
+                task: null, // can we operate this without a specific task object?
+                progress: 0,
+                progressTarget: 2,
+                count: 0,
+                targetCount: amount
+            };
+            let taskPack = {
+                task: null,
+                atBuilding: building,
+                taskInstance: taskInstance,
+                subtask: 'moveitem',
+                targetx: sourcex,
+                targety: sourcey,
+                nextx: targetx,
+                nexty: targety,
+                targetitem: targetItem
+            }
+
+            // These tasks are always inserted first
+            w.tasks.splice(0,0,taskPack);
+
+            // Now, handle situations where we have to craft the item before we can pick it up
+            if(typeof(targetBuilding)!=='undefined') {
+                // This should behave like a regular task
+                w.addTask(targetBuilding, targetBuilding.tasks[taskSlot].name, 'first', 1, '');
+            }
         },
         work: ()=>{
             // Has the worker do another tick of the current task, if one is assigned
@@ -101,6 +181,30 @@ export function createNewWorker(pack) {
 
             if(w.tasks.length===0) return;  // We later plan on having them wander around - or even help other workers. But for now they'll just sit idle
             let p = null;
+
+            let tile, itemSlot;
+
+            // Certain tasks require having items on hand before we can proceed to complete the given task
+            switch(w.tasks[0].subtask) {
+                case 'workatspot':
+                    // Before moving, check that all needed equipment is at the job site
+                    let checktile = game.tiles.find(t=>t.x===w.tasks[0].targetx && t.y===w.tasks[0].targety);
+                    if(![...w.tasks[0].task.itemsNeeded, ...w.tasks[0].task.toolsNeeded].every(i=>{
+                        if(checktile.items.some(j=>j.name===i)) return true;
+                        // Item i (as a name) wasn't found. Create a task to move that item to our target's location
+                        //w.addTask(w.tasks[0].atBuilding, 'moveitem', 'first', 1, i);
+                        w.addMoveItemTask(w.tasks[0].atBuilding, i, 1, w.tasks[0].targetx, w.tasks[0].targety);
+
+                        // We're gonna have to break the mold in terms of assigning tasks. We need a task before this current
+                        // one that will pick up an item at one place, and put it down at another
+
+                        return false;
+                    })) {
+                        // One of these elements wasn't found. Return now, and the new task will 
+                        return;
+                    }
+                break;
+            }
 
             return w.move(()=>{
                 switch(w.tasks[0].subtask) {
@@ -114,7 +218,7 @@ export function createNewWorker(pack) {
                             // We actually have two scenarios to encounter this: when the task is first assigned and the worker needs to
                             // craft the tool. And then when the worker has just finished crafting the tool and needs to pick it up.
                             // So, determine if we have the target tool at this worker's location
-                            let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                            tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
                             let slot = tile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
                             if(slot===-1) {
                                 // Find a building - and its task - that can craft this item... that means a new attribute for each task
@@ -141,23 +245,42 @@ export function createNewWorker(pack) {
                         }
                         return;
                     
-                    case 'gettool':
-                        // We should be able to pick up a tool where we have arrived
-                        let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
-                        let islot = tile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
-                        if(islot===-1) {
-                            // We didn't find the tool here. Replace this task with a can't-work task so we can craft one
-                            // Actually, replacing this with a cant-work task might just be easier
-                            w.tasks[0].subtask = 'cantwork';
-                            w.tasks[0].toolNeeded = true;
+                    case 'moveitem':
+                        // This is similar to fetchItem, but the destination location is marked as nextx & y, not the task's building location
+
+                        let movetile = game.tiles.find(t => t.x===w.x && t.y===w.y);
+                        // First, determine if this has nextx & y variables
+                        if(typeof(w.tasks[0].nextx)==='undefined') {
+                            // So, this should be where we are placing an item down at.
+                            itemSlot = w.carrying.findIndex(i=>i.name===w.tasks[0].targetitem);
+                            //tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                            movetile.items.push(w.carrying.splice(itemSlot,1)[0]);
+                            w.clearTask();
+                            console.log(w.name +' finished moveitem. Task list now '+ w.tasks.reduce((carry,t)=>(carry +","+ t.subtask), '') +
+                                        '. Items on site: '+ movetile.items.reduce((carry,i)=>(carry +','+ i.name), ''));
                             return;
                         }
 
-                        // Pick up the tool here; that will conclude this task
-                        w.carrying.push(...tile.items.splice(islot,1));
-                        w.clearTask();
-                        console.log('getTool task completed');
+                        // We still have nextx & y, so we should be picking an item up from here
+                        
+                        itemSlot = movetile.items.findIndex(i=>i.name===w.tasks[0].targetitem);
+                        if(itemSlot===-1) {
+                            // Uhhh, we didn't find the item here... maybe someone else swiped it?
+                            console.log('Error in moveitem: target item not found! Task cancelled');
+                            w.clearTask();
+                            return;
+                        }
+                        w.carrying.push(movetile.items.splice(itemSlot,1)[0]);
+                        console.log(w.name +' now carrying '+ w.carrying.reduce((c,i)=>(c +','+ i.name), '') +' mostly need the '+ w.tasks[0].targetitem);
+
+                        // Now fix the target & next variables
+                        w.tasks[0].targetx = w.tasks[0].nextx;
+                        w.tasks[0].targety = w.tasks[0].nexty;
+                        delete w.tasks[0].nextx;
+                        delete w.tasks[0].nexty;
+                        // That should force the worker to travel to a new location
                         return;
+                    
                     case 'construct':
                         // Worker is at the location to complete construction. Let's make progress on it.
                         w.tasks[0].taskInstance.progress++;
@@ -200,19 +323,10 @@ export function createNewWorker(pack) {
                     case 'workatspot':
                         // We are going to a particular spot to do work, instead of a specific block.
 
-                        // Before making progress here, we need to ensure we have everything needed
-                        if(!w.carrying.some(i=>i.name==='Flint Knife')) {
-                            // We don't have the necessary materials on hand. Create a pickupItem task to retrieve this item
-                            w.addTask(w.tasks[0].atBuilding, 'moveItem', 'first', 1);
-                            // Okay but where are we moving it to?!?
-                            return;
-                        }
-
                         // By the time we reach here we should already be at the place. We just need to make progress.
                         w.tasks[0].taskInstance.progress++;
                         if(w.tasks[0].taskInstance.progress < w.tasks[0].taskInstance.progressTarget) {
                             w.tasks[0].task.onProgress();  // This basically calls the structure's Blinker function
-                            //w.tasks[0].atBuilding.blinker(++w.tasks[0].atBuilding.blink);
                             return;
                         }
 
@@ -235,7 +349,7 @@ export function createNewWorker(pack) {
                         p();
                         return;
 
-                    case 'moveitem':
+                    case 'fetchitem':
                         // We are going to a location to pick something up, then bringing it to our structure
 
                         // Assertions
@@ -280,6 +394,10 @@ export function createNewWorker(pack) {
                         w.tasks[0] = {...w.tasks[0], ...w.tasks[0].task.getTask(w.x,w.y)};
                         w.tasks[0].task.onProgress();
                         return;
+                    
+                    default:
+                        console.log('Error in workers->tick(): task '+ w.tasks[0].subtask +' not handled. Cancelling task');
+                        w.clearTask();
                 }
             });
         },
@@ -340,7 +458,8 @@ export function createNewWorker(pack) {
 
             let slot = w.tasks[0].atBuilding.activeTasks.findIndex(task=>(w.id===task.worker.id));
             if(slot===-1) {
-                w.tasks.splice(1,0);
+                console.log('In w.clearTask(): did not find task at building. building tasks:', w.tasks[0].atBuilding.activeTasks);
+                w.tasks.splice(0,1);
                 return;
             }
 

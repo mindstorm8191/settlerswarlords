@@ -65,7 +65,7 @@ export function ForagePost(tile) {
                         tile.items.push(game.createItem('Apple', 'food', {}));
                     }
                     // Now, return the object that gets applied to the worker
-                    return {subtask:'moveitem', targetx:targetx, targety:targety, targetitem:'Apple'};
+                    return {subtask:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
                 },
                 onProgress: ()=>{
                     // Allows context updates whenever progress is made on this task

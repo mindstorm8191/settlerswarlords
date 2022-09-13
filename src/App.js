@@ -28,6 +28,19 @@ Things to add later
 6) Give all workers a health, nourishment, strength & speed values. Also include attack and armor values that can be modified by equipment.
 7) Add wine to the game
 
+SO here's how the process should work
+1) Player assigns the workAtSite task to worker
+2) Worker ticks; checks & finds that there is no tool at the job site. AddMoveItemTask is called, thus pausing the workAtSite task.
+3) Worker goes to the location of the tool, takes it to the workAtSite location. That ends the moveItem task.
+4) Worker resumes the workAtSite task - they're already 'on scene'
+
+If the item doesn't already exist somewhere:
+1) Player assigns the workAtSite task to worker.
+2) Worker ticks, finds no tool at the job site. AddMoveItemTask() creates a moveItem task, and also a task to create the new item, before moveItem.
+3) Worker creates the item, ending the first task.
+4) MoveItem has the worker move the item to the job site
+5) Worker resumes workAtSite, already at location.
+
 Wine
 Wine will be an important item in early tech. Not only is it a very safe form of hydration, it can be stored long term and travels easily. Some
 players will be lucky and find grape vines growing on their map.

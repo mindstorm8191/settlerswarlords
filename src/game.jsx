@@ -111,16 +111,17 @@ export const game = {
         }
 
         // The rest is easy...
-        return {name:itemname, group:itemgroup, ...extras};
+        return {name:itemname, group:itemgroup, inTask:0, ...extras};
     },
-    findItem: (workerx, workery, targetItem) => {
+    findItem: (workerx, workery, targetItem, skipFlagged=false) => {
         // Searches for a specific item on the map, locating the closest one to the worker's current location
         // workerx, workery - current location of the worker to search for
         // targetItem - name of the item to locate
+        // skipFlagged - set to true for search to skip over items already flagged for use in another task
         // Returns an array of x & y coordinates that has the item. Or, if the target item cannot be located, returns [-1,-1].
 
         // Let's start with a function
-        function hasItem(x,y,name) {
+        function hasItem(x,y) {
             // returns true if the tile location has a fallen log in it
             if(x<0 || x>41) return false;
             if(y<0 || y>41) return false;
@@ -128,17 +129,56 @@ export const game = {
             let tile = game.tiles.find(t=>t.x===x && t.y===y);
             if(typeof(tile)==='undefined') return false;
 
-            return tile.items.some(i=>i.name===name);
+            return tile.items.some(i=>{
+                if(skipFlagged) {
+                    return i.name===targetItem && i.inTask===0;
+                }else{
+                    return i.name===targetItem;
+                }
+            });
         }
 
         let distance = 1;
-        if(hasItem(workerx,workery,targetItem)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
+        if(hasItem(workerx,workery)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
         while(workerx+distance<=41 && workerx-distance>=0 && workery+distance<=41 && workery-distance>=0) {
             for(let line=-distance; line<distance; line++) {
-                if(hasItem(workerx+line, workery-distance, targetItem)) return [workerx+line, workery-distance]; // right across the top
-                if(hasItem(workerx+distance, workery+line, targetItem)) return [workerx+distance, workery+line]; // down the right
-                if(hasItem(workerx-line, workery+distance, targetItem)) return [workerx-line, workery+distance]; // left across the bottom
-                if(hasItem(workerx-distance, workery-line, targetItem)) return [workerx-distance, workery-line]; // up the left
+                if(hasItem(workerx+line, workery-distance)) return [workerx+line, workery-distance]; // right across the top
+                if(hasItem(workerx+distance, workery+line)) return [workerx+distance, workery+line]; // down the right
+                if(hasItem(workerx-line, workery+distance)) return [workerx-line, workery+distance]; // left across the bottom
+                if(hasItem(workerx-distance, workery-line)) return [workerx-distance, workery-line]; // up the left
+            }
+            distance++;
+        }
+        return [-1,-1];
+    },
+    findItemFromList: (workerx, workery, itemList, skipFlagged=false) => {
+        // Works like findItem, but accepts a list of acceptable items instead of just one.
+        // Let's start with a function
+        function hasItem(x,y) {
+            // returns true if the tile location has a fallen log in it
+            if(x<0 || x>41) return false;
+            if(y<0 || y>41) return false;
+
+            let tile = game.tiles.find(t=>t.x===x && t.y===y);
+            if(typeof(tile)==='undefined') return false;
+
+            return tile.items.some(i=>{
+                if(skipFlagged) {
+                    return i.inTask===0 && itemList.includes(i.name);
+                }else{
+                    return itemList.includes(i.name);
+                }
+            });
+        }
+
+        let distance = 1;
+        if(hasItem(workerx,workery)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
+        while(workerx+distance<=41 && workerx-distance>=0 && workery+distance<=41 && workery-distance>=0) {
+            for(let line=-distance; line<distance; line++) {
+                if(hasItem(workerx+line, workery-distance)) return [workerx+line, workery-distance]; // right across the top
+                if(hasItem(workerx+distance, workery+line)) return [workerx+distance, workery+line]; // down the right
+                if(hasItem(workerx-line, workery+distance)) return [workerx-line, workery+distance]; // left across the bottom
+                if(hasItem(workerx-distance, workery-line)) return [workerx-distance, workery-line]; // up the left
             }
             distance++;
         }

@@ -9,16 +9,23 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Decide how sticks should be handled in this game
+2) Set up a useTool() function, as part of the worker class, to manage tool wear automatically.
+3) Decide if a hasTools() function is needed. I think the pre-check for parts will catch that a tool is missing (because it broke), even
+    midway through a task
 1) Decide how to better show workers when a user has clicked on their tile
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
 4) Add the Loggers Post structure, and allow players to collect raw twine. The Loggers Post can be placed anywhere
 5) For empty tiles, show any items existing on that tile
 
+Sticks
+Users will need long & short sticks; fallen sticks will only be useable for firewood, so they must cut them fresh from the trees.
+Each tree will have a set number of long sticks on them; they can be removed from standing trees, leaving a 'removed stick' at the location.
+When the tree is finally cut down, it will generate that many fewer sticks than its original amount.
+Workers can only cut down long sticks; they can then cut them into two short sticks.
+For now, we will stick to a flat number for all trees: 6 sticks.
 
 Things to add later
-1) Implement new rule: Extra tasks are not added when creating other tasks. Instead, we will create new tasks when trying to begin
-    a task. When one task is complete and there are more in queue, a task will be refreshed. So when a task can't be completed,
-    that task's location will be set to the worker's location.
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route.
 3) Have item searches be based on A* pathfinding, so a worker will go after the item closest to them based on actual time needed to reach it.
@@ -28,18 +35,6 @@ Things to add later
 6) Give all workers a health, nourishment, strength & speed values. Also include attack and armor values that can be modified by equipment.
 7) Add wine to the game
 
-SO here's how the process should work
-1) Player assigns the workAtSite task to worker
-2) Worker ticks; checks & finds that there is no tool at the job site. AddMoveItemTask is called, thus pausing the workAtSite task.
-3) Worker goes to the location of the tool, takes it to the workAtSite location. That ends the moveItem task.
-4) Worker resumes the workAtSite task - they're already 'on scene'
-
-If the item doesn't already exist somewhere:
-1) Player assigns the workAtSite task to worker.
-2) Worker ticks, finds no tool at the job site. AddMoveItemTask() creates a moveItem task, and also a task to create the new item, before moveItem.
-3) Worker creates the item, ending the first task.
-4) MoveItem has the worker move the item to the job site
-5) Worker resumes workAtSite, already at location.
 
 Wine
 Wine will be an important item in early tech. Not only is it a very safe form of hydration, it can be stored long term and travels easily. Some
@@ -55,6 +50,8 @@ Process
     jars and will keep producing wine when used (Yeast will remain usable from the jars). Jars that produce vinegar will become vinegar jars; they
     can be used for other jobs.
 
+Fantasy horror creature: https://imgur.com/gallery/s8E9idW
+
 Project size (because it's fun to watch this grow)
 src/App.js                           src/structures/ForagePost.jsx      server/globals.php                techtree.md
     src/App.css                          src/structures/RockKnapper.jsx     server/weightedRandom.php        automationtree.md
@@ -66,9 +63,10 @@ src/App.js                           src/structures/ForagePost.jsx      server/g
                            src/libs/DanCommon.js                server/config.php               server/routes/reporterror.php
                               src/libs/DanInput.jsx               server/DanGlobal.php             server/signup.php
                                  src/stuctures/LeanTo.jsx            server/finishLogin.php            README.md
-245+129+49+168+272+401+153+74+65+147+126+112+114+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+216+38+27+12+8+53+11
+261+129+49+206+493+401+153+74+65+147+127+114+100+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+216+38+27+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
+9/14/2022 = 4629 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

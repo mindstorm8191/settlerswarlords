@@ -49,6 +49,7 @@ export function ForagePost(tile) {
                         let searchmaxx = Math.min(worker.x+5, 40);
                         let searchminy = Math.max(worker.y-5, 0);
                         let searchmaxy = Math.min(worker.y+5, 40);
+                        //console.log(`Search zone: [${searchminx}-${searchmaxx},${searchminy}-${searchmaxy}]`);
                         let searchsizex = searchmaxx-searchminx;
                         let searchsizey = searchmaxy-searchminy;
                         targetx = Math.floor(Math.random()*searchsizex) +searchminx;

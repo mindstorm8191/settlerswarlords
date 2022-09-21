@@ -48,9 +48,6 @@ export function LoggersPost(tile) {
                     return {subtask:'workatspot', targetx:targetx, targety:targety, targetitem:'Fallen Log'};
                 },
                 onProgress: ()=>{
-                    // Find the worker that has this task
-                    //let active = b.activeTasks.find(a=>a.task.name="Get Twine from Aged Wood");
-                    console.log(b.activeTasks);
                     if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 },
                 onComplete: (worker)=>{
@@ -69,6 +66,38 @@ export function LoggersPost(tile) {
                     // Unlike previous design, we want to add each debarked log portion individually
                     tile.items.push(game.createItem('Debarked Fallen Log', 'item', {}));
                     tile.items.push(game.createItem('Twine Strips', 'item', {}));
+                }
+            },{
+                name: 'Cut Long Stick',
+                // We will have a collection of sticks where there are fallen logs. Users will also be able to cut sticks off existing trees.
+                // This will generate a 'missing stick' item; When a tree is later cut down, it will not generate as many sticks from its
+                // branches
+                taskType: 'work at location',
+                canAssign: ()=>true, // this can be worked any time... for now. We'll see later
+                canAssist: true,
+                hasQuantity: true,
+                itemsNeeded: [],
+                toolsNeeded: ['Flint Stabber'],
+                buildTime: 20*40,  // 40 seconds
+                outputItems: ['Long Stick', 'Removed Stick'],
+                getTask: (worker) => {
+                    // Locate a tree tile with sticks on it
+                    const [targetx, targety] = game.findItemFromList(worker.x, worker.y, ['Maple Tree', 'Birch Tree', 'Oak Tree', 'Mahogany Tree',
+                        'Pine Tree', 'Cedar Tree', 'Fir Tree', 'Hemlock Tree', 'Cherry Tree', 'Apple Tree', 'Pear Tree', 'Orange Tree',
+                        'Hawthorn Tree', 'Dogwood Tree', 'Locust Tree', 'Juniper Tree']);
+                    if(targetx===-1 && targety===-1)
+                        return {subtask:'cantwork', toolNeeded:false, targetx:worker.x, targety:worker.y, message:`We couldn't find any sticks anywhere! Try something else`};
+                    return {subtask:'workatspot', targetx:targetx, targety:targety};
+                },
+                onProgress: ()=>{
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                },
+                onComplete: (worker)=>{
+                    // Create the stick - and the removedStick item
+                    let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                    if(typeof(tile.items)==='undefined') tile.items = [];
+                    tile.items.push(game.createItem('Long Stick', 'item', {}), game.createItem('Removed Stick', 'item', {}));
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 }
             }
         ],

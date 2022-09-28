@@ -107,6 +107,14 @@ export function createNewWorker(pack) {
             3) Worker creates the item, ending the first task.
             4) MoveItem has the worker move the item to the job site
             5) Worker resumes workAtSite, already at location.
+
+            If no prereq item exists because it needs to be crafted first:
+            1) Player assigns the workAtSite task to worker. This completes without a location
+            2) Worker ticks, and finds that there is no target location. It searches again for the item to find, and can't locate it. It
+                then creates a task to create the item needed.
+            3) Worker creates the missing item, ending the first task
+            4) Work ticks, and finds that there is no target location. It searches again for the item to find, and locates it (usually at
+                the same location as the worker).
             */
 
             // Assertions
@@ -197,7 +205,25 @@ export function createNewWorker(pack) {
 
             // Certain tasks require having items on hand before we can proceed to complete the given task
             switch(w.tasks[0].subtask) {
-                case 'workatspot':
+                case 'workatspot': case 'workonsite':
+                    // Before attempting to complete this task, we need to make sure that we have a place to go. If not, we may try to
+                    // find a place... sometimes we can't until other items are available
+                    if(typeof(w.tasks[0].targetx)==='undefined') {
+                        // Try to find the item now. It might tell us it can't be found
+                        let pack = w.tasks[0].task.getTask(w);
+                        if(typeof(pack.targetx)==='undefined') {
+                            // There is still no target location, because no pre-req items exist. We will need to craft at least the
+                            // first item of this list, to give the worker somewhere to start from
+                            // (this assumes there's an itemsNeeded list attached to the task at hand... if not, I don't know what to do)
+                            w.addMoveItemTask(w.tasks[0].atBuilding, w.tasks[0].task.itemsNeeded[0], 1, w.x, w.y);
+                            console.log(w.tasks);
+                        }else{
+                            w.tasks[0].targetx = pack.targetx;
+                            w.tasks[0].targety = pack.targety;
+                        }
+                        return false;
+                    }
+
                     // Before moving, check that all needed equipment is at the job site
                     let checktile = game.tiles.find(t=>t.x===w.tasks[0].targetx && t.y===w.tasks[0].targety);
                     if(![...w.tasks[0].task.itemsNeeded, ...w.tasks[0].task.toolsNeeded].every(i=>{
@@ -496,6 +522,7 @@ export function createNewWorker(pack) {
             if(typeof(w.tasks[0].atBuilding)==='undefined') {
                 console.log('In w.clearTask(): task had no building assigned. Deleting task anyway');
                 w.tasks.splice(0,1);
+                console.log(w.tasks);
                 return;
             }
 
@@ -505,7 +532,7 @@ export function createNewWorker(pack) {
                 //console.log(i);
             });
 
-            let slot = w.tasks[0].atBuilding.activeTasks.findIndex(task=>(w.id===task.worker.id));
+            let slot = w.tasks[0].atBuilding.activeTasks.findIndex(task=>(w.id===task.worker.id && w.tasks[0].task.name===task.task.name));
             if(slot===-1) {
                 console.log('In w.clearTask(): did not find task at building. building tasks:', w.tasks[0].atBuilding.activeTasks);
                 w.tasks.splice(0,1);

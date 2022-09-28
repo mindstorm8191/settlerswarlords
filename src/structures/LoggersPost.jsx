@@ -99,6 +99,43 @@ export function LoggersPost(tile) {
                     tile.items.push(game.createItem('Long Stick', 'item', {}), game.createItem('Removed Stick', 'item', {}));
                     if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                 }
+            },{
+                name: 'Cut Short Stick',
+                taskType: 'work at location', // I'm not actually using this field... maybe get rid of it?
+                canAssign: ()=>true,
+                canAssist: true,
+                hasQuantity: true,
+                itemsNeeded: ['Long Stick'],
+                toolsNeeded: ['Flint Stabber'],
+                buildTime: 20*40, // 40 seconds
+                outputItems: ['Short Stick'],
+                getTask: worker => {
+                    // Locate a Long Stick on the map
+                    const [targetx, targety] = game.findItem(worker.x, worker.y, 'Long Stick', true);
+                    if(targetx===-1 && targety===-1) {
+                        // We couldn't find a Long Stick. We should be able to craft one, though. Return this task without a target location.
+                        // Another portion of code will be able to assign the task to create the Long Stick
+                        return {subtask:'workatspot'};
+                    }
+                    return {subtask:'workatspot', targetx:targetx, targety:targety};
+                },
+                onProgress: ()=>{
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                },
+                onComplete: worker=>{
+                    let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                    // Delete the long stick
+                    let slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                    if(slot===-1) {
+                        console.log('Made short sticks, but couldnt find long stick to delete');
+                    }else{
+                        tile.items.splice(slot, 1);
+                    }
+
+                    // Create the short stick!
+                    tile.items.push(game.createItem('Short Stick', 'item', {}), game.createItem('Short Stick', 'item', {}));
+                    if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                }
             }
         ],
         SidePanel: ()=>{

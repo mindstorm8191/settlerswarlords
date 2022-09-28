@@ -42,6 +42,7 @@ export function RockKnapper(tile) {
                 canAssist: true,
                 hasQuantity: true,
                 itemsNeeded: [],
+                toolsNeeded: [],
                 buildTime: 20*20,
                 outputItems: ['Flint Knife'],
                 getTask: (worker) =>{
@@ -82,6 +83,7 @@ export function RockKnapper(tile) {
                 canAssist: true,
                 hasQuantity: true,
                 itemsNeeded: [],
+                toolsNeeded: [],
                 buildTime: 20*20,
                 outputItems: ['Flint Stabber'],
                 getTask: (worker) => {

@@ -8,6 +8,7 @@ import {LeanTo} from "./structures/LeanTo.jsx";
 import {ForagePost} from "./structures/ForagePost.jsx";
 import {RockKnapper} from "./structures/RockKnapper.jsx";
 import {LoggersPost} from "./structures/LoggersPost.jsx";
+import {RopeMaker} from "./structures/RopeMaker.jsx";
 
 let clockCounter = 0;
 
@@ -50,7 +51,8 @@ export const game = {
         {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], locked:0, newFeatures:[]},
         {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], locked:0, newFeatures:[]},
         {name:'Rock Knapper', image:'rockknapper.png', create:RockKnapper, prereq:[], locked:0, newFeatures:[]},
-        {name:'Loggers Post', image:'loggerspost.png', create:LoggersPost, prereq:[['Flint Knife', 'Flint Stabber']], locked:1, newFeatures:[]}
+        {name:'Loggers Post', image:'loggerspost.png', create:LoggersPost, prereq:[['Flint Knife', 'Flint Stabber']], locked:1, newFeatures:[]},
+        {name:'Rope Maker',   image:'ropemaker.png', create:RopeMaker, prereq:[['Twine Strips']], locked:1, newFeatures:[]}
     ],
 
     setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {

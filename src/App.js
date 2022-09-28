@@ -9,7 +9,6 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Decide how sticks should be handled in this game
 2) Set up a useTool() function, as part of the worker class, to manage tool wear automatically.
 3) Decide if a hasTools() function is needed. I think the pre-check for parts will catch that a tool is missing (because it broke), even
     midway through a task
@@ -74,6 +73,9 @@ src/App.js                           src/structures/ForagePost.jsx      server/g
 // content through a full URL (and work around CORS). Once the site is published, all this will be 'local' to the app
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
+
+// A simple little check to enable extra commands to help with debugging
+export const debuggingEnabled = true;
 
 /* *** Building project ***
    To build this project, run 'npm run build' from the command line.

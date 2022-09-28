@@ -4,7 +4,7 @@
 */
 
 import React from "react";
-import { imageURL } from "./App.js";
+import { imageURL, debuggingEnabled } from "./App.js";
 import { game } from "./game.jsx";
 import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
 import { DanCommon } from "./libs/DanCommon.js";
@@ -209,7 +209,10 @@ function LocalMapRightPanel(props) {
                 <p>Nothing is built here. Click a block from the left to place it here</p>
                 {typeof(worker)==='undefined'?'':(
                     <>
-                        <p style={{fontWeight:'bold'}} className="singleline">{worker.name}, {worker.status}</p>
+                        <p style={{fontWeight:'bold'}} className="singleline">
+                            {worker.name}, {worker.status}
+                            {debuggingEnabled?(<span className="fakelink" onClick={()=>console.log(worker)}>Debug</span>):('')}
+                        </p>
                     </>
                 )}
             </div>

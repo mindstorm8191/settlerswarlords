@@ -9,6 +9,7 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Get the left-side blocks to highlight green when features become available
 2) Set up a useTool() function, as part of the worker class, to manage tool wear automatically.
 3) Decide if a hasTools() function is needed. I think the pre-check for parts will catch that a tool is missing (because it broke), even
     midway through a task

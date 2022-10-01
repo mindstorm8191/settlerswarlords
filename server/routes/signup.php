@@ -23,6 +23,14 @@
     // Also check that the two passwords match
     if($con['password'] !== $con['pass2']) ajaxreject('badinput', 'Your passwords did not match');
 
+    // Before continuing to create this user, check that the username provided does not already exist
+    $testUser = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'routes/signup.php->check username in db');
+    reporterror('server/routes/signup.php', json_encode($testUser));
+    if(sizeof($testUser)!==0) {
+        // Oh - we found one. Return an error. The front end should manage things from here
+        ajaxreject('badinput', 'That user name already exists. Try another');
+    }
+
     // Set up some randomized variables to use for this user
     srand(time());
     $ajaxcode = rand(0, pow(2, 31));

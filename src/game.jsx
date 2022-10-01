@@ -47,13 +47,17 @@ export const game = {
         // ... well, that was a lot simpler than expected. Whatever
     },
 
+    // This format doesn't follow the Single Source of Truth idea. We need each entry here to be defined fully in the building's file.
     blockTypes: [
-        {name:'Lean-To',     image:'leanto.png', create:LeanTo, prereq:[], locked:0, newFeatures:[]},
-        {name:'Forage Post', image:'foragepost.png', create:ForagePost, prereq:[], locked:0, newFeatures:[]},
-        {name:'Rock Knapper', image:'rockknapper.png', create:RockKnapper, prereq:[], locked:0, newFeatures:[]},
-        {name:'Loggers Post', image:'loggerspost.png', create:LoggersPost, prereq:[['Flint Knife', 'Flint Stabber']], locked:1, newFeatures:[]},
-        {name:'Rope Maker',   image:'ropemaker.png', create:RopeMaker, prereq:[['Twine Strips']], locked:1, newFeatures:[]}
+        LeanTo(),
+        ForagePost(),
+        RockKnapper(),
+        LoggersPost(),
+        RopeMaker()
     ],
+    // We did have a newFeatures column here, where we would have the left-side block highlight green when a new task becomes available.
+    // This is probably not the place to have it, though; we need to use each existing building to check if features are unlocked, as
+    // any buildings not placed won't matter in this check.
 
     setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
         // A public function to set up game basics
@@ -109,6 +113,11 @@ export const game = {
                     game.blockTypes[i].locked = 0;
                     game.updateWorkers([...game.workers]); // We need to trigger a page update, so that this building will display
                 }
+            }
+
+            // For all existing structures, we want to determine if this item unlocks new abilities in the structures
+            for(let i=0; i<game.blockTypes.length; i++) {
+                if(game.blockTypes[i].newFeatures.includes(itemname)) game.blockTypes[i].featuresUnlocked = true;
             }
         }
 

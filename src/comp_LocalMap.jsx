@@ -41,7 +41,12 @@ export function LocalMap(props) {
             return;
         }
         if(tile===null) {
-            console.log('PLayer tried to place a building, but no tile is selected?');
+            console.log('Player tried to place a building, but no tile is selected?');
+            return;
+        }
+
+        if(buildSelected.primary && tile.buildid!==0) {
+            console.log('Player cant place building here, theres already something here');
             return;
         }
 
@@ -82,11 +87,14 @@ export function LocalMap(props) {
                     {/*List all building options currently available*/}
                     {game.blockTypes.filter(block=>block.locked===0).map((block, key) => {
                         // First, determine if this is the currently selected building
-                        let bColor = 'black'; if(buildSelected!==null && block.name===buildSelected.name) bColor = 'red';
+                        let bColor = 'black';
+                        if(block.featuresUnlocked) bColor = 'green';
+                        if(buildSelected!==null && block.name===buildSelected.name) bColor = 'red';
 
                         return (
                             <div key={key} style={{display:'inline-block', border:'1px solid '+ bColor, width:40, height:40}}
                                 onClick={()=>{
+                                    block.featuresUnlocked = false; // Do this when a block is selected
                                     if(buildSelected==block) {
                                         setBuildSelected(null);
                                     }else{
@@ -211,7 +219,7 @@ function LocalMapRightPanel(props) {
                     <>
                         <p style={{fontWeight:'bold'}} className="singleline">
                             {worker.name}, {worker.status}
-                            {debuggingEnabled?(<span className="fakelink" onClick={()=>console.log(worker)}>Debug</span>):('')}
+                            {debuggingEnabled?(<span className="fakelink" style={{marginLeft:3}} onClick={()=>console.log(worker)}>Debug</span>):('')}
                         </p>
                     </>
                 )}

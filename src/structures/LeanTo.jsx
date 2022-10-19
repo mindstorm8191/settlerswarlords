@@ -62,6 +62,7 @@ export function LeanTo() {
                         getTask: (worker)=>{
                             // Returns the current task that needs completing
                             // Since this is only construction, we have a single return value
+                            if(game.tutorialModes[game.tutorialState].name==='shelter2') game.advanceTutorial();
                             return {subtask:'construct', targetx:b.x, targety:b.y};
                         },
                         onProgress: ()=>{
@@ -74,10 +75,7 @@ export function LeanTo() {
                         onComplete: ()=> {
                             b.mode = 'use';
                             b.progressBar = (20*60*20); // aka 20 minutes
-                            if(typeof(b.blinker)==='function') {
-                                b.blinkState++;
-                                b.blinker(b.blinkState);
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
                         name: 'Repair',
@@ -155,6 +153,10 @@ export function LeanTo() {
                     return <>In use. Health: {Math.round((parseFloat(b.progressBar)/(20*60*20))*100)}%</>;
                 }
             }
+
+            // If the tutorial state is at the right point, we need to advance it to the next task
+            if(game.tutorialModes[game.tutorialState].name==='shelter1') game.advanceTutorial();
+
             return b;
         }
     };

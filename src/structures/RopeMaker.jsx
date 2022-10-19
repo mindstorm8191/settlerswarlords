@@ -60,9 +60,7 @@ export function RopeMaker() {
                             if(slot===-1) {
                                 console.log('Created Small Rope, but couldnt delete Twine Strips');
                             }else{
-                                console.log('Slot '+ slot +' holds ', tile.items[slot]);
                                 tile.items.splice(slot, 1);
-                                console.log('Items is now', tile.items);
                             }
                             // create the rope!
                             tile.items.push(game.createItem("Small Rope", 'item', {}));

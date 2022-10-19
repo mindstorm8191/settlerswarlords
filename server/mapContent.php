@@ -325,6 +325,7 @@ function ensureMinimap($worldTile, $newPlayer) {
                 break;
                 case 'birch':
                     $wide['items'] = [ ['name'=>'Birch Tree', 'amount'=>rand(8,60)] ];
+                    // Birch trees are typically tall and narrow, but a lot of them grow in one area
                     // Birch trees produce seeds but aren't edible
                     if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,8)]);
                 break;

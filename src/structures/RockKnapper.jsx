@@ -62,8 +62,9 @@ export function RockKnapper() {
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') {
-                                b.blinkState++;
-                                b.blinker(b.blinkState);
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function for RockKnapper');
                             }
                         },
                         onComplete: (worker)=>{
@@ -80,7 +81,7 @@ export function RockKnapper() {
                             // Well, I was going to put all similar items together, but each one can have different endurance values & efficiency
                             // rates... it'll be better to keep each one separate
                             tile.items.push(game.createItem('Flint Knife', 'tool', {efficiency:1, endurance:100}));
-                            // at 1 use per tick... that's about 5 seconds of use
+                            // at 1 use per tick... that's about 5 seconds of use... :/
 
                             if(typeof(b.blinker)==='function') {
                                 b.blinkState++;
@@ -109,6 +110,122 @@ export function RockKnapper() {
                             if(typeof(tile.items)==='undefined') tile.items = [];
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60*3}));
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        }
+                    },{
+                        name:'Craft Flint Hatchet',
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        itemsNeeded: ['Short Stick', 'Small Rope'],
+                        toolsNeeded: [],
+                        buildTime: 20*40,
+                        outputItems: ['Flint Hatchet'],
+                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
+                        },
+                        onComplete: ()=>{
+                            // delete the used items from this tile
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Hatchet->onComplete: could not find Short Stick. Crafting anyway');
+                            }
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Hatchet->onComplete: could not find Small Rope. Crafting anyway');
+                            }
+                            // now drop the Flint Hatchet
+                            tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:2, endurance:20*60*10})); // aka 10 minutes
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
+                        }
+                    },{
+                        name:'Craft Flint Shovel',
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        itemsNeeded: ['Long Stick', 'Small Rope'],
+                        toolsNeeded: [],
+                        buildTime: 20*45,
+                        outputItems: ['Flint Shovel'],
+                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
+                        },
+                        onComplete: ()=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Shovel->onComplete: could not find Short Stick. Crafting anyway');
+                            }
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Shovel->onComplete: could not find Small Rope. Crafting anyway');
+                            }
+                            tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*7})); // 7 minutes
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
+                        }
+                    },{
+                        name:'Craft Flint Spear',
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        itemsNeeded: ['Long Stick', 'Small Rope'],
+                        toolsNeeded: [],
+                        buildTime: 20*50,
+                        outputItems: ['Flint Spear'],
+                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
+                        },
+                        onComplete: ()=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Spear->onComplete: could not find Short Stick. Crafting anyway');
+                            }
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Spear->onComplete: could not find Small Rope. Crafting anyway');
+                            }
+                            tile.items.push(game.createItem('Flint Spear', 'tool', {efficiency:1, endurance:20*60*10})); // 10 minutes
+                            if(typeof(b.blinker)==='function') {
+                                b.blinker(++b.blinkState);
+                            }else{
+                                console.log('b.blinker not a function in RockKnapper');
+                            }
                         }
                     }
                 ],

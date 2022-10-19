@@ -6,7 +6,7 @@
 import React from "react";
 import { imageURL, debuggingEnabled } from "./App.js";
 import { game } from "./game.jsx";
-import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
+import { DraggableMap, clearDragFlag, FixedPositionChild } from "./libs/DraggableMap.jsx";
 import { DanCommon } from "./libs/DanCommon.js";
 import { DanInput } from "./libs/DanInput.jsx";
 
@@ -92,7 +92,7 @@ export function LocalMap(props) {
                         if(buildSelected!==null && block.name===buildSelected.name) bColor = 'red';
 
                         return (
-                            <div key={key} style={{display:'inline-block', border:'1px solid '+ bColor, width:40, height:40}}
+                            <div key={key} style={{display:'inline-block', border:'2px solid '+ bColor, width:40, height:40}}
                                 onClick={()=>{
                                     block.featuresUnlocked = false; // Do this when a block is selected
                                     if(buildSelected==block) {
@@ -140,6 +140,13 @@ export function LocalMap(props) {
                                     // Later on, when we have pickMode, we will manage that here. For now, there is only one.
                                     setSelected(tile);
                                     setMobileRightPane(true);
+
+                                    // Find out if this tile has a building on it. If so, we need to clear its featuresUnlocked flag
+                                    if(tile.buildid!==0) {
+                                        // get name of the building type here
+                                        let bName = game.blockList[game.blockList.findIndex(b=>b.id===tile.buildid)].name;
+                                        game.blockTypes[game.blockTypes.findIndex(t=>t.name===bName)].featuresUnlocked = false;
+                                    }
                                 }}
                             >
                                 {/*Display contents of the tile. This is a multiple-choice result */}
@@ -158,7 +165,15 @@ export function LocalMap(props) {
                             </div>
                         );
                     })}
+                    <FixedPositionChild>
+                        <div style={{display:'block', position:'absolute', top:0, left:0, backgroundColor:'white', zIndex:1, padding:3, margin:3, overflow:'hidden'}} >
+                            {game.tutorialModes[game.tutorialState].display}
+                            Let's find out if this text will wrap. We need a really long line of text to determine that. 
+                        </div>
+                    </FixedPositionChild>
                 </DraggableMap>
+                {/* Show the tutorial section. We want this to render over top of the main map */}
+
                 {mobileRightPane?(
                     <LocalMapRightPanel mobileMode={props.mobileMode} selected={selected} buildSelected={buildSelected} onClose={()=>setMobileRightPane(false)} />
                 ):('')}
@@ -369,7 +384,14 @@ function EmptyLandDescription(props) {
         // Oops, we didn't find this tile
         return <p>Oops, there's no description for land type where id={landType}</p>;
     }
-    return <p>{tile.desc}</p>;
+    return (
+        <>
+            <p>{tile.desc}</p>
+            {game.groupItems(props.tile.items).map((item,key)=>(
+                <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>
+            ))}
+        </>
+    );
 }
 
 export const minimapTiles = [

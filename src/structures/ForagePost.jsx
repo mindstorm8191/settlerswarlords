@@ -49,6 +49,9 @@ export function ForagePost() {
                         buildTime:0,
                         outputItems: ['Apple'],
                         getTask: (worker)=>{
+                            // Let the tutorial progress, if this is the current task.
+                            if(game.tutorialModes[game.tutorialState].name==='food1') game.advanceTutorial();
+
                             // Here, we need to define a location for the worker to go. We want to find a block that is somewhere near the
                             // worker, so that they can check there.
                             let targetx=b.x;

@@ -6,6 +6,9 @@
 import React from "react";
 import {game} from "../game.jsx";
 
+const treesList = ['Maple Tree', 'Birch Tree', 'Oak Tree', 'Mahogany Tree', 'Pine Tree', 'Cedar Tree', 'Fir Tree', 'Hemlock Tree',
+                   'Cherry Tree', 'Apple Tree', 'Pear Tree', 'Orange Tree', 'Hawthorn Tree', 'Dogwood Tree', 'Locust Tree', 'Juniper Tree'];
+
 export function LoggersPost() {
     return {
         name: 'Loggers Post',
@@ -29,7 +32,7 @@ export function LoggersPost() {
                 progressBarColor: 'brown',
                 blinkState: 0,
                 blinker:null,
-                hasNewTasks: [],
+                hasNewTasks: ['Flint Hatchet'],
                 activeTasks:[],
                 tasks: [
                     {
@@ -41,7 +44,7 @@ export function LoggersPost() {
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Knife'],
                         buildTime: 20*25, // aka 25 seconds
-                        outputItems: ['Twine Strips', 'Debarked Fallen Tree'],
+                        outputItems: ['Twine Strips', 'Debarked Fallen Log'],
                         getTask: (worker) => {
                             // We need to locate a tree tile that has fallen logs on it.
 
@@ -88,12 +91,10 @@ export function LoggersPost() {
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Stabber'],
                         buildTime: 20*40,  // 40 seconds
-                        outputItems: ['Long Stick', 'Removed Stick'],
+                        outputItems: ['Long Stick'],
                         getTask: (worker) => {
                             // Locate a tree tile with sticks on it
-                            const [targetx, targety] = game.findItemFromList(worker.x, worker.y, ['Maple Tree', 'Birch Tree', 'Oak Tree', 'Mahogany Tree',
-                                'Pine Tree', 'Cedar Tree', 'Fir Tree', 'Hemlock Tree', 'Cherry Tree', 'Apple Tree', 'Pear Tree', 'Orange Tree',
-                                'Hawthorn Tree', 'Dogwood Tree', 'Locust Tree', 'Juniper Tree']);
+                            const [targetx, targety] = game.findItemFromList(worker.x, worker.y, treesList);
                             if(targetx===-1 && targety===-1)
                                 return {subtask:'cantwork', toolNeeded:false, targetx:worker.x, targety:worker.y, message:`We couldn't find any sticks anywhere! Try something else`};
                             return {subtask:'workatspot', targetx:targetx, targety:targety};
@@ -144,6 +145,78 @@ export function LoggersPost() {
                             // Create the short stick!
                             tile.items.push(game.createItem('Short Stick', 'item', {}), game.createItem('Short Stick', 'item', {}));
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        }
+                    },{
+                        name: 'Cut Down Tree',
+                        canAssign: ()=>game.unlockedItems.includes('Flint Hatchet'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        itemsNeeded: [],
+                        toolsNeeded: ['Flint Hatchet'],
+                        buildTime: 20*60*4, // 4 minutes
+                        outputItems: ['Felled Tree', 'Long Stick'],
+                        getTask: worker => {
+                            // Locate a tree tile with sticks on it. Some trees are better suited for felling, but... we'll worry about that later
+                            const [targetx, targety] = game.findItemFromList(worker.x, worker.y, treesList);
+                            if(targetx===-1 && targety===-1)
+                                return {subtask:'cantwork', toolNeeded:false, targetx:worker.x, targety:worker.y, message:`We couldn't find any sticks anywhere! Try something else`};
+                            return {subtask:'workatspot', targetx:targetx, targety:targety};
+                        },
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        },
+                        onComplete: worker => {
+                            let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                            
+                            // We need to define how many logs and long sticks each type of tree has here. It would be better to have a range, but...
+                            // Fortunately, there is only one tree type per tile
+                            let slot = tile.items.findIndex(i=>treesList.includes(i.name));
+                            let logs = 1, sticks = 1;
+                            console.log('Changing item slot='+ slot);
+                            switch(tile.items[slot].name) {
+                                case 'Maple Tree':    logs = 15; sticks = 20; break;
+                                case 'Birch Tree':    logs = 1;  sticks = 6; break;
+                                case 'Oak Tree':      logs = 12; sticks = 16; break;
+                                case 'Mahogany Tree': logs = 8;  sticks = 20; break;
+                                case 'Pine Tree':     logs = 8;  sticks = 6; break;
+                                case 'Cedar Tree':    logs = 6;  sticks = 6; break;
+                                case 'Fir Tree':      logs = 4;  sticks = 4; break;
+                                case 'Hemlock Tree':  logs = 7;  sticks = 15; break;
+                                case 'Cherry Tree':   logs = 0;  sticks = 8; break;
+                                case 'Apple Tree':    logs = 1;  sticks = 12; break;
+                                case 'Pear Tree':     logs = 0;  sticks = 6; break;
+                                case 'Orange Tree':   logs = 1;  sticks = 10; break;
+                                case 'Hawthorn Tree': logs = 4;  sticks = 12; break;
+                                case 'Dogwood Tree':  logs = 0;  sticks = 6; break;
+                                case 'Locust Tree':   logs = 10; sticks = 24; break;
+                                case 'Juniper Tree':  logs = 3;  sticks = 6; break;
+                                default: console.log('Error: got tree type of '+ tile.items[slot].name +', not in trees list');
+                            }
+                            // Trees arrive in type & amount, not individually. So we need to reduce its amount, then remove it if it is zero.
+                            tile.items[slot].amount--;
+                            if(tile.items[slot].amount===0) {
+                                tile.items.splice(slot, 1);
+                                // Hmm, we should probably change the land type here too, since it no longer has trees
+                                // The empty grass tile type is #32
+                                tile.newlandtype = 32;
+                            }
+
+                            if(logs>0) {
+                                if(logs===1) {
+                                    // Produce a single log piece, that can be moved by a worker
+                                    tile.items.push(game.createItem('Log', 'item', {}));
+                                }else{
+                                    // These will all be connected; workers will have to cut them free before using them
+                                    for(let i=0; i<logs; i++) {
+                                        tile.items.push(game.createItem('Connected Log', 'item', {}));
+                                    }
+                                }
+                            }
+                            // Sticks will be a little simpler
+                            for(let i=90; i<sticks; i++) {
+                                tile.items.push(game.createItem('Long Stick', 'item', {}));
+                            }
+                            
                         }
                     }
                 ],

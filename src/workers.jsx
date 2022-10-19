@@ -123,13 +123,12 @@ export function createNewWorker(pack) {
             // amount - non-zero number of items 
             // targetx & targety - valid map coordinates that a worker can go to
 
-            let taskSlot;
+            let taskName;
             let targetBuilding;
 
             let [sourcex, sourcey] = game.findItem(w.x, w.y, targetItem, true);
             if(sourcex===-1 && sourcey===-1) {
                 // No items currently exist on the map. Instead, we need to find a building capable of crafting that item
-                taskSlot = 0;
                 targetBuilding = game.blockList.find(b=> {
                     if(typeof(b.tasks)==='undefined') return false; // This structure has no tasks (not sure why, yet...)
                     // Find a task with the correct output items
@@ -140,7 +139,7 @@ export function createNewWorker(pack) {
                             return false;
                         }
                         if(t.outputItems.includes(targetItem)) {
-                            taskSlot = index;
+                            taskName = t.name;
                             return true;
                         }
                         return false;
@@ -184,7 +183,7 @@ export function createNewWorker(pack) {
             // Now, handle situations where we have to craft the item before we can pick it up
             if(typeof(targetBuilding)!=='undefined') {
                 // This should behave like a regular task
-                w.addTask(targetBuilding, targetBuilding.tasks[taskSlot].name, 'first', 1, '');
+                w.addTask(targetBuilding, taskName, 'first', 1, '');
             }else{
                 // While we're here, we need to flag the target item as being used for a specific task
                 // We have the location that the item is at, but not the item itself
@@ -520,7 +519,7 @@ export function createNewWorker(pack) {
 
             // Some tasks won't have buildings associated to them... that's okay
             if(typeof(w.tasks[0].atBuilding)==='undefined') {
-                console.log('In w.clearTask(): task had no building assigned. Deleting task anyway');
+                //console.log('In w.clearTask(): task had no building assigned. Deleting task anyway');
                 w.tasks.splice(0,1);
                 console.log(w.tasks);
                 return;

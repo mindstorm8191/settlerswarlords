@@ -9,7 +9,15 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get the left-side blocks to highlight green when features become available
+1) Start setting up a tutorial. This will be an array, accessible directly from the game object. Most will have an item that needs to be
+    crafted before it is unlocked.
+2) Modify the work assignment code to allow players to select where work will take place at - or leave it to the workers to decide.
+
+1) Set up a means to post sound-effect boxes on the map; for example 'TIMBER!' when a tree falls down, or 'CRACK!' when the fire miner
+    douses its fire, etc
+1) With land-specific tasks, set up a way for the x & y coordinates to be decided after the task begins.
+1) Have a way to register tasks that can be done on specific land types. We will need a way to specify tiles to clear away vegetation,
+    so we can access dirt directly.
 2) Set up a useTool() function, as part of the worker class, to manage tool wear automatically.
 3) Decide if a hasTools() function is needed. I think the pre-check for parts will catch that a tool is missing (because it broke), even
     midway through a task
@@ -53,21 +61,64 @@ Process
 Fantasy horror creature: https://imgur.com/gallery/s8E9idW
 
 Project size (because it's fun to watch this grow)
-src/App.js                           src/structures/ForagePost.jsx      server/globals.php                techtree.md
-    src/App.css                          src/structures/RockKnapper.jsx     server/weightedRandom.php        automationtree.md
-        src/libs/DanAjax.js                  src/structures/LoggersPost.jsx     server/getInput.php             wartree.md
-           src/game.jsx                          src/comp_account.jsx              server/mapContent.php           worldgen.md
-               src/workers.jsx                       src/libs/ErrorOverlay.jsx         server/routes/autologin.php   workercrafting.md
-                   src/comp_LocalMap.jsx                server/common.php                 server/routes/login.php
-                       src/libs/DraggableMap.jsx            server/jsarray.php               server/routes/logout.php
-                           src/libs/DanCommon.js                server/config.php               server/routes/reporterror.php
-                              src/libs/DanInput.jsx               server/DanGlobal.php             server/signup.php
-                                 src/stuctures/LeanTo.jsx            server/finishLogin.php            README.md
-261+129+49+206+493+401+153+74+65+147+127+114+100+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+216+38+27+12+8+53+11
+src/App.js                               src/structures/RockKnapper.jsx       server/globals.php                   automationtree.md
+    src/App.css                              src/structures/LoggersPost.jsx       server/weightedRandom.php           wartree.md
+        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx         server/getInput.php               worldgen.md
+           src/game.jsx                             src/structures/DirtSource.jsx        server/mapContent.php             workercrafting.md
+               src/workers.jsx                         src/comp_account.jsx                  server/routes/autologin.php
+                   src/comp_LocalMap.jsx                   src/libs/ErrorOverlay.jsx            server/routes/login.php
+                       src/libs/DraggableMap.jsx              server/common.php                    server/routes/logout.php
+                           src/libs/DanCommon.js                  server/jsarray.php                  server/routes/reporterror.php
+                              src/libs/DanInput.jsx                   server/config.php                  server/signup.php
+                                 src/stuctures/LeanTo.jsx               server/DanGlobal.php                 README.md
+                                     src/structures/ForagePost.jsx         server/finishLogin.php               techtree.md
+265+129+49+273+551+418+153+74+65+161+120+272+168+89+53+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
+10/5/2022 = 5158 lines
 */
+
+let pointSet = [
+    { x: 10, y: 14 },
+    { x: 14, y: 20 },
+    { x: 14, y: 26 },
+    { x: 8, y: 30 },
+];
+// Start by getting the distances between each point
+// The formula comes from a^2 + b^2 = c^2; we solve for c to get c= sqrt(a^2 + b^2).
+// a is the differences in x, and b is the differences in y
+let distances = [];
+for (let i = 1; i < pointSet.length; i++) {
+    // we start at 1 intentionally
+    distances.push(
+        Math.sqrt(
+            Math.pow(pointSet[i - 1].x - pointSet[i].x, 2) + // order doesn't matter here; even negative will become positive after squaring
+                Math.pow(pointSet[i - 1].y - pointSet[i].y, 2)
+        )
+    );
+}
+// With all distances, we need to find the total distance
+let total = distances.reduce((carry, i) => carry + i, 0);
+// Find the middle point; we can change this point if we wish
+let target = total / 2;
+// Find which distance this value falls into
+let cur = 0,
+    i = 0;
+while (cur + distances[i] < target) {
+    cur += distances[i];
+    i++;
+}
+// At this point, pointSet[i] is the start point where we want to center our text, pointSet[i+1] is the end point.
+// Also, target-cur can tell us the location between points where the text should be placed
+let percent = parseFloat(target - cur) / distances[i];
+let diffx = pointSet[i + 1].x - pointSet[i].x;
+let diffy = pointSet[i + 1].y - pointSet[i].y;
+let x = pointSet[i].x + diffx * percent;
+let y = pointSet[i].y + diffy * percent;
+
+// distances = [7.211, 6, 7.211]
+// target = 10.211
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
 // In Dev mode, since Create-React-App is running as a separate entity from the server, we will have to request
@@ -96,7 +147,14 @@ function App() {
 
     React.useEffect(() => {
         const handleResize = () => {
-            setMobileMode(window.innerWidth <= 900);
+            if (window.innerWidth <= 900) {
+                setMobileMode(true);
+                game.mobileModeEnabled = true;
+            } else {
+                setMobileMode(false);
+                game.mobileModeEnabled = false;
+            }
+            //setMobileMode(window.innerWidth <= 900);
             console.log("win-width " + window.innerWidth + ", mode=" + mobileMode);
         };
         window.addEventListener("resize", handleResize);

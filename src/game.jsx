@@ -9,6 +9,7 @@ import {ForagePost} from "./structures/ForagePost.jsx";
 import {RockKnapper} from "./structures/RockKnapper.jsx";
 import {LoggersPost} from "./structures/LoggersPost.jsx";
 import {RopeMaker} from "./structures/RopeMaker.jsx";
+import {DirtSource} from "./structures/DirtSource.jsx";
 
 let clockCounter = 0;
 
@@ -26,6 +27,29 @@ export const game = {
     lastBlockId: 0,
     lastWorkerId: 0,
     unlockedItems: [], // array of item names. This gets added to for every new item the user crafts
+    landTypeOptions: [], // array of objects:
+        // landType, as string
+        // tasks, as array of objects (matching building tasks list)
+
+    tutorialState: 0,
+    tutorialModes: [
+        {name: 'shelter1', display: 'You need shelter! Select Lean-To from the left, then click any tile with trees to place it.'},
+        {name: 'shelter2', display: 'Your Lean-To must be built. Select the Build task, then give a worker the task to complete.'},
+        {name: 'food1', display: 'Next is food. Place a Forage Post anywhere, then assign a worker to serach for food. They will work indefinitely.'},
+        {name: 'tools1', display: "Tools are vital for progress. Place a Rock Knapper, then make a Flint Knife or Stabber (you'll need both)"},
+        {name: 'rope1', display: "Rope comes from the bark of fallen trees. Use a Forage Post to collect Twine Strips"},
+        {name: 'rope2', display: "Use the Rope Maker to turn Twine Strips into useable rope"},
+        {name: 'rope3', display: "New items unlocked! Build a Flint Shovel, Hatchet and Spear at the Rock Knapper. More tech will unlock from that!"}
+    ],
+    tutorialDisplay: true, // set to true / false to show tutorial. Users can hide the tutorial. When not in mobile mode, progress will re-display
+                           // the tutorial
+    tutorialProgress: false, // 
+    advanceTutorial: ()=>{
+        // Automates the updates that happen when the tutorial tasks are completed
+        game.tutorialState++;
+        //if()
+    },
+    mobileModeEnabled: false,
 
     getNextBlockId: ()=> {
         // Returns the next available block id (for this map area)
@@ -53,7 +77,8 @@ export const game = {
         ForagePost(),
         RockKnapper(),
         LoggersPost(),
-        RopeMaker()
+        RopeMaker(),
+        DirtSource()
     ],
     // We did have a newFeatures column here, where we would have the left-side block highlight green when a new task becomes available.
     // This is probably not the place to have it, though; we need to use each existing building to check if features are unlocked, as
@@ -151,7 +176,7 @@ export const game = {
 
         let distance = 1;
         if(hasItem(workerx,workery)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
-        while(workerx+distance<=41 && workerx-distance>=0 && workery+distance<=41 && workery-distance>=0) {
+        while(true) {
             for(let line=-distance; line<distance; line++) {
                 if(hasItem(workerx+line, workery-distance)) return [workerx+line, workery-distance]; // right across the top
                 if(hasItem(workerx+distance, workery+line)) return [workerx+distance, workery+line]; // down the right
@@ -159,8 +184,8 @@ export const game = {
                 if(hasItem(workerx-distance, workery-line)) return [workerx-distance, workery-line]; // up the left
             }
             distance++;
+            if(workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0) return [-1,-1];
         }
-        return [-1,-1];
     },
     findItemFromList: (workerx, workery, itemList, skipFlagged=false) => {
         // Works like findItem, but accepts a list of acceptable items instead of just one.
@@ -184,7 +209,7 @@ export const game = {
 
         let distance = 1;
         if(hasItem(workerx,workery)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
-        while(workerx+distance<=41 && workerx-distance>=0 && workery+distance<=41 && workery-distance>=0) {
+        while(true) {
             for(let line=-distance; line<distance; line++) {
                 if(hasItem(workerx+line, workery-distance)) return [workerx+line, workery-distance]; // right across the top
                 if(hasItem(workerx+distance, workery+line)) return [workerx+distance, workery+line]; // down the right
@@ -192,6 +217,7 @@ export const game = {
                 if(hasItem(workerx-distance, workery-line)) return [workerx-distance, workery-line]; // up the left
             }
             distance++;
+            if(workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0) return [-1,-1];
         }
         return [-1,-1];
     },
@@ -209,6 +235,23 @@ export const game = {
             }
         }
         return list;
+    },
+    addLandTypeOptions(tilesList, newTask) {
+        // Adds new tasks to a set of land tile types. If the task already exists for that land type, it will not be added again.
+
+        for(let i=0; i<tilesList.length; i++) {
+            let landType = game.landTypeOptions.find(t=>t.id===tilesList[i]);
+            if(typeof(landType)==='undefined') {
+                // We should add this now; either way we're gonna need it
+                landType = {id:tilesList[i], tasks:[]};
+                game.landTypeOptions.push(landType);
+            }else{
+                // It already exists. Check if we already have this task applied
+                if(landType.tasks.findIndex(t=>t.name===newTask.name)!==-1) continue;
+            }
+            // Add this task to the given land type
+            landType.tasks.push(newTask);
+        }
     },
 
     tick: () => {

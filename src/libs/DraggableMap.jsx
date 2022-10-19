@@ -119,6 +119,20 @@ export function DraggableMap(props) {
         setScrollPos({ ...scrollPos, moveState: false});
     }
 
+    // Convert the child elements to an array, so we can single out the FixedPositionChild element
+    const children = React.Children.toArray(props.children);
+    //console.log(children);
+
+    const normalChildren = children.filter(c => {
+        if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item
+        return c.type.name !== 'FixedPositionChild';
+    });
+    const fixedChildren = children.filter(c => {
+        if(typeof(c.type)==='string') return false; // This can't be one of the FixedPositionChild elements
+        return c.type.name === 'FixedPositionChild';
+    });
+
+
     // The first div is a map container. The second is the actual map layer (that can be dragged). Inside that is the actual map content
     return (
         <div
@@ -139,10 +153,15 @@ export function DraggableMap(props) {
                 onTouchMove={continueTouchPan}
                 onTouchEnd={endTouchPan}
             >
-                {props.children}
+                {normalChildren}
             </div>
+            {fixedChildren.length>0?(fixedChildren):('')}
         </div>
     );
+}
+
+export function FixedPositionChild(props) {
+    return <>{props.children}</>
 }
 
 function within(value, target, threshhold) {

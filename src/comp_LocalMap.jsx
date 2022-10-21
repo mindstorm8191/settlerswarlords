@@ -166,7 +166,7 @@ export function LocalMap(props) {
                         );
                     })}
                     <FixedPositionChild>
-                        <div style={{display:'block', position:'absolute', top:0, left:0, backgroundColor:'white', zIndex:1, padding:3, margin:3, overflow:'hidden'}} >
+                        <div style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:1, padding:3, margin:3}} >
                             {game.tutorialModes[game.tutorialState].display}
                             Let's find out if this text will wrap. We need a really long line of text to determine that. 
                         </div>

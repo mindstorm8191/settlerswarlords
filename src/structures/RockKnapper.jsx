@@ -57,6 +57,7 @@ export function RockKnapper() {
                         buildTime: 20*20,
                         outputItems: ['Flint Knife'],
                         getTask: (worker) =>{
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                             return {subtask:'workonsite', targetx:b.x, targety:b.y};
                         },
                         onProgress: ()=>{
@@ -99,6 +100,7 @@ export function RockKnapper() {
                         buildTime: 20*20,
                         outputItems: ['Flint Stabber'],
                         getTask: (worker) => {
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                             return {subtask:'workonsite', targetx:b.x, targety:b.y};
                         },
                         onProgress: ()=>{

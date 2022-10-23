@@ -54,6 +54,7 @@ export function RopeMaker() {
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: worker=>{
+                            if(game.tutorialModes[game.tutorialState].name==='rope2') game.advanceTutorial();
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             // delete the twine strips
                             let slot = tile.items.findIndex(i=>i.name==='Twine Strips');

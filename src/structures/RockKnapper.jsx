@@ -56,10 +56,7 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*20,
                         outputItems: ['Flint Knife'],
-                        getTask: (worker) =>{
-                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
-                            return {subtask:'workonsite', targetx:b.x, targety:b.y};
-                        },
+                        getTask: (worker) =>({subtask:'workonsite', targetx:b.x, targety:b.y}),
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') {
@@ -84,6 +81,8 @@ export function RockKnapper() {
                             tile.items.push(game.createItem('Flint Knife', 'tool', {efficiency:1, endurance:100}));
                             // at 1 use per tick... that's about 5 seconds of use... :/
 
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
+
                             if(typeof(b.blinker)==='function') {
                                 b.blinkState++;
                                 b.blinker(b.blinkState);
@@ -99,15 +98,13 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*20,
                         outputItems: ['Flint Stabber'],
-                        getTask: (worker) => {
-                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
-                            return {subtask:'workonsite', targetx:b.x, targety:b.y};
-                        },
+                        getTask: (worker) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: ()=>{
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             if(typeof(tile.items)==='undefined') tile.items = [];
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60*3}));

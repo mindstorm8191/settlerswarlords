@@ -25,6 +25,9 @@ export function LocalMap(props) {
 
     //const [mobileLeftPane, setMobileLeftPane] = React.useState(false); // This is set to true when the left pane is taking the full screen
     const [mobileRightPane, setMobileRightPane] = React.useState(props.mobileMode?false:true); // Same for the right pane
+    const [tutorialDisplay, setTutorialDisplay] = React.useState(true);
+    // Pass the funciton for this into the Game object, so it can be called whenever the tutorial state changes
+    game.tutorialDisplay = setTutorialDisplay;
 
 
     if(props.localTiles===null) {
@@ -81,7 +84,7 @@ export function LocalMap(props) {
                 </div>
             </div>
             <div style={{ display: "flex", width: "100%" }}>
-                <div style={{ width: props.mobileMode?60:180 }}>
+                <div style={{ display:'block', width: props.mobileMode?60:150 }}>
                     {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
                     <div>Save</div>
                     {/*List all building options currently available*/}
@@ -106,7 +109,7 @@ export function LocalMap(props) {
                         );
                     })}
                 </div>
-                <DraggableMap style={{width:'100%', height:'calc(100vh - 185px)', touchAction:'none'}} threshhold={5}>
+                <DraggableMap style={{width:'100vh', height:'calc(100vh - 185px)', touchAction:'none'}} threshhold={5}>
                     {props.localTiles.map((tile, key) => {
                         // For each location, we need to determine if a worker is here.
                         let hasWorker = props.localWorkers.some(ele => {
@@ -166,9 +169,26 @@ export function LocalMap(props) {
                         );
                     })}
                     <FixedPositionChild>
-                        <div style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:1, padding:3, margin:3}} >
-                            {game.tutorialModes[game.tutorialState].display}
-                            Let's find out if this text will wrap. We need a really long line of text to determine that. 
+                        <div style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:1, padding:3, margin:3, whiteSpace:'normal'}} >
+                            {tutorialDisplay===true?(
+                                <>
+                                    <img
+                                        src={imageURL +"exit.png"}
+                                        style={{display:'inline-block', marginRight:5, cursor:'pointer'}}
+                                        onClick={()=>{
+                                            game.tutorialDisplay=!game.tutorialDisplay;
+                                            setTutorialDisplay(!tutorialDisplay);
+                                        }}
+                                    />
+                                    {game.tutorialModes[game.tutorialState].display}
+                                    Let's find out if this text will wrap. We need a really long line of text to determine that. 
+                                </>
+                            ):(
+                                <img src={imageURL +"TutorialButton.png"} style={{cursor:'pointer'}} onClick={()=>{
+                                    game.tutorialDisplay=!game.tutorialDisplay;
+                                    setTutorialDisplay(!tutorialDisplay);
+                                }} />
+                            )}
                         </div>
                     </FixedPositionChild>
                 </DraggableMap>

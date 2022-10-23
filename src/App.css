@@ -58,10 +58,8 @@
 }
 
 #localmaprightpanel {
-    position: absolute;
     display: block;
-    right: 0px;
-    width: 300px;
+    /*width is set in the app, and is dependent on mobile mode */
     background-color: white;
     height: calc(100vh - 185px);
 }

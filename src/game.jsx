@@ -43,11 +43,11 @@ export const game = {
     ],
     tutorialDisplay: true, // set to true / false to show tutorial. Users can hide the tutorial. When not in mobile mode, progress will re-display
                            // the tutorial
-    tutorialProgress: false, // 
+    tutorialDisplayFunction: 0, // 
     advanceTutorial: ()=>{
         // Automates the updates that happen when the tutorial tasks are completed
         game.tutorialState++;
-        //if()
+        if(typeof(game.tutorialDisplay)==='function') game.tutorialDisplay(true);
     },
     mobileModeEnabled: false,
 
@@ -121,7 +121,9 @@ export const game = {
         // itemextras - extra fields for this item, depending on what type it is
         //    endurance (as float): for tools, determines how long this item lasts
         //    efficiency (as float): for tools, determines how fast this item completes work
-        //    lifetime (as int): for food, how long (in seconds) this food will last
+        //    lifetime (as int): for food, how long (in seconds) this food will last. Ideally, this will only be checked before the food is
+        //      used; the food won't be discarded until that point. Thus unuseable food will still take up inventory space. But this part isn't
+        //      coded yet
         //    temperature (as float): for food, liquids & gasses, how hot this item is
         // Returns the completed object; it is not attached to anything specific
 

@@ -9,9 +9,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Get the tutorial section to re-display whenever progress is made with it. This will involve passing the setTutorialDisplay function into
-    the Game object. Once this is done, update the online running game to this version.
 2) Modify the work assignment code to allow players to select where work will take place at - or leave it to the workers to decide.
+3) Provide an X button when assigning tasks, to clear the current task being worked on
 
 1) Set up a means to post sound-effect boxes on the map; for example 'TIMBER!' when a tree falls down, or 'CRACK!' when the fire miner
     douses its fire, etc
@@ -26,23 +25,16 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 4) Add the Loggers Post structure, and allow players to collect raw twine. The Loggers Post can be placed anywhere
 5) For empty tiles, show any items existing on that tile
 
-Sticks
-Users will need long & short sticks; fallen sticks will only be useable for firewood, so they must cut them fresh from the trees.
-Each tree will have a set number of long sticks on them; they can be removed from standing trees, leaving a 'removed stick' at the location.
-When the tree is finally cut down, it will generate that many fewer sticks than its original amount.
-Workers can only cut down long sticks; they can then cut them into two short sticks.
-For now, we will stick to a flat number for all trees: 6 sticks.
-
 Things to add later
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
-2) Have workers follow A* pathfinding for fastest route.
+2) Have workers follow A* pathfinding for fastest route to their destinations. This also means pathfinding considerations to locate things
+    workers can pick up.
 3) Have item searches be based on A* pathfinding, so a worker will go after the item closest to them based on actual time needed to reach it.
 3) Modify tree & bush placements to consider non-crossable paths due to thorns or overgrowth. Players will be able to clear these to make worker
     travel easier.
 5) Add cotton to the game, in some way. Cotton cannot be harvested until leather gloves and other clothes are available.
 6) Give all workers a health, nourishment, strength & speed values. Also include attack and armor values that can be modified by equipment.
 7) Add wine to the game
-
 
 Wine
 Wine will be an important item in early tech. Not only is it a very safe form of hydration, it can be stored long term and travels easily. Some

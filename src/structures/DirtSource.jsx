@@ -38,6 +38,7 @@ export function DirtSource() {
                         canAssign: ()=>!b.areaCleared,
                         canAssist: true,
                         hasQuantity: false,
+                        userPicksLocation: false,
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Shovel'],
                         buildTime: 20*60, // 1 minute
@@ -66,6 +67,7 @@ export function DirtSource() {
                         canAssign: ()=>b.areaCleared,
                         canAssist: false,
                         hasQuantity: false,
+                        userPicksLocation: false,
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Shovel'],
                         buildTime: 20*5, // 5 seconds

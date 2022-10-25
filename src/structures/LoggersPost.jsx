@@ -6,6 +6,15 @@
 import React from "react";
 import {game} from "../game.jsx";
 
+/*
+Sticks
+Users will need long & short sticks; fallen sticks will only be useable for firewood, so they must cut them fresh from the trees.
+Each tree will have a set number of long sticks on them; they can be removed from standing trees, leaving a 'removed stick' at the location.
+When the tree is finally cut down, it will generate that many fewer sticks than its original amount.
+Workers can only cut down long sticks; they can then cut them into two short sticks.
+For now, we will stick to a flat number for all trees: 6 sticks.
+*/
+
 const treesList = ['Maple Tree', 'Birch Tree', 'Oak Tree', 'Mahogany Tree', 'Pine Tree', 'Cedar Tree', 'Fir Tree', 'Hemlock Tree',
                    'Cherry Tree', 'Apple Tree', 'Pear Tree', 'Orange Tree', 'Hawthorn Tree', 'Dogwood Tree', 'Locust Tree', 'Juniper Tree'];
 
@@ -41,6 +50,7 @@ export function LoggersPost() {
                         canAssign: ()=>true,    // This can be assigned at any point
                         canAssist: true,
                         hasQuantity: true,
+                        userPicksLocation: true,
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Knife'],
                         buildTime: 20*25, // aka 25 seconds
@@ -89,6 +99,7 @@ export function LoggersPost() {
                         canAssign: ()=>true, // this can be worked any time... for now. We'll see later
                         canAssist: true,
                         hasQuantity: true,
+                        userPicksLocation: true,
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Stabber'],
                         buildTime: 20*40,  // 40 seconds
@@ -116,6 +127,7 @@ export function LoggersPost() {
                         canAssign: ()=>true,
                         canAssist: true,
                         hasQuantity: true,
+                        userPicksLocation: true,
                         itemsNeeded: ['Long Stick'],
                         toolsNeeded: ['Flint Stabber'],
                         buildTime: 20*40, // 40 seconds
@@ -152,6 +164,7 @@ export function LoggersPost() {
                         canAssign: ()=>game.unlockedItems.includes('Flint Hatchet'),
                         canAssist: true,
                         hasQuantity: true,
+                        userPicksLocation: true,
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Hatchet'],
                         buildTime: 20*60*4, // 4 minutes

@@ -56,6 +56,7 @@ export function LeanTo() {
                         },
                         canAssist: true,
                         hasQuantity: false, // set to true if the player can set a specific quantity to make of this
+                        userPicksLocation: false,  // true if the user needs to select a location on the map for this task to happen at.
                         itemsNeeded: [],
                         buildTime: (20*30*3), // 1.5 minutes
                         outputItems: [],
@@ -89,6 +90,7 @@ export function LeanTo() {
                         canAssist: true,
                         hasQuantity:false,
                         itemsNeeded: [],
+                        userPicksLocation: false,
                         buildTime: (20*30), // 30 seconds
                         getTask: (worker)=>({subtask:'construct', targetx:b.x, targety:b.y}),
                         onProgress: ()=>{

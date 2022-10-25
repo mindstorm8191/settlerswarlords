@@ -29,6 +29,7 @@ export function LocalMap(props) {
     // Pass the funciton for this into the Game object, so it can be called whenever the tutorial state changes
     game.tutorialDisplay = setTutorialDisplay;
 
+    const [mapClickAction, setMapClickAction] = React.useState(null);
 
     if(props.localTiles===null) {
         // This can happen when the player logs out
@@ -137,6 +138,12 @@ export function LocalMap(props) {
                                 }}
                                 onClick={()=>{
                                     if(clearDragFlag()) return;
+
+                                    if(typeof(mapClickAction)==='function') {
+                                        mapClickAction(tile);
+                                        return;
+                                    }
+
                                     if(buildSelected!==null) {
                                         addBuilding(tile);
                                     }
@@ -181,7 +188,6 @@ export function LocalMap(props) {
                                         }}
                                     />
                                     {game.tutorialModes[game.tutorialState].display}
-                                    Let's find out if this text will wrap. We need a really long line of text to determine that. 
                                 </>
                             ):(
                                 <img src={imageURL +"TutorialButton.png"} style={{cursor:'pointer'}} onClick={()=>{
@@ -195,7 +201,7 @@ export function LocalMap(props) {
                 {/* Show the tutorial section. We want this to render over top of the main map */}
 
                 {mobileRightPane?(
-                    <LocalMapRightPanel mobileMode={props.mobileMode} selected={selected} buildSelected={buildSelected} onClose={()=>setMobileRightPane(false)} />
+                    <LocalMapRightPanel mobileMode={props.mobileMode} selected={selected} buildSelected={buildSelected} onClose={()=>setMobileRightPane(false)} setMapClickAction={setMapClickAction} />
                 ):('')}
             </div>
         </>
@@ -210,6 +216,7 @@ function LocalMapRightPanel(props) {
     //      buildSelected: which structure on the left is selected
     // props - functions
     //      onClose - called when the close button is pressed. This does not manage whether the side panel is displayed or not
+    //      setMapClickAction - sets a function to be called when the user clicks a tile on the map
 
     const [hideState, setHideState] = React.useState(props.mobileMode?true:false);
 
@@ -268,7 +275,7 @@ function LocalMapRightPanel(props) {
             {props.mobileMode? (
                 <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()}/></p>
             ):''}
-            <LocalMapBuildingDetail bid={props.selected.buildid} />
+            <LocalMapBuildingDetail bid={props.selected.buildid} setMapClickAction={props.setMapClickAction}/>
             {typeof(worker)==='undefined'?'':(
                 <>
                     <p style={{fontWeight:'bold'}} className="singleline">{worker.name}, {worker.status}</p>
@@ -282,8 +289,12 @@ function LocalMapBuildingDetail(props) {
     // Shows content of the selected building on the right-side panel
     // prop fields - data
     //      bid - ID of the correct building to show
+    // prop fields - functions
+    //      setMapClickAction - sets a function to be called whenever the user clicks a tile on the map
 
     const [selectedTask, setSelectedTask] = React.useState(null);
+    const [selectedWorker, setSelectedWorker] = React.useState(null);
+    const [workerAction, setWorkerAction] = React.useState('');
     const [blink,setBlink] = React.useState(0);
     const [makeCount,setMakeCount] = React.useState(1);
 
@@ -318,25 +329,55 @@ function LocalMapBuildingDetail(props) {
                     <p className="singleline" style={{fontWeight:'bold'}}>No available tasks</p>
                 )}
             </>
-        ):(
+        ):(selectedWorker===null)?(
             <>
                 <p className="singleline" style={{fontWeight:'bold'}}>{selectedTask.name}; Assign Worker</p>
                 {selectedTask.hasQuantity?(
                     <># to craft: <DanInput placeholder={"enter quantity"} default={1} onUpdate={(a,b)=>setMakeCount(b)} /></>
                 ):('')}
                 <WorkersByAvailability onPick={(worker,action)=>{
-                    // The worker has a convenient function to let us do all this in a single action
-                    worker.addTask(block,selectedTask.name,action,makeCount);
-
-                    // Clear the selected action, to reset the building's display
-                    setSelectedTask(null);
-                    setMakeCount(1); // We seem to need to reset this value. Otherwise the next use of this will be the same - but
-                    // look like it was set back to 1.
+                    // Determine if this task type allows for the user to select a remote location
+                    if(selectedTask.userPicksLocation===true) {
+                        setSelectedWorker(worker);
+                        setWorkerAction(action);
+                        props.setMapClickAction(()=>{
+                            console.log('It works!');
+                            setSelectedWorker(null);
+                            setWorkerAction(null);
+                        });
+                    }else{
+                        // The worker has a convenient function to let us do all this in a single action
+                        worker.addTask(block,selectedTask.name,action,makeCount);
+                    
+                        // Clear the selected action, to reset the building's display
+                        setSelectedTask(null);
+                        setMakeCount(1); // We seem to need to reset this value. Otherwise the next use of this will be the same - but
+                        // look like it was set back to 1.
+                    }
                 }}/>
+            </>
+        ):(
+            <>
+                <p className="singleline">
+                    Select a location on the map to perform this, or
+                    <span
+                        className="fakelink"
+                        style={{marginLeft:3}}
+                        onClick={()=>{
+                            selectedWorker.addTask(block,selectedTask.name,workerAction,makeCount);
+                            // We also need to clear settings when the user does this
+                            setSelectedWorker(null);
+                            setSelectedTask(null);
+                            setMakeCount(1);
+                        }}>
+                        let the worker decide
+                    </span>
+                </p>
+                <p className="singleline fakelink" onClick={()=>setSelectedWorker(null)}>Cancel</p>
             </>
         )}
 
-        {/* Show any active tasks, and their progress */}
+        {/* Show any active tasks, and their progress. This will show under the available tasks, no matter what state it's in */}
         {block.activeTasks.map((task,key)=>(
             <p className="singleline" key={key}>
                 Task {task.task.name}, by {task.worker.name}, 

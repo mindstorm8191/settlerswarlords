@@ -40,6 +40,7 @@ export function RopeMaker() {
                         canAssign: ()=>true, // this building doesn't unlock until we have raw twine anyway
                         canAssist: true,
                         hasQuantity: true,
+                        userPicksLocation: false,
                         itemsNeeded: ['Twine Strips'],
                         toolsNeeded: [],
                         buildTime: 20*60*2, // 2 minutes

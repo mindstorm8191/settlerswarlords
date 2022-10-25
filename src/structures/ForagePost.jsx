@@ -45,6 +45,7 @@ export function ForagePost() {
                         },
                         canAssist:false,
                         hasQuantity:false,
+                        userPicksLocation: false,
                         itemsNeeded:[],
                         buildTime:0,
                         outputItems: ['Apple'],

@@ -126,6 +126,11 @@ export function LocalMap(props) {
                         }else{
                             targetTile = targetTile.img;
                         }
+
+                        let borderColor = 'green';
+                        if(mapClickAction!==null) {
+                            if(!mapClickAction.validTiles(tile)) borderColor = 'red';
+                        }
                         
                         return (
                             <div
@@ -135,12 +140,13 @@ export function LocalMap(props) {
                                     top: tile.y * 42,
                                     left: tile.x * 42,
                                     backgroundImage: `url(${imageURL}localtiles/${targetTile})`,
+                                    border: '1px solid '+ borderColor
                                 }}
                                 onClick={()=>{
                                     if(clearDragFlag()) return;
 
-                                    if(typeof(mapClickAction)==='function') {
-                                        mapClickAction(tile);
+                                    if(mapClickAction!==null) {
+                                        mapClickAction.onValidClick(tile);
                                         return;
                                     }
 
@@ -340,11 +346,13 @@ function LocalMapBuildingDetail(props) {
                     if(selectedTask.userPicksLocation===true) {
                         setSelectedWorker(worker);
                         setWorkerAction(action);
-                        props.setMapClickAction(()=>{
+                        props.setMapClickAction({onValidClick: (tile)=>{
                             console.log('It works!');
+                            worker.addTask(block,selectedTask.name,action,makeCount,'',tile);
                             setSelectedWorker(null);
                             setWorkerAction(null);
-                        });
+                            props.setMapClickAction(null);
+                        }, validTiles: selectedTask.validLocations});
                     }else{
                         // The worker has a convenient function to let us do all this in a single action
                         worker.addTask(block,selectedTask.name,action,makeCount);

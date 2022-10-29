@@ -32,7 +32,7 @@ export function createNewWorker(pack) {
             // counter influencing movement. The game will Tick 20 times a second, but workers will take longer to travel each square of the map
         tasks:[],    // list of tasks this worker is completing. The first task is always what they are currently working on
         carrying:[],  // list of items this worker is carrying. Some items will enable workers to carry more
-        addTask: (building, taskName,assignStyle,amount,targetItem='') => {
+        addTask: (building, taskName,assignStyle,amount,targetItem='',targetTile='') => {
             // Gives a new task to a worker
             // No return value. The building and worker will be modified.
 
@@ -67,7 +67,7 @@ export function createNewWorker(pack) {
                 atBuilding:building,
                 taskInstance:taskInstance,
                 taggedItems: [],
-                ...task.getTask(w)
+                ...task.getTask(w,targetTile)
             }
 
             // Giving the task to the worker depends on the assignStyle given

@@ -51,12 +51,28 @@ export function LoggersPost() {
                         canAssist: true,
                         hasQuantity: true,
                         userPicksLocation: true,
+                        validLocations: (tile)=>{
+                            // Returns true if this tile is a valid location for 
+                            if(tile.newlandtype===-1) {
+                                if(tile.landtype>=5 && tile.landtype<=20) {
+                                    return true;
+                                } 
+                                return false;
+                            }
+                            if(tile.newlandtype>5 && tile.newlandtype<=20) return true;
+                            return false;
+                        },
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Knife'],
                         buildTime: 20*25, // aka 25 seconds
                         outputItems: ['Twine Strips', 'Debarked Fallen Log'],
-                        getTask: (worker) => {
+                        getTask: (worker,tile='') => {
                             // We need to locate a tree tile that has fallen logs on it.
+
+                            // First, see if we have been provide a tile to use
+                            if(tile!=='') {
+                                return {subtask:'workatspot', targetx:tile.x, targety:tile.y, targetitem:'Fallen Log'};
+                            }
 
                             // Here, we need to locate a tree tile that has fallen logs in it.
                             // On that note, we need to have a way to detect when all fallen bark has been used up

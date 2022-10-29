@@ -9,8 +9,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-2) Modify the work assignment code to allow players to select where work will take place at - or leave it to the workers to decide.
-3) Provide an X button when assigning tasks, to clear the current task being worked on
+2) Apply the validLocations function to all the tasks that need it
+3) Provide an X button when assigning tasks, to clear the current task being created
 
 1) Set up a means to post sound-effect boxes on the map; for example 'TIMBER!' when a tree falls down, or 'CRACK!' when the fire miner
     douses its fire, etc

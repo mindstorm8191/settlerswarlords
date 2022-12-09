@@ -43,7 +43,7 @@ export function RopeMaker() {
                         userPicksLocation: false,
                         itemsNeeded: ['Twine Strips'],
                         toolsNeeded: [],
-                        buildTime: 20*60*2, // 2 minutes
+                        buildTime: 20*60*1, // 1 minute
                         outputItems: ['Small Rope'],  // about 1 foot of 5 pound rope
                         getTask: worker => {
                             // Locate some twine strips

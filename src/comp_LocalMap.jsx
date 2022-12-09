@@ -127,9 +127,13 @@ export function LocalMap(props) {
                             targetTile = targetTile.img;
                         }
 
-                        let borderColor = 'green';
+                        let borderColor = 'grey';
                         if(mapClickAction!==null) {
-                            if(!mapClickAction.validTiles(tile)) borderColor = 'red';
+                            if(mapClickAction.validTiles(tile)) {
+                                borderColor = 'green';
+                            }else{
+                                borderColor = 'red';
+                            }
                         }
                         
                         return (

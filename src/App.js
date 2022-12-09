@@ -9,21 +9,18 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-2) Apply the validLocations function to all the tasks that need it
+1) Allow wooden log chunks to be cut, then wooden bowls
 3) Provide an X button when assigning tasks, to clear the current task being created
+4) Come up with a better way to report failure if a task can't be completed. We may grey out options based on needing items before-hand. Or
+    maybe show a queue of tasks that need completing before the target task can be done.
 
 1) Set up a means to post sound-effect boxes on the map; for example 'TIMBER!' when a tree falls down, or 'CRACK!' when the fire miner
     douses its fire, etc
-1) With land-specific tasks, set up a way for the x & y coordinates to be decided after the task begins.
-1) Have a way to register tasks that can be done on specific land types. We will need a way to specify tiles to clear away vegetation,
-    so we can access dirt directly.
 2) Set up a useTool() function, as part of the worker class, to manage tool wear automatically.
 3) Decide if a hasTools() function is needed. I think the pre-check for parts will catch that a tool is missing (because it broke), even
     midway through a task
 1) Decide how to better show workers when a user has clicked on their tile
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
-4) Add the Loggers Post structure, and allow players to collect raw twine. The Loggers Post can be placed anywhere
-5) For empty tiles, show any items existing on that tile
 
 Things to add later
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
@@ -51,6 +48,17 @@ Process
     can be used for other jobs.
 
 Fantasy horror creature: https://imgur.com/gallery/s8E9idW
+
+Maybe we need to de-couple jobs from workers.
+Previously I was having workers pick jobs themselves to complete. That left too little control over activities for players to interact.
+We will still have players choosing what is made, but workers will be picked automatically when they become available.
+Process
+1) User places a building. If it requires construction, a build task will be generated automatically.
+2) Task options will be listed, and under it, current tasks and who is working it (if anyone)
+3) User can create a new task at any time, specifying how much of an item to produce as well. This will be put into a task queue.
+4) When a worker has no work, they will pick up a job to complete, and go do it. Their name will show up in the active tasks of that building
+    - A task list will be available, and users can move existing tasks around. Tasks already being worked by workers can be put on hold (they
+        will still have that task assigned to them), unassigned from the given worker, cancelled, or re-assigned to a specific worker
 
 Project size (because it's fun to watch this grow)
 src/App.js                               src/structures/RockKnapper.jsx       server/globals.php                   automationtree.md

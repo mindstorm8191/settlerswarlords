@@ -92,6 +92,7 @@ export function LeanTo() {
                         itemsNeeded: [],
                         userPicksLocation: false,
                         buildTime: (20*30), // 30 seconds
+                        outputItems: [],
                         getTask: (worker)=>({subtask:'construct', targetx:b.x, targety:b.y}),
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task

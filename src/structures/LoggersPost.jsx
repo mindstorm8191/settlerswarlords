@@ -69,7 +69,7 @@ export function LoggersPost() {
                         getTask: (worker,tile='') => {
                             // We need to locate a tree tile that has fallen logs on it.
 
-                            // First, see if we have been provide a tile to use
+                            // First, see if we have been provided a tile to use
                             if(tile!=='') {
                                 return {subtask:'workatspot', targetx:tile.x, targety:tile.y, targetitem:'Fallen Log'};
                             }
@@ -116,11 +116,21 @@ export function LoggersPost() {
                         canAssist: true,
                         hasQuantity: true,
                         userPicksLocation: true,
+                        validLocations: (tile) =>{
+                            // Returns true if the given tile is a valid location for this task
+                            if(tile.newlandtype===-1) {
+                                if(tile.landtype>=5 && tile.landtype<=20) return true;
+                                return false;
+                            }
+                            if(tile.newlandtyle>5 && tile.newlandtype<=20) return true;
+                            return false;
+                        },
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Stabber'],
                         buildTime: 20*40,  // 40 seconds
                         outputItems: ['Long Stick'],
-                        getTask: (worker) => {
+                        getTask: (worker,tile='') => {
+                            if(tile!=='') return {subtask:'workatspot', targetx:tile.x, targety:tile.y};
                             // Locate a tree tile with sticks on it
                             const [targetx, targety] = game.findItemFromList(worker.x, worker.y, treesList);
                             if(targetx===-1 && targety===-1)
@@ -144,11 +154,17 @@ export function LoggersPost() {
                         canAssist: true,
                         hasQuantity: true,
                         userPicksLocation: true,
+                        validLocations: tile=>{
+                            // This time, we need to find a long stick within the tile's inventory
+                            return (tile.items.findIndex(i=>i.name==='Long Stick')!==-1);
+                        },
                         itemsNeeded: ['Long Stick'],
                         toolsNeeded: ['Flint Stabber'],
                         buildTime: 20*40, // 40 seconds
                         outputItems: ['Short Stick'],
-                        getTask: worker => {
+                        getTask: (worker,tile='') => {
+                            if(tile!=='') return {subtask:'workatspot', targetx:tile.x, targety:tile.y};
+
                             // Locate a Long Stick on the map
                             const [targetx, targety] = game.findItem(worker.x, worker.y, 'Long Stick', true);
                             if(targetx===-1 && targety===-1) {
@@ -181,11 +197,19 @@ export function LoggersPost() {
                         canAssist: true,
                         hasQuantity: true,
                         userPicksLocation: true,
+                        validLocations: tile=>{
+                            // Determine if this tile has any trees (from the trees list) in its list
+                            return (tile.items.findIndex(item => {
+                                return treesList.includes(item.name);
+                            })!==-1);
+                        },
                         itemsNeeded: [],
                         toolsNeeded: ['Flint Hatchet'],
-                        buildTime: 20*60*4, // 4 minutes
+                        buildTime: 20*60*2, // 2 minutes
                         outputItems: ['Felled Tree', 'Long Stick'],
-                        getTask: worker => {
+                        getTask: (worker,tile='') => {
+                            if(tile!='') return {subtask:'workatspot', targetx:tile.x, targety:tile.y};
+                            
                             // Locate a tree tile with sticks on it. Some trees are better suited for felling, but... we'll worry about that later
                             const [targetx, targety] = game.findItemFromList(worker.x, worker.y, treesList);
                             if(targetx===-1 && targety===-1)
@@ -234,18 +258,72 @@ export function LoggersPost() {
                             if(logs>0) {
                                 if(logs===1) {
                                     // Produce a single log piece, that can be moved by a worker
-                                    tile.items.push(game.createItem('Log', 'item', {}));
+                                    tile.items.push(game.createItem('Log Chunk', 'item', {}));
                                 }else{
                                     // These will all be connected; workers will have to cut them free before using them
-                                    for(let i=0; i<logs; i++) {
-                                        tile.items.push(game.createItem('Connected Log', 'item', {}));
-                                    }
+                                    tile.items.push(game.createItem('Connected Log', 'item', {amount:logs}));
                                 }
                             }
                             // Sticks will be a little simpler
-                            for(let i=90; i<sticks; i++) {
-                                tile.items.push(game.createItem('Long Stick', 'item', {}));
+                            tile.items.push(game.createItem('Long Stick', 'item', {amount:sticks}));
+                        }
+                    },{
+                        name: 'Cut Log Chunk',
+                        canAssign: ()=>game.unlockedItems.includes('Connected Log'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        userPicksLocation: false,
+                        itemsNeeded: ['Connected Log'],
+                        toolsNeeded: ['Flint Hatchet'],
+                        buildTime: 20*90, // 1.5 minutes
+                        outputItems: ['Log Chunk'],
+                        getTask: (worker,tile='') => {
+                            if(tile!=='') return {subtask:'workatspot', targetx:tile.x, targety:tile.y};
+
+                            // Find a Connected Log on the map
+                            const [targetx, targety] = game.findItem(worker.x, worker.y, 'Connected Log');
+                            if(targetx===-1 && targety===-1) {
+                                // Can't find any connected logs
+                                return {subtask:'cantwork', toolNeeded:false, targetx:worker.x, targety:worker.y, message:'Cant find connected log for cutting log chunk'};
                             }
+
+                            return {subtask:'workatspot', targetx:targetx, targety:targety, targetitem:'Connected Log'};
+                        },
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        },
+                        onComplete: (worker)=>{
+                            // Allows state changes when this task is complete.
+                            // Delete a conected log, and create a log chunk. Or, if there is currently 2 connected logs, create 2 log chunks instead
+                            let tile = game.tiles.find(t=>t.x === worker.x && t.y===worker.y);
+                            let logSlot = tile.items.findIndex(i=>i.name==='Connected Log');
+                            // This should have an amount greater than 1
+                            if(tile.items[logSlot].amount>2) {
+                                // We can only recover one log chunk from this... that's fine
+                                tile.items[logSlot].amount--;
+                                tile.items.push(game.createItem('Log Chunk', 'item', {}));
+                            }else{
+                                if(tile.items[logSlot].amount<=1) {
+                                    console.log('We found '+ tile.items[logSlot].amount +' connected logs, it should be >=2');
+                                    // Go ahead and create one log chunk anyway
+                                    tile.items.push(game.createItem('Log Chunk', 'item', {}));
+                                }else{
+                                    tile.items.splice(logSlot);
+                                    tile.items.push(game.createItem('Log Chunk', 'item', {amount:2}));
+                                }
+                            }
+                        }
+                    },{
+                        name: 'Cut Wooden Bucket',
+                        canAssign: ()=>game.unlockedItems.includes('Log Chunk'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        userPicksLocation: false,
+                        itemsNeeded: ['Log Chunk'],
+                        toolsNeeded: ['Flint Hatchet'],
+                        buildTime: 20*60, // 1 minute
+                        outputItems: ['Wooden Bucket'],
+                        getTask: (worker, tile='') => {
                             
                         }
                     }

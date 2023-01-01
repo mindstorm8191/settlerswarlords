@@ -48,7 +48,7 @@ export function RockKnapper() {
                 tasks: [
                     {
                         name: 'Craft Flint Knife',
-                        taskType: 'craft on site',
+                        taskType: 'craftOnSite',
                         canAssign: ()=>true,
                         canAssist: true,
                         hasQuantity: true,
@@ -57,7 +57,18 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*20,
                         outputItems: ['Flint Knife'],
-                        getTask: (worker) =>({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Knife'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                ticksToComplete: 20*20
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') {
@@ -100,12 +111,23 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*20,
                         outputItems: ['Flint Stabber'],
-                        getTask: (worker) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Stabber'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                ticksToComplete: 20*20
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
-                        onComplete: ()=>{
+                        onComplete: (worker)=>{
                             if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             if(typeof(tile.items)==='undefined') tile.items = [];
@@ -122,6 +144,7 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*40,
                         outputItems: ['Flint Hatchet'],
+                        
                         getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
@@ -130,7 +153,7 @@ export function RockKnapper() {
                                 console.log('b.blinker not a function in RockKnapper');
                             }
                         },
-                        onComplete: ()=>{
+                        onComplete: (worker)=>{
                             // delete the used items from this tile
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             let slot = tile.items.findIndex(i=>i.name==='Short Stick');
@@ -241,7 +264,7 @@ export function RockKnapper() {
                     }
                     return (
                         <>
-                            <p className="singleline">Food on hand:</p>
+                            <p className="singleline">Items here:</p>
                             {game.groupItems(tile.items).map((item,key)=>(
                                 <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>
                             ))}

@@ -14,7 +14,8 @@ export function createNewWorker(pack) {
     //      id - optional. The server doesn't assign IDs to workers, but they will be kept when saved
     //      name - name of this worker
     //      x & y - map coordinates of this worker
-    //      moveCounter - 
+    //      moveCounter - how long this worker must remain in this tile before being able to move to the next tile
+    //      taskId - ID of the task that this worker had. This is used primarily for saving & loading the game
     // Returns the completed worker object
 
     let workerid = pack.id;

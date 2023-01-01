@@ -309,11 +309,10 @@ function LocalMapBuildingDetail(props) {
     //      setMapClickAction - sets a function to be called whenever the user clicks a tile on the map
 
     const [selectedTask, setSelectedTask] = React.useState(null);
-    //const [selectedWorker, setSelectedWorker] = React.useState(null);
+    const [selectedWorker, setSelectedWorker] = React.useState(null);
     const [workerAction, setWorkerAction] = React.useState('');
     const [blink,setBlink] = React.useState(0);
     const [makeCount,setMakeCount] = React.useState(1);
-    const [countSet,setCountSet] = React.useState(false); // true if user has confirmed the amount to produce
 
 
     // Start with verifying input
@@ -339,67 +338,41 @@ function LocalMapBuildingDetail(props) {
                     <>
                         <p className="singleline" style={{fontWeight:'bold'}}>Available Tasks:</p>
                         {block.tasks.filter(t=>t.canAssign()).map((t,key)=>(
-                            <p
-                                className="singleline fakelink"
-                                key={key}
-                                onClick={()=>{
-                                    // no quantity, no location pick: task ready to complete
-                                    // has quantity, no location pick: ask for quantity
-                                    // no quantity, has location pick: ask for location
-                                    // has quantity, has location pick: ask for both
-                                    if(t.hasQuantity || t.userPicksLocation) {
-                                        setSelectedTask(t);
-                                    }
-                                    if(!t.hasQuantity) {
-                                        if(!t.userPicksLocation) {
-                                            // We should be good to simply create this task & go
-                                            t.create();
-                                            setBlink(-1);
-                                        }else{
-                                            setSelectedTask(t);
-                                            setCountSet(true);
-                                        }
-                                    }
-                                    
-                                }}
-                            >{t.name}</p>
+                            <p className="singleline fakelink" key={key} onClick={()=>setSelectedTask(t)}>{t.name}</p>
                         ))}
                     </>
                 ):( 
                     <p className="singleline" style={{fontWeight:'bold'}}>No available tasks</p>
                 )}
             </>
-        ):(!countSet)?(
+        ):(selectedWorker===null)?(
             <>
-                # to craft:
-                <DanInput
-                    placeholder={"enter quantity"}
-                    default={1}
-                    onUpdate={(a,b)=>setMakeCount(b)}
-                />
-                <span style={{backgroundColor:'grey', padding:3}} onClick={()=>{
-                    if(selectedTask.userPicksLocation) {
-                        setCountSet(true);
+                <p className="singleline" style={{fontWeight:'bold'}}>{selectedTask.name}; Assign Worker</p>
+                {selectedTask.hasQuantity?(
+                    <># to craft: <DanInput placeholder={"enter quantity"} default={1} onUpdate={(a,b)=>setMakeCount(b)} /></>
+                ):('')}
+                <WorkersByAvailability onPick={(worker,action)=>{
+                    // Determine if this task type allows for the user to select a remote location
+                    if(selectedTask.userPicksLocation===true) {
+                        setSelectedWorker(worker);
+                        setWorkerAction(action);
                         props.setMapClickAction({onValidClick: (tile)=>{
-                            // before proceeding, check if this tile is valid, since users can click any tile
-                            if(!selectedTask.validLocations(tile)) return;
-
-                            // This is where we handle the response from the user's click
-                            let rask = selectedTask.create();
-                            rask.targetx = tile.x;
-                            rask.targety = tile.y;
-
-                            // Now clear all the display settings
-                            setCountSet(false);
-                            setSelectedTask(null);
+                            console.log('It works!');
+                            worker.addTask(block,selectedTask.name,action,makeCount,'',tile);
+                            setSelectedWorker(null);
+                            setWorkerAction(null);
                             props.setMapClickAction(null);
                         }, validTiles: selectedTask.validLocations});
                     }else{
-                        let task = selectedTask.create();
-                        task.quantity = makeCount;
+                        // The worker has a convenient function to let us do all this in a single action
+                        worker.addTask(block,selectedTask.name,action,makeCount);
+                    
+                        // Clear the selected action, to reset the building's display
                         setSelectedTask(null);
+                        setMakeCount(1); // We seem to need to reset this value. Otherwise the next use of this will be the same - but
+                        // look like it was set back to 1.
                     }
-                }}>{selectedTask.userPicksLocation?'Continue':'Start'}</span>
+                }}/>
             </>
         ):(
             <>
@@ -409,22 +382,16 @@ function LocalMapBuildingDetail(props) {
                         className="fakelink"
                         style={{marginLeft:3}}
                         onClick={()=>{
-                        //    selectedWorker.addTask(block,selectedTask.name,workerAction,makeCount);
+                            selectedWorker.addTask(block,selectedTask.name,workerAction,makeCount);
                             // We also need to clear settings when the user does this
-                        //    setSelectedWorker(null);
+                            setSelectedWorker(null);
                             setSelectedTask(null);
                             setMakeCount(1);
                         }}>
                         let the worker decide
                     </span>
                 </p>
-                <p
-                    className="singleline fakelink"
-                    onClick={()=>{
-                        props.setMapClickAction(null);
-                        setCountSet(false);
-                    }}
-                >Cancel</p>
+                <p className="singleline fakelink" onClick={()=>setSelectedWorker(null)}>Cancel</p>
             </>
         )}
 
@@ -523,7 +490,7 @@ export const minimapTiles = [
     {id:4, img:'milletgrass.png',  desc: 'Millet. Its good for you',                    walkLag: 8},
     {id:5, img:'mapletreeone.jpg', desc: 'Maple trees. Its sap is useful for syrups',  walkLag: 8},
     {id:6, img:'mapletreeone.jpg', desc: 'Birch trees. Its bark is good for making ropes', walkLag: 8},
-    {id: 7, img:'mapletreeone.jpg', desc: 'Oak trees. Provides acorns - edible in a pinch',                               walkLag: 8},
+    {id: 7, img:'mapletreeone.jpg', desc: 'Oak trees. Provides acorns - edible in a pinch', walkLag: 8},
     {id: 8, img:'mapletreeone.jpg',  desc: 'Mahogany trees. Provides lots of shade',                                      walkLag: 8},
     {id: 9, img:'pinetreetwo.jpg',   desc: 'Pine trees. Green year-round, and provides pinecones',                        walkLag: 8},
     {id:10, img:'pinetreetwo.jpg',   desc: 'Cedar trees. Grows tall and straight',                                        walkLag: 8},

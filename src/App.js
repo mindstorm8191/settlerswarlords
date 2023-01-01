@@ -9,6 +9,15 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Dismantle the same-item grouping mechanism, it will cause conflicts when the same block has multiple items for tasks. Start with un-grouping
+    all items as it is received from the database
+1) Complete the system to mark items for tasks
+1) Feature needed: allow user to cancel task when selecting the amount to make
+1) Keep updating the various task generation code sections to use the game object's createTask function.
+2) Write code for locating crafting items, which will be much like how tools are located
+3) Have items (and tools) get marked for certain jobs. Allow those marks to be cleared once the job is finished
+3) Write code that makes tools take wear and eventually break. Make sure that workers will go seek a new tool once they lose the tool
+   they had
 1) Allow wooden log chunks to be cut, then wooden bowls
 3) Provide an X button when assigning tasks, to clear the current task being created
 4) Come up with a better way to report failure if a task can't be completed. We may grey out options based on needing items before-hand. Or
@@ -23,6 +32,10 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
 
 Things to add later
+* All items should have a quality level, that is affected by the skill level of the person who crafted it. Items crafted by high-quality base
+    items will result in higher quality finished items. The skill of the crafter will increase its quality as well. Each job completed will
+    increase the worker's XP of that skill
+* Allow players to acquire tools & items without having them unlocked
 1) Add bush types to localmap worldgen: blueberry, grape, Firethorn, Buckthorn, Agarita, Gooseberry
 2) Have workers follow A* pathfinding for fastest route to their destinations. This also means pathfinding considerations to locate things
     workers can pick up.
@@ -65,19 +78,20 @@ src/App.js                               src/structures/RockKnapper.jsx       se
     src/App.css                              src/structures/LoggersPost.jsx       server/weightedRandom.php           wartree.md
         src/libs/DanAjax.js                      src/structures/RopeMaker.jsx         server/getInput.php               worldgen.md
            src/game.jsx                             src/structures/DirtSource.jsx        server/mapContent.php             workercrafting.md
-               src/workers.jsx                          src/comp_account.jsx                  server/routes/autologin.php
+               src/worker.jsx                           src/comp_account.jsx                  server/routes/autologin.php
                    src/comp_LocalMap.jsx                    src/libs/ErrorOverlay.jsx            server/routes/login.php
                        src/libs/DraggableMap.jsx               server/common.php                    server/routes/logout.php
                            src/libs/DanCommon.js                   server/jsarray.php                  server/routes/reporterror.php
                               src/libs/DanInput.jsx                    server/config.php                  server/signup.php
                                  src/stuctures/LeanTo.jsx                server/DanGlobal.php                 README.md
                                      src/structures/ForagePost.jsx          server/finishLogin.php               techtree.md
-279+127+49+295+550+454+172+74+65+163+123+250+242+90+106+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
+284+126+49+323+338+546+172+74+65+193+177+293+373+91+108+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
 10/5/2022 = 5158 lines
 10/22/2022 = 5357 lines
+12/24/2022 = 5530 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.

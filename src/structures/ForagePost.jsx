@@ -26,7 +26,7 @@ export function ForagePost() {
                 name: 'Forage Post',
                 descr: `All around you is a world teeming with life - and food. It is there for the taking, you just have to find it.`,
                 usage: `Collects edible foods from the surrounding environment.  Local supplies can only support up to 4 workers. Cannot place
-                        another one in this area`,
+                        another one in this area. While enabled, a worker will continuously search for food`,
                 image: "foragepost.png",
                 progressBar: 0, // I think we'll use this to show the amount of food available
                 progressBarMax: 8,
@@ -34,14 +34,16 @@ export function ForagePost() {
                 blinkState:0,
                 blinker:null,
                 activeTasks: [],
-        
+                keepWorking: false, // The forage post will work differently than other buildings. If this is enabled, a task will keep being
+                                    // generated
                 tasks: [
                     {
                         name:'Forage for Food',
-                        taskType: 'fetch item',  // fetching items only will become more prevalent when we have machines to process things
+                        taskType: 'fetchItem',  // fetching items only will become more prevalent when we have machines to process things
                         canAssign:()=>{
                             // This can only be assigned to one person. See if we have an active task of the same type
-                            return (b.activeTasks.findIndex(b=>b.task.name==='Forage for Food')===-1);
+                            //return (b.activeTasks.findIndex(b=>b.task.name==='Forage for Food')===-1);
+                            return false;  // This isn't assigned in a normal fashion
                         },
                         canAssist:false,
                         hasQuantity:false,
@@ -49,7 +51,24 @@ export function ForagePost() {
                         itemsNeeded:[],
                         buildTime:0,
                         outputItems: ['Apple'],
-                        getTask: (worker)=>{
+                        create: ()=>{
+                            // The Forage Post will operate a little differently than other structures. We need to have an enable/disable button
+                            // for the user to click on. When enabled, a worker will continuously bring food from the surrounding environment
+                            // to this location. We'll try to limit this to a single worker doing the job, not multiple
+
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Forage for Food'),
+                                taskType: 'fetchItem',
+                                carryTox: b.x,
+                                carryToy: b.y,
+                                targetItem: null
+                                // we deliberately have no target location. A suitable location will be selected once this is assigned to a worker
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
+                        /*getTask: (worker)=>{
                             // Let the tutorial progress, if this is the current task.
                             if(game.tutorialModes[game.tutorialState].name==='food1') game.advanceTutorial();
 
@@ -80,7 +99,7 @@ export function ForagePost() {
                             }
                             // Now, return the object that gets applied to the worker
                             return {subtask:'fetchitem', targetx:targetx, targety:targety, targetitem:'Apple'};
-                        },
+                        },*/
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
@@ -88,6 +107,9 @@ export function ForagePost() {
                         onComplete: (worker)=>{
                             // Workers need to drop the item they're carrying at this block.
                             // Start by fetching the tile this structure is on
+                            // Nothing is really needed to be done here
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                            /*
                             let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
                             if(typeof(tile)==='undefined') {
                                 console.log('Error: tile not found at ['+ b.x +','+ b.y +']. This should be the Forage Post tile.');
@@ -98,18 +120,37 @@ export function ForagePost() {
                                 console.log(`Error: ${worker.name} tried to place an item, but not carrying it now. Item=${worker.targetitem}, carrying size=${worker.carrying.length}. Worker task cancelled`);
                                 worker.clearTask()
                             }
+                            */
                         }
                     }
                 ],
+                update: ()=>{
+                    // We should only ever have one task here at a time. See if one still exists
+                    if(b.activeTasks.length>0) return;
+
+                    // Now, create a new task, if enabled
+                    if(b.keepWorking) b.tasks[0].create();
+                },
         
                 SidePanel: ()=> {
                     // To see our inventory, we first need to grab the tile
+                    const [keepWorking, setKeepWorking] = React.useState(b.keepWorking);
+
                     let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
                     if(typeof(tile)==='undefined') {
-                        return <>Error: Block's tile not found. Cannot access items</>;
+                        return <>Error: Structure's tile not found. Cannot access items</>;
                     }
                     return (
                         <>
+                            <span
+                                style={{backgroundColor:keepWorking?'green':'red', margin:5, padding:3, border:'1px solid black'}}
+                                onClick={()=>{
+                                    b.keepWorking = !b.keepWorking;
+                                    setKeepWorking(b.keepWorking);
+                                }}
+                            >
+                                {keepWorking?'Enabled':'Disabled'}
+                            </span>
                             <p className="singleline">Food on hand:</p>
                             {game.groupItems(tile.items).map((item,key)=>(
                                 <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>

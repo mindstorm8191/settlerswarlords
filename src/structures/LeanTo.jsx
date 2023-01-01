@@ -16,6 +16,13 @@ export function LeanTo() {
         primary: true,
         featuresUnlocked: false,
         newFeatures: [],
+        canBuild: (tile) => {
+            // returns true if this building can be built at this location, or false if not
+            if(parseInt(tile.newlandtype)===-1) {
+                return [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].includes(tile.landtype);
+            }
+            return [5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20].includes(tile.newlandtype);
+        },
         create: (tile) => {
             // Produces a new structure instance, placing it on the provided tile.
             // The lean-to is a crude shelter made from a fallen tree branch and leaves piled on top
@@ -60,11 +67,19 @@ export function LeanTo() {
                         itemsNeeded: [],
                         buildTime: (20*30*3), // 1.5 minutes
                         outputItems: [],
-                        getTask: (worker)=>{
-                            // Returns the current task that needs completing
-                            // Since this is only construction, we have a single return value
-                            if(game.tutorialModes[game.tutorialState].name==='shelter2') game.advanceTutorial();
-                            return {subtask:'construct', targetx:b.x, targety:b.y};
+                        create: () => {
+                            // Generates a new task instance, returning it. This is also saved to the game's tasks list
+
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Build'),
+                                taskType: 'construct',
+                                targetx: b.x,
+                                targety: b.y,
+                                ticksToComplete: 20*60*1.5 // aka 1.5 minutes
+                            });
+                            b.activeTasks.push(task);
+                            return task;
                         },
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
@@ -72,8 +87,11 @@ export function LeanTo() {
                                 b.blinkState++;
                                 b.blinker(b.blinkState);
                             }
+                            // We also need to update this block's progress bar. That means finding the active task for this
+                            let task = b.activeTasks.find(t=>t.task.name==='Build');
+                            b.progressBar = task.progress;
                         },
-                        onComplete: ()=> {
+                        onComplete: (worker)=> {
                             b.mode = 'use';
                             b.progressBar = (20*60*20); // aka 20 minutes
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
@@ -101,7 +119,7 @@ export function LeanTo() {
                                 b.blinker(b.blinkState);
                             }
                         },
-                        onComplete: ()=>{
+                        onComplete: (worker)=>{
                             b.progressBar += (20*60*5); // adds 5 minutes of life
                         }
                     }
@@ -151,7 +169,7 @@ export function LeanTo() {
                         if(b.activeTasks.length===0) {
                             return <>Needs construction</>;
                         }
-                        return <>Under construction: {Math.floor((parseFloat(b.activeTasks[0].progress)/parseInt(b.activeTasks[0].progressTarget))*100)}%</>;
+                        return <>Under construction: {Math.floor((parseFloat(b.activeTasks[0].progress)/parseInt(b.activeTasks[0].ticksToComplete))*100)}%</>;
                     }
                     return <>In use. Health: {Math.round((parseFloat(b.progressBar)/(20*60*20))*100)}%</>;
                 }

@@ -3,7 +3,7 @@
     For the game Settlers & Warlords
 */
 
-import { createNewWorker } from "./workers.jsx";
+import { createNewWorker } from "./worker.jsx";
 import {LeanTo} from "./structures/LeanTo.jsx";
 import {ForagePost} from "./structures/ForagePost.jsx";
 import {RockKnapper} from "./structures/RockKnapper.jsx";
@@ -20,12 +20,33 @@ export const game = {
     updateWorkers: null, // This gets assigned to React's setWorkers call
     updateLocalMap: null, // This also gets assigned to a React callback
     workers: [], // List of all workers (with stats)
+    tasks: [], // All tasks in this area, active or not
+        // task structure
+        //  building this task is assigned to
+        //  worker this task is assigned to (if assigned yet)
+        //  status of this task. Most jobs will start as unassigned
+        //  location for this work to take place at. Users may list this as 'anywhere'; a location will be selected when a worker assigns it
+        //  secondary location. This is used for jobs involving picking items up
+        //  items & tools needed for the task
+        //  items & tools collected for this task
+        //  progress of this task
+        //  skills required (some tasks need a certain level to be successful each time. Workers completing this at lower levels have X chance of failure)
+
+        // so, a worker will assign themselves a task. If they need to do something else, the worker will self-assign themselves the task needed
+        // before-hand. For example, if they need to cut a stick, they'll first need to craft a Flint Stabber, then carry it to the job site.
+    taskManager: [], // all task management entries
+        //  building that has the task to complete
+        //  task that will be generated when needed
+        //  item to keep on hand
+        //  amount needed on hand
+
     tickTime: 0,
     timeout: null, // We keep this handle so that the timeout can be interrupted
     runState: 0, // Set to 1 when game is running. This is checked at start of game-tick to stop the cycle if the game isn't running
     clockCheck: 0,
     lastBlockId: 0,
     lastWorkerId: 0,
+    lastTaskId: 0,
     unlockedItems: [], // array of item names. This gets added to for every new item the user crafts
     landTypeOptions: [], // array of objects:
         // landType, as string
@@ -56,6 +77,10 @@ export const game = {
         game.lastBlockId++;
         return game.lastBlockId;
     },
+    /*getNextTaskId: ()=> { what we really need is a more robust deletion method
+        game.lastTaskId++;
+        return game.lastTaskId;
+    },*/
     getBlock: (id) => {
         return game.blockList.find(e=>e.id===id);
     },
@@ -92,7 +117,20 @@ export const game = {
         //  funcUpdateTiles - callback function from React to update all game tiles
         //  funcUpdateWorkers - callback function from React to udpate all workers
 
-        game.tiles = localTiles;
+        // For local tiles, convert all grouped items into individual items
+        game.tiles = localTiles.map(t=>{
+            let ni = [];
+            for(let j=0; j<t.items.length; j++) {
+                if(typeof(t.items[j].amount)==='undefined') {
+                    ni.push(t.items[j]);
+                }else{
+                    for(let k=0; k<t.items[j].amount; k++) {
+                        ni.push(t.items[j]);
+                    }
+                }
+            }
+            return {...t, items:ni};
+        });
         for (let i = 0; i < localWorkers.length; i++) createNewWorker(localWorkers[i]);
         game.updateLocalMap = funcUpdateTiles;
         game.updateWorkers = funcUpdateWorkers;
@@ -105,6 +143,7 @@ export const game = {
         game.timeout = setTimeout(function () {
             window.requestAnimationFrame(game.tick);
         }, 50);
+        window.game = game;
     },
 
     stopGame: () => {
@@ -193,35 +232,37 @@ export const game = {
         // Works like findItem, but accepts a list of acceptable items instead of just one.
         // Let's start with a function
         function hasItem(x,y) {
-            // returns true if the tile location has a fallen log in it
+            // returns an item name if this tile has any of the target items, or an empty string if not found
             if(x<0 || x>41) return false;
             if(y<0 || y>41) return false;
 
             let tile = game.tiles.find(t=>t.x===x && t.y===y);
-            if(typeof(tile)==='undefined') return false;
+            if(typeof(tile)==='undefined') return '';
 
-            return tile.items.some(i=>{
+            let slot = tile.items.findIndex(i=>{
                 if(skipFlagged) {
                     return i.inTask===0 && itemList.includes(i.name);
                 }else{
                     return itemList.includes(i.name);
                 }
             });
+            if(slot===-1) return '';
+            return tile.items[slot].name;
         }
 
         let distance = 1;
-        if(hasItem(workerx,workery)) return [workerx,workery];  // This one is easy - there's already an item at the worker's spot
+        let i = hasItem(workerx,workery);
+        if(i!='') return [workerx,workery,i];  // This one is easy - there's already an item at the worker's spot
         while(true) {
             for(let line=-distance; line<distance; line++) {
-                if(hasItem(workerx+line, workery-distance)) return [workerx+line, workery-distance]; // right across the top
-                if(hasItem(workerx+distance, workery+line)) return [workerx+distance, workery+line]; // down the right
-                if(hasItem(workerx-line, workery+distance)) return [workerx-line, workery+distance]; // left across the bottom
-                if(hasItem(workerx-distance, workery-line)) return [workerx-distance, workery-line]; // up the left
+                i = hasItem(workerx+line, workery-distance); if(i!='') return [workerx+line, workery-distance,i]; // right across the top
+                i = hasItem(workerx+distance, workery+line); if(i!='') return [workerx+distance, workery+line,i]; // down the right
+                i = hasItem(workerx-line, workery+distance); if(i!='') return [workerx-line, workery+distance,i]; // left across the bottom
+                i = hasItem(workerx-distance, workery-line); if(i!='') return [workerx-distance, workery-line,i]; // up the left
             }
             distance++;
-            if(workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0) return [-1,-1];
+            if(workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0) return [-1,-1,''];
         }
-        return [-1,-1];
     },
     groupItems: original=>{
         // takes a list of items, and groups them into name & amount sets
@@ -237,6 +278,28 @@ export const game = {
             }
         }
         return list;
+    },
+    createTask: (mods)=>{
+        // Creates a new task, assigning it to the game.tasks list
+        // mods - object that is attached to the new task object, replacing any pre-made properties
+        let task = {
+            building: null,
+            task: null,
+            taskType: '',
+            worker: null,
+            status: 'unassigned',
+            targetx: null,
+            targety: null,
+            itemsNeeded: [],
+            toolsNeeded: [],
+            skillsNeeded: [],
+            itemsCollected: [], // all items tagged for use with this task, so they can be cleared when the job is done
+            progress: 0,
+            ticksToComplete: 1,
+            ...mods
+        };
+        game.tasks.push(task);
+        return task;
     },
     addLandTypeOptions(tilesList, newTask) {
         // Adds new tasks to a set of land tile types. If the task already exists for that land type, it will not be added again.
@@ -265,7 +328,7 @@ export const game = {
         // To be honest, jobs haven't been fleshed out enough to push & pull from the database; lets not worry about that for now.
         let hasWorkerUpdate = false; // we only want to update the local map if any workers have actually moved, or something
         for(let i=0; i<game.workers.length; i++) {
-            hasWorkerUpdate ||= game.workers[i].work();
+            hasWorkerUpdate ||= game.workers[i].tick();
         }
 
         // Before continuing, determine if we need to udpate rendering from worker changes

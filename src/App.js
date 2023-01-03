@@ -9,17 +9,12 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Fix bug in scheduling tasks
-    Craft Flint Hatchet
-        requires short stick
-            short stick is not assigning a long stick to be crafted. Instead it is proceeding to look for a tool. It finds no
-                Flint Stabber (even when one exists), and proceeds to craft it. The Flint Stabber is disappearing when finished,
-                resulting in a forever loop
-1) Keep updating the various task generation code sections to use the game object's createTask function.
-3) Write code that makes tools take wear and eventually break. Make sure that workers will go seek a new tool once they lose the tool
+1) Update tutorial to follow the new flow of operations
+2) Start work on making tools take wear and eventually break. Make sure that workers will go seek a new tool once they lose the tool
    they had
-1) Allow wooden bowls to be made from log chunks
-3) Provide an X button when assigning tasks, to clear the current task being created
+3) Assign skill points for each task completed. Have workers gain skill points when tasks get completed
+4) Have idle workers, when they find a task to complete, check other idle workers to see if they have better skills for the job
+5) Have items get a quality value based on the skill used to craft each item
 4) Come up with a better way to report failure if a task can't be completed. We may grey out options based on needing items before-hand. Or
     maybe show a queue of tasks that need completing before the target task can be done.
 

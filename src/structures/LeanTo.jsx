@@ -79,6 +79,7 @@ export function LeanTo() {
                                 ticksToComplete: 20*60*1.5 // aka 1.5 minutes
                             });
                             b.activeTasks.push(task);
+                            if(game.tutorialModes[game.tutorialState].name==='shelter1') game.advanceTutorial();
                             return task;
                         },
                         onProgress: ()=>{

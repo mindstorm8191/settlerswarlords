@@ -57,30 +57,9 @@ export function RopeMaker() {
                                 itemsNeeded: [{name: 'Twine Strips', qty: 1, hasItem:false}],
                                 ticksToComplete: 20*60 // 1 minute
                             });
-                            /*let task = {
-                                building: b,
-                                task: b.tasks.find(t=>t.name==='Craft Rope from Raw Twine'),
-                                taskType: 'workAtBuilding',
-                                worker: null,
-                                status: 'unassigned',
-                                targetx: b.x,
-                                targety: b.y,
-                                itemsNeeded: [{name: 'Twine Strips', qty: 1, hasItem:false}],
-                                toolsNeeded: [],
-                                progress: 0,
-                                ticksToComplete: 20*61*1,
-                                skillsNeeded: []
-                            };*/
                             b.activeTasks.push(task);
-                            //game.tasks.push(task);
                             return task;
                         },
-                        /*getTask: worker => {
-                            // Locate some twine strips
-                            const [targetx, targety] = game.findItem(worker.x, worker.y, 'Twine Strips', true);
-                            if(targetx===-1 && targety===-1) return {subtask: 'workonsite'};
-                            return {subtask: 'workonsite', targetx:b.x, targety:b.y};
-                        },*/
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },

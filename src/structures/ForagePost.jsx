@@ -146,6 +146,7 @@ export function ForagePost() {
                                 style={{backgroundColor:keepWorking?'green':'red', margin:5, padding:3, border:'1px solid black'}}
                                 onClick={()=>{
                                     b.keepWorking = !b.keepWorking;
+                                    if(game.tutorialModes[game.tutorialState].name==='food1') game.advanceTutorial();
                                     setKeepWorking(b.keepWorking);
                                 }}
                             >

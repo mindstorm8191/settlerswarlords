@@ -121,8 +121,8 @@ export function LoggersPost() {
                             //let slot = worker.carrying.findIndex(i=>i.name==='Twine Strips');
                             //tile.items.push(worker.carrying.splice(slot,1));
                             if(game.tutorialModes[game.tutorialState].name==='rope1') game.advanceTutorial();
-                            let tile = game.tiles.find(t=>t.x === worker.x && t.y===worker.y);
 
+                            let tile = game.tiles.find(t=>t.x === worker.x && t.y===worker.y);
                             let logSlot = tile.items.findIndex(i=>i.name==='Fallen Log');
                             if(logSlot===-1) {
                                 console.log('Error in LoggersPost: Fallen log not found at ['+ worker.x +','+ worker.y +']');

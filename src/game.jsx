@@ -55,10 +55,9 @@ export const game = {
     tutorialState: 0,
     tutorialModes: [
         {name: 'shelter1', display: 'You need shelter! Select Lean-To from the left, then click any tile with trees to place it.'},
-        {name: 'shelter2', display: 'Your Lean-To must be built. Select the Build task, then give a worker the task to complete.'},
-        {name: 'food1', display: 'Next is food. Place a Forage Post anywhere, then assign a worker to serach for food. They will work indefinitely.'},
+        {name: 'food1', display: 'Next is food. Place a Forage Post anywhere, then click Enable to assign a worker to serach for food.'},
         {name: 'tools1', display: "Tools are vital for progress. Place a Rock Knapper, then make a Flint Knife or Stabber (you'll need both)"},
-        {name: 'rope1', display: "Rope comes from the bark of fallen trees. Use a Forage Post to collect Twine Strips"},
+        {name: 'rope1', display: "Rope comes from the bark of decaying trees. Use a Forage Post to collect Twine Strips"},
         {name: 'rope2', display: "Use the Rope Maker to turn Twine Strips into useable rope"},
         {name: 'rope3', display: "New items unlocked! Build a Flint Shovel, Hatchet and Spear at the Rock Knapper. More tech will unlock from that!"}
     ],

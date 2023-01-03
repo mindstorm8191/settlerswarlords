@@ -129,6 +129,7 @@ export function RockKnapper() {
                         },
                         onComplete: (worker)=>{
                             if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
+                            
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             if(typeof(tile.items)==='undefined') tile.items = [];
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60*3}));

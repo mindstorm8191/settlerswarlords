@@ -144,8 +144,19 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*40,
                         outputItems: ['Flint Hatchet'],
-                        
-                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Hatchet'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                itemsNeeded: [{name: 'Short Stick', qty: 1, hasItem:false}, {name:'Small Rope', qty:1, hasItem:false}],
+                                ticksToComplete: 20*40
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
@@ -186,7 +197,20 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*45,
                         outputItems: ['Flint Shovel'],
-                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        //getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Shovel'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                itemsNeeded: [{name: 'Long Stick', qty: 1, hasItem: false}, {name: "Small Rope", qty:1, hasItem:false}],
+                                ticksToComplete: 20*45
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
@@ -225,7 +249,20 @@ export function RockKnapper() {
                         toolsNeeded: [],
                         buildTime: 20*50,
                         outputItems: ['Flint Spear'],
-                        getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        //getTask: (w) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Spear'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                itemsNeeded: [{name: 'Long Stick', qty: 1, hasItem:false}, {name:'Small Rope', qty:1, hasItem:false}],
+                                ticksToComplete: 20*50
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);

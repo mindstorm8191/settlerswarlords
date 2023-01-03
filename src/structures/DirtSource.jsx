@@ -43,7 +43,19 @@ export function DirtSource() {
                         toolsNeeded: ['Flint Shovel'],
                         buildTime: 20*60, // 1 minute
                         outputItems: [],
-                        getTask: (worker) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        //getTask: (worker) => ({subtask:'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel']}],
+                                ticksToComplete: 20*60
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
@@ -72,7 +84,19 @@ export function DirtSource() {
                         toolsNeeded: ['Flint Shovel'],
                         buildTime: 20*5, // 5 seconds
                         outputItems: ['Dirt Pile'],
-                        getTask: (worker) => ({subtask: 'workonsite', targetx:b.x, targety:b.y}),
+                        //getTask: (worker) => ({subtask: 'workonsite', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel']}],
+                                ticksToComplete: 20*5
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);

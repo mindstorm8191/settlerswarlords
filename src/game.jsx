@@ -200,13 +200,22 @@ export const game = {
         // Let's start with a function
         function hasItem(x,y) {
             // returns true if the tile location has a fallen log in it
-            if(x<0 || x>41) return false;
-            if(y<0 || y>41) return false;
+            if(x<0 || x>41) {
+                //console.log('out of bounds');
+                return false;
+            }
+            if(y<0 || y>41) {
+                //console.log('out of bounds');
+                return false;
+            }
 
             let tile = game.tiles.find(t=>t.x===x && t.y===y);
             if(typeof(tile)==='undefined') return false;
 
             return tile.items.some(i=>{
+                //if(i.name===targetItem) {
+                    //console.log('Found target');
+                //}
                 if(skipFlagged) {
                     return i.name===targetItem && i.inTask===0;
                 }else{
@@ -228,8 +237,14 @@ export const game = {
             if(workerx+distance>41 && workerx-distance<0 && workery+distance>41 && workery-distance<0) return [-1,-1];
         }
     },
-    findItemFromList: (workerx, workery, itemList, skipFlagged=false) => {
+    findItemFromList: (workerx, workery, itemList, skipFlagged=false, forTask=null) => {
         // Works like findItem, but accepts a list of acceptable items instead of just one.
+        // workerx - X coordinate to begin searching from
+        // workery - Y coordinate to begin searching from
+        // itemList - array of item names to look for
+        // skipFlagged - true to exclude any items already flagged for a project
+        // forTask - task instance this is for. If not null, items associated with this task will be included
+
         // Let's start with a function
         function hasItem(x,y) {
             // returns an item name if this tile has any of the target items, or an empty string if not found
@@ -241,7 +256,14 @@ export const game = {
 
             let slot = tile.items.findIndex(i=>{
                 if(skipFlagged) {
-                    return i.inTask===0 && itemList.includes(i.name);
+                    if(i.inTask!==0) {
+                        if(forTask!==null && forTask===i.inTask) {
+                            return itemList.includes(i.name);
+                        }
+                        return false; // this item is tagged for some other task
+                    }
+                    // this item is not part of any task
+                    return itemList.includes(i.name);
                 }else{
                     return itemList.includes(i.name);
                 }
@@ -293,7 +315,7 @@ export const game = {
             itemsNeeded: [],
             toolsNeeded: [],
             skillsNeeded: [],
-            itemsCollected: [], // all items tagged for use with this task, so they can be cleared when the job is done
+            taggedItems: [], // all items tagged for use with this task, so they can be cleared when the job is done
             progress: 0,
             ticksToComplete: 1,
             ...mods

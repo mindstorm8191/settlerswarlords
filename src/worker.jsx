@@ -45,6 +45,7 @@ export function createNewWorker(pack) {
                     return false;
                 }
                 // Assign this task to this worker
+                w.status = openTask.name;
                 openTask.status = 'active';
                 openTask.worker = w;
                 w.tasks.push(openTask); // From here, we can determine if pre-tasks need to be completed before this task can be done
@@ -78,11 +79,26 @@ export function createNewWorker(pack) {
                     }
                 break;
                 case 'workAtLocation':
+                    // If the player has the worker decide a location, we will need to decide where to go here
+                    if(w.tasks[0].targetx===null) {
+                        let result = w.tasks[0].task.findLocation(w);
+                        if(result.result==='fail') {
+                            console.log('Task cancelled:'+ result.message);
+                            w.deleteTask();
+                            return;
+                        }
+                        w.tasks[0].targetx = result.x;
+                        w.tasks[0].targety = result.y;
+                    }
+                    if(!w.validateItems()) return;
+                    if(!w.validateTools()) return;
+                break;
                 case 'workAtBuilding':
                     // First, check each tool type needed, to see if they're at the location. If they're already there (and not
                     // in use), we can go ahead and add it to the toolsGot list
-                    if(!w.validateTools()) return;
+                    //if(w.tasks[0].task.name==='Cut Short Stick') console.log(w.tasks);
                     if(!w.validateItems()) return;
+                    if(!w.validateTools()) return;
                 break;
             }
 
@@ -123,14 +139,7 @@ export function createNewWorker(pack) {
                             w.deleteTask();
                         }else{
                             // pick up the item here
-                            if(typeof(tile.items[slot].amount)!=='undefined' && tile.items[slot].amount>1) {
-                                tile.items[slot].amount--;
-                                w.carrying.push({...tile.items[slot], amount:1});
-                                // When we pick this item up, the remaining items don't need to be tagged with a task anymore
-                                
-                            }else{
-                                w.carrying.push(tile.items.splice(slot, 1)[0]);
-                            }
+                            w.carrying.push(tile.items.splice(slot, 1)[0]);
 
                             // Next, change this to a moveItemTo task, and set our target to the other location in this task
                             // For the ForagePost, that would be the building location
@@ -145,20 +154,8 @@ export function createNewWorker(pack) {
                         tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
                         if(typeof(tile.items)==='undefined') tile.items = [];
                         slot = w.carrying.findIndex(i=>i.name===w.tasks[0].targetItem);
-                        let tileSlot = tile.items.findIndex(i=>i.name===w.tasks[0].targetItem);
-                        if(tileSlot===-1) {
-                            // There is no matching item here
-                            tile.items.push(w.carrying.splice(slot, 1)[0]);
-                            console.log('Push item.', w.carrying);
-                        }else{
-                            if(typeof(tile.items[tileSlot].amount)==='undefined') {
-                                tile.items[tileSlot].amount = 2;
-                            }else{
-                                tile.items[tileSlot].amount++;
-                            }
-                            w.carrying.splice(slot,1);
-                            console.log('Append item.', w.carrying);
-                        }
+                        tile.items.push(w.carrying.splice(slot, 1)[0]);
+                        
                         if(typeof(w.tasks[0].task.onComplete)==='function') w.tasks[0].task.onComplete(w);
                         // For the ForagePost, we will use this same worker to search for the next item
                         if(w.tasks[0].building.name==='Forage Post') {
@@ -211,9 +208,11 @@ export function createNewWorker(pack) {
                 // Start with determining if we have a tool for this yet. hasTool being set to true means that the work location
                 // already has the tool and it is reserved for the task at hand
                 if(!w.tasks[0].toolsNeeded[i].hasTool) {
+                    // See if we have the tool already at the job site
+
                     // Next, search the area for an appropriate tool for the job. We will do this 0-n, picking the first tool
                     // found on the list; we will want the best tool in the list first
-                    const [x,y,toolName] = game.findItemFromList(w.x, w.y, w.tasks[0].toolsNeeded[i].tools, true);
+                    const [x,y,toolName] = game.findItemFromList(w.x, w.y, w.tasks[0].toolsNeeded[i].tools, true, w.tasks[0]);
                     if(toolName==='') {
                         console.log('Did not find any valid tools');
                         // We didn't find any existing tools. We'll have to make one.
@@ -222,12 +221,19 @@ export function createNewWorker(pack) {
                             game.unlockedItems.includes(t) && !w.tasks.some(ts=>ts.task.name.indexOf(t))
                             // Here we also make sure we don't schedule to make the same tool twice
                         );
+                        if(firstAvailable===-1) {
+                            // Some tasks become unlocked before items are available. For example, you can unlock cutting long sticks
+                            // by crafting a flint knife, even though it needs a flint stabber & you've never made one yet.
+                            // The easy solution here is to pick the last available tool
+                            firstAvailable = w.tasks[0].toolsNeeded[i].tools.length-1;
+                        }
+                        
                         // the tool name we need to make is now w.tasks[0].toolsNeeded[i].tools[firstAvailable];
                         // Now, find an existing structure that is able to create this (if it requires more parts, that can be added
                         // to the queue as well)
                         let taskSlot = null;
                         let structure = game.blockList.find(s=>{
-                            let t = s.tasks.findIndex(u=>u.name.indexOf(firstAvailable)!==-1);
+                            let t = s.tasks.findIndex(u=>u.outputItems.includes(w.tasks[0].toolsNeeded[i].tools[firstAvailable]));
                             if(t===-1) return false;
                             taskSlot = t;
                             return true;
@@ -236,13 +242,15 @@ export function createNewWorker(pack) {
                         newTask.worker = w;
                         newTask.status = 'active';
                         w.tasks.unshift(newTask); // puts at front of array - where we need it
+                        console.log(w.tasks);
                         return false;
                         // This should do for now. Once the tool is made, we will run this search again, find this tool, and create
                         // a task to move it to the job site
                     }else{
                         // Our tool should be located at x,y. First, tag this item for use in our work
-                        game.tiles.find(t=>t.x===x && t.y===y).items.find(i=>i.name===toolName).inTask = w.tasks[0];
-
+                        let item = game.tiles.find(t=>t.x===x && t.y===y).items.find(i=>i.name===toolName);
+                        item.inTask = w.tasks[0];
+                        w.tasks[0].taggedItems.push(item);
 
                         // Now, see if this is already our work location
                         if(x===w.tasks[0].targetx && y===w.tasks[0].targety) {
@@ -270,7 +278,7 @@ export function createNewWorker(pack) {
                             
                             game.tasks.push(newTask);
                             w.tasks.unshift(newTask);
-                            console.log(w.tasks[0].building.tasks);
+                            //console.log(w.tasks[0].building.tasks);
                             return false;
                         }
                     }
@@ -283,28 +291,34 @@ export function createNewWorker(pack) {
             // Returns true if the target task is ready to be completed, or false if not.
             
             if(w.tasks[0].itemsNeeded.length===0) return true;
-            console.log(w.tasks[0].building.tasks);
             for(let i=0; i<w.tasks[0].itemsNeeded.length; i++) {
                 // See if this item is already marked as being present
                 if(!w.tasks[0].itemsNeeded[i].hasItem) {
-                    const [x,y,itemName] = game.findItemFromList(w.x, w.y, [w.tasks[0].itemsNeeded[i].name], true);
+                    const [x,y,itemName] = game.findItemFromList(w.x, w.y, [w.tasks[0].itemsNeeded[i].name], true, w.tasks[0]);
                     if(itemName==='') {
+                        //console.log('Cant find '+ w.tasks[0].itemsNeeded[i].name);
                         // No item was found. We'll have to make one
                         let taskSlot = null;
                         let structure = game.blockList.find(s=>{
-                            let t = s.tasks.findIndex(u=>u.name.indexOf(w.tasks[0].itemsNeeded[i].name)!==-1);
+                            //let t = s.tasks.findIndex(u=>u.name.indexOf(w.tasks[0].itemsNeeded[i].name)!==-1);
+                            let t = s.tasks.findIndex(u=>u.outputItems.includes(w.tasks[0].itemsNeeded[i].name));
                             if(t===-1) return false;
                             taskSlot = t;
                             return true;
                         });
+                        //console.log('Got '+ structure.name +' to complete '+ structure.tasks[taskSlot].name);
                         // Now create the task, and assign it to this worker
                         let newTask = structure.tasks[taskSlot].create();
                         newTask.worker = w;
                         newTask.status = 'active';
                         w.tasks.unshift(newTask);
+                        console.log(w.tasks);
                         return false;
                     }else{
-                        game.tiles.find(t=>t.x===x && t.y===y).items.find(i=>i.name===itemName).inTask = w.tasks[0];
+                        let item = game.tiles.find(t=>t.x===x && t.y===y).items.find(i=>i.name===itemName);
+                        item.inTask = w.tasks[0];
+                        w.tasks[0].taggedItems.push(item);
+
                         if(x===w.tasks[0].targetx && y===w.tasks[0].targety) {
                             // This item is already at the location.
                             w.tasks[0].itemsNeeded[i].hasItem = true;
@@ -341,6 +355,13 @@ export function createNewWorker(pack) {
         deleteTask: ()=>{
             // Deletes the worker's current task, usually when it's complete
 
+            // Remove task from all associated items
+            if(typeof(w.tasks[0].taggedItems)!=='undefined') {
+                for(let i=0; i<w.tasks[0].taggedItems.length; i++) {
+                    w.tasks[0].taggedItems[i].inTask = 0;
+                }
+            }
+
             // Remove from building (if it exists)
             let slot = w.tasks[0].building.activeTasks.findIndex(t=>t===w.tasks[0]);
             if(slot!=-1) w.tasks[0].building.activeTasks.splice(slot, 1);  // some tasks won't be assigned to structures - that's fine
@@ -362,6 +383,26 @@ export function createNewWorker(pack) {
 
             // Assertions
             // w.tasks[0].targetx & targety exist and is a valid point on the map
+            if(typeof(w.tasks[0].targetx)==='undefined') {
+                console.log('task targetx is not defined', w.tasks[0]);
+                w.deleteTask();
+                return false;
+            }
+            if(w.tasks[0].targetx===null) {
+                console.log('task targetx is still null', w.tasks[0]);
+                w.deleteTask();
+                return false;
+            }
+            if(typeof(w.tasks[0].targety)==='undefined') {
+                console.log('task targety is not defined', w.tasks[0]);
+                w.deleteTask();
+                return false;
+            }
+            if(w.tasks[0].targety===null) {
+                console.log('task targety is still null', w.tasks[0]);
+                w.deleteTask();
+                return false;
+            }
 
             // Have we reached our destination?
             if(w.x===w.tasks[0].targetx && w.y===w.tasks[0].targety) {

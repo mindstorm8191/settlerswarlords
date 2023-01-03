@@ -9,16 +9,16 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Dismantle the same-item grouping mechanism, it will cause conflicts when the same block has multiple items for tasks. Start with un-grouping
-    all items as it is received from the database
-1) Complete the system to mark items for tasks
-1) Feature needed: allow user to cancel task when selecting the amount to make
+1) Fix bug in scheduling tasks
+    Craft Flint Hatchet
+        requires short stick
+            short stick is not assigning a long stick to be crafted. Instead it is proceeding to look for a tool. It finds no
+                Flint Stabber (even when one exists), and proceeds to craft it. The Flint Stabber is disappearing when finished,
+                resulting in a forever loop
 1) Keep updating the various task generation code sections to use the game object's createTask function.
-2) Write code for locating crafting items, which will be much like how tools are located
-3) Have items (and tools) get marked for certain jobs. Allow those marks to be cleared once the job is finished
 3) Write code that makes tools take wear and eventually break. Make sure that workers will go seek a new tool once they lose the tool
    they had
-1) Allow wooden log chunks to be cut, then wooden bowls
+1) Allow wooden bowls to be made from log chunks
 3) Provide an X button when assigning tasks, to clear the current task being created
 4) Come up with a better way to report failure if a task can't be completed. We may grey out options based on needing items before-hand. Or
     maybe show a queue of tasks that need completing before the target task can be done.
@@ -32,6 +32,7 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
 
 Things to add later
+* A task's FindLocation function should really return an object, so it can better portray failures
 * All items should have a quality level, that is affected by the skill level of the person who crafted it. Items crafted by high-quality base
     items will result in higher quality finished items. The skill of the crafter will increase its quality as well. Each job completed will
     increase the worker's XP of that skill

@@ -377,7 +377,7 @@ function LocalMapBuildingDetail(props) {
                     default={1}
                     onUpdate={(a,b)=>setMakeCount(b)}
                 />
-                <span style={{backgroundColor:'grey', padding:3}} onClick={()=>{
+                <span className="fakelink" style={{backgroundColor:'grey', padding:3}} onClick={()=>{
                     if(selectedTask.userPicksLocation) {
                         setCountSet(true);
                         props.setMapClickAction({onValidClick: (tile)=>{
@@ -400,6 +400,11 @@ function LocalMapBuildingDetail(props) {
                         setSelectedTask(null);
                     }
                 }}>{selectedTask.userPicksLocation?'Continue':'Start'}</span>
+                or
+                <span className="fakelink" style={{padding:3}} onClick={()=>{
+                    // Cancel to go back
+                    setSelectedTask(null);
+                }}>Cancel</span>
             </>
         ):(
             <>
@@ -410,10 +415,14 @@ function LocalMapBuildingDetail(props) {
                         style={{marginLeft:3}}
                         onClick={()=>{
                         //    selectedWorker.addTask(block,selectedTask.name,workerAction,makeCount);
-                            // We also need to clear settings when the user does this
                         //    setSelectedWorker(null);
+                            let task = selectedTask.create();
+                            // well, since we don't have a place for this to function at, there isn't really anything to add to it
+
+                            // We also need to clear all settings when the user does this
                             setSelectedTask(null);
-                            setMakeCount(1);
+                            setCountSet(false);
+                            props.setMapClickAction(null);
                         }}>
                         let the worker decide
                     </span>

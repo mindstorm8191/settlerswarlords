@@ -19,6 +19,7 @@ export function LocalMap(props) {
     //      mobileMode - This is set to true when the screen is too small to properly show the map and side panels too
     // prop fields - functions
     //      onTileUpdate - This is called when the contents of a tile changes (such as when a building is placed)
+    //      onSave - Called when the save button is clicked
     
     const [selected, setSelected] = React.useState(null); // which tile is selected to show details on the right
     const [buildSelected, setBuildSelected] = React.useState(null); // which building is selected, or null otherwise
@@ -93,7 +94,7 @@ export function LocalMap(props) {
             <div style={{ display: "flex", width: "100%" }}>
                 <div style={{ display:'block', width: props.mobileMode?60:150 }}>
                     {/*Provide a save button (obviously this needs more work, but we'll add it later*/}
-                    <div>Save</div>
+                    <div className="fakelink" onClick={()=>props.onSave()}>Save</div>
                     {/*List all building options currently available*/}
                     {game.blockTypes.filter(block=>block.locked===0).map((block, key) => {
                         // First, determine if this is the currently selected building
@@ -438,26 +439,31 @@ function LocalMapBuildingDetail(props) {
         )}
 
         {/* Show any active tasks, and their progress. This will show under the available tasks, no matter what state it's in */}
-        {block.activeTasks.map((task,key)=>(
-            <p className="singleline" key={key}>
-                Task {task.task.name},
-                {(task.worker===null)?'Task not assigned':'by '+ task.worker.name +", "+ Math.floor((parseFloat(task.progress)/parseInt(task.ticksToComplete))*100) +"% complete"}
+        {block.activeTasks.map((task,key)=>{
+            if(typeof(task.task)==='undefined' || task.task===null) {
+                console.log('Error in task: missing task instance', task);
+            }
+            return (
+                <p className="singleline" key={key}>
+                    Task {task.task.name},
+                    {(task.worker===null)?'Task not assigned':'by '+ task.worker.name +", "+ Math.floor((parseFloat(task.progress)/parseInt(task.ticksToComplete))*100) +"% complete"}
 
-                {/*
-                    (task.worker===null)?(<>Task not assigned</>):(<>Task assigned</>)
-                /*(
-                    <>
-                        Task {task.task.name}, by {task.worker.name}, 
-                        {" "+ Math.floor((parseFloat(task.progress)/parseInt(task.progressTarget))*100)}% complete
-                        <input type="button" value="Cancel" onClick={()=>{
-                            // Clearing the task from the worker will handle updating the task's structure
-                            task.worker.clearTask();
-                            setBlink(blink+1);
-                        }} />
-                    </>
-                )*/}
-            </p>
-        ))}
+                    {/*
+                        (task.worker===null)?(<>Task not assigned</>):(<>Task assigned</>)
+                    /*(
+                        <>
+                            Task {task.task.name}, by {task.worker.name}, 
+                            {" "+ Math.floor((parseFloat(task.progress)/parseInt(task.progressTarget))*100)}% complete
+                            <input type="button" value="Cancel" onClick={()=>{
+                                // Clearing the task from the worker will handle updating the task's structure
+                                task.worker.clearTask();
+                                setBlink(blink+1);
+                            }} />
+                        </>
+                    )*/}
+                </p>
+            );
+        })}
     </>
 }
 
@@ -509,14 +515,14 @@ function EmptyLandDescription(props) {
     let landType = (props.tile.newlandtype===-1)?props.tile.landtype:props.tile.newlandtype;
 
     // We now have all land descriptions in the minimapTiles array. Find the correct one to show
-    let tile = minimapTiles.find(e=>e.id===landType);
-    if(typeof(tile)==='undefined') {
+    let tileData = minimapTiles.find(e=>e.id===landType);
+    if(typeof(tileData)==='undefined') {
         // Oops, we didn't find this tile
         return <p>Oops, there's no description for land type where id={landType}</p>;
     }
     return (
         <>
-            <p>{tile.desc}</p>
+            <p>{tileData.desc}</p>
             {game.groupItems(props.tile.items).map((item,key)=>(
                 <p className="singleline" key={key} style={{marginLeft:5}}>{item.name} x{item.qty}</p>
             ))}

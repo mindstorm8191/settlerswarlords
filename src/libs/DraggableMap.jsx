@@ -121,8 +121,6 @@ export function DraggableMap(props) {
 
     // Convert the child elements to an array, so we can single out the FixedPositionChild element
     const children = React.Children.toArray(props.children);
-    //console.log(children);
-
     const normalChildren = children.filter(c => {
         if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item
         return c.type.name !== 'FixedPositionChild';

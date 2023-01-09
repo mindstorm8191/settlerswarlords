@@ -9,9 +9,12 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Update tutorial to follow the new flow of operations
-2) Start work on making tools take wear and eventually break. Make sure that workers will go seek a new tool once they lose the tool
-   they had
+1) Fix the groupItems code, since it isn't reporting the correct amount of an item anymore
+1) Start working on the save-game feature. Firstly, we need all tasks to have a unique ID
+1) Some tree types don't provide logs. We need a way that, when log chunks are needed, any trees that won't produce logs won't be included in
+    potential locations
+1) Find a solution for the bug that puts the tutorial portion in the wrong place in production mode
+2) Create structures to fill buckets with water, then add dirt and filter out clay
 3) Assign skill points for each task completed. Have workers gain skill points when tasks get completed
 4) Have idle workers, when they find a task to complete, check other idle workers to see if they have better skills for the job
 5) Have items get a quality value based on the skill used to craft each item
@@ -27,6 +30,7 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
 
 Things to add later
+* We need some buildings to be able to be equipped with items. For example, the rope maker could be equipped with rope turning tools
 * A task's FindLocation function should really return an object, so it can better portray failures
 * All items should have a quality level, that is affected by the skill level of the person who crafted it. Items crafted by high-quality base
     items will result in higher quality finished items. The skill of the crafter will increase its quality as well. Each job completed will
@@ -70,24 +74,25 @@ Process
         will still have that task assigned to them), unassigned from the given worker, cancelled, or re-assigned to a specific worker
 
 Project size (because it's fun to watch this grow)
-src/App.js                               src/structures/RockKnapper.jsx       server/globals.php                   automationtree.md
-    src/App.css                              src/structures/LoggersPost.jsx       server/weightedRandom.php           wartree.md
-        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx         server/getInput.php               worldgen.md
-           src/game.jsx                             src/structures/DirtSource.jsx        server/mapContent.php             workercrafting.md
-               src/worker.jsx                           src/comp_account.jsx                  server/routes/autologin.php
-                   src/comp_LocalMap.jsx                    src/libs/ErrorOverlay.jsx            server/routes/login.php
-                       src/libs/DraggableMap.jsx               server/common.php                    server/routes/logout.php
-                           src/libs/DanCommon.js                   server/jsarray.php                  server/routes/reporterror.php
-                              src/libs/DanInput.jsx                    server/config.php                  server/signup.php
-                                 src/stuctures/LeanTo.jsx                server/DanGlobal.php                 README.md
-                                     src/structures/ForagePost.jsx          server/finishLogin.php               techtree.md
-284+126+49+323+338+546+172+74+65+193+177+293+373+91+108+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
+src/App.js                               src/structures/RockKnapper.jsx         server/globals.php                   automationtree.md
+    src/App.css                              src/structures/LoggersPost.jsx         server/weightedRandom.php           wartree.md
+        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx           server/getInput.php               worldgen.md
+           src/game.jsx                              src/structures/DirtSource.jsx         server/mapContent.php             workercrafting.md
+               src/worker.jsx                            src/comp_account.jsx                  server/routes/autologin.php
+                   src/comp_LocalMap.jsx                     src/libs/ErrorOverlay.jsx            server/routes/login.php
+                       src/libs/DraggableMap.jsx                server/common.php                    server/routes/logout.php
+                           src/libs/DanCommon.js                    server/jsarray.php                  server/routes/reporterror.php
+                              src/libs/DanInput.jsx                     server/config.php                  server/signup.php
+                                 src/stuctures/LeanTo.jsx                 server/DanGlobal.php                 README.md
+                                     src/structures/ForagePost.jsx           server/finishLogin.php               techtree.md
+290+126+49+379+457+564+172+74+65+185+166+316+552+100+132+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
 10/5/2022 = 5158 lines
 10/22/2022 = 5357 lines
 12/24/2022 = 5530 lines
+1/3/2023 = 5945 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -191,9 +196,38 @@ function App() {
 
         setUserData({ id: pack.userid, ajax: pack.ajaxcode });
         setLocalStats(pack.localContent);
-        setLocalTiles(pack.localTiles);
+        setLocalTiles([...game.tiles]);
         setLocalWorkers(pack.workers);
         setPage("LocalMap");
+    }
+
+    function onSave() {
+        // Saves the entire game state to the server
+        // Normally we wouldn't provide a save button, but have the game save regularly, like every minute
+
+        fetch(
+            serverURL + "/routes/save.php",
+            DAX.serverMessage(
+                {
+                    tiles: game.tiles, // this can be output directly
+                    workers: game.workers.map((w) => ({
+                        ...w,
+                        tasks: w.tasks.map((t) => t.id), // convert the tasks to only an id
+                        carrying: w.carrying.map((i) => {
+                            // carried items might also have an associated task, that must be converted to an id too
+                            if (i.inTask === 0) return i;
+                            return { ...i, inTask: i.inTask.id };
+                        }),
+                    })),
+                },
+                true
+            )
+        )
+            .then((res) => DAX.manageResponseConversion(res))
+            .catch((err) => console.log(err))
+            .then((data) => {
+                console.log(data);
+            });
     }
 
     function onLocalTileUpdate(newTilesList) {
@@ -220,8 +254,9 @@ function App() {
                         stats={localStats}
                         localTiles={localTiles}
                         localWorkers={localWorkers}
-                        onTileUpdate={onLocalTileUpdate}
                         mobileMode={mobileMode}
+                        onTileUpdate={onLocalTileUpdate}
+                        onSave={onSave}
                     />
                 );
             default:

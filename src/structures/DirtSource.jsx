@@ -50,7 +50,7 @@ export function DirtSource() {
                                 taskType: 'workAtBuilding',
                                 targetx: b.x,
                                 targety: b.y,
-                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel']}],
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel'], selected:null}],
                                 ticksToComplete: 20*60
                             });
                             b.activeTasks.push(task);
@@ -91,7 +91,7 @@ export function DirtSource() {
                                 taskType: 'workAtBuilding',
                                 targetx: b.x,
                                 targety: b.y,
-                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel']}],
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Shovel'], selected:null}],
                                 ticksToComplete: 20*5
                             });
                             b.activeTasks.push(task);

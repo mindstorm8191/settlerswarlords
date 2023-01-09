@@ -92,7 +92,7 @@ export function LoggersPost() {
                                 building: b,
                                 task: b.tasks.find(t=>t.name==='Get Twine from Aged Wood'),
                                 taskType: 'workAtLocation',
-                                toolsNeeded: [{hasTool: false, tools: ['Flint Knife']}],
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Knife'], selected:null}],
                                 ticksToComplete: 20*25
                             });
                             b.activeTasks.push(task);
@@ -171,7 +171,7 @@ export function LoggersPost() {
                                 building: b,
                                 task: b.tasks.find(t=>t.name==='Cut Long Stick'),
                                 taskType: 'workAtLocation',
-                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet', 'Flint Stabber']}],
+                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet', 'Flint Stabber'], selected:null}],
                                 ticksToComplete: 20*40 // 40 seconds
                             });
                             b.activeTasks.push(task);
@@ -259,7 +259,7 @@ export function LoggersPost() {
                                 task: b.tasks.find(t=>t.name==='Cut Short Stick'),
                                 taskType: 'workAtBuilding', // We don't really need to perform this at the location of a long stick. Go
                                     // ahead and move it to the building location
-                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet', 'Flint Stabber']}],
+                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet', 'Flint Stabber'], selected:false}],
                                 itemsNeeded: [{name: 'Long Stick', qty: 1, hasItem: false}],
                                 ticksToComplete: 20*40, // 40 seconds
                                 targetx: b.x,
@@ -319,7 +319,7 @@ export function LoggersPost() {
                                 building: b,
                                 task: b.tasks.find(t=>t.name==='Cut Down Tree'),
                                 taskType: 'workAtLocation',
-                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet']}],
+                                toolsNeeded: [{hasTool: false, tools:['Flint Hatchet'], selected:false}],
                                 ticksToComplete: 20*60*2 // 1.5 minutes
                             });
                             b.activeTasks.push(task);
@@ -361,24 +361,33 @@ export function LoggersPost() {
                         },
                         onComplete: worker => {
                             let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
-                            
+                            let slot = null;
                             // We need to define how many logs and long sticks each type of tree has here. It would be better to have a range, but...
                             // Fortunately, there is only one tree type per tile
-                            //let slot = tile.items.findIndex(i=>treesList.includes(i.name));
-                            let slot = tile.items.findIndex(i=>i.name===worker.tasks[0].targetItem);
-                            let dataSlot = 0;
-                            if(slot!==-1) {
-                                dataSlot = treeData.findIndex(t=>t.name===worker.tasks[0].targetItem);
-                            }else{
-                                console.log('Error in LoggersPost: could not find correct tree type of '+ worker.tasks[0].targetItem);
+                            if(typeof(worker.tasks[0].targetItem)==='undefined') {
+                                console.log('Error in LoggersPost->Cut Down Tree->onComplete: no target defined');
+                                // Let's see if we can find a tree at this location anyway
                                 slot = tile.items.findIndex(i=>treeData.map(n=>n.name).includes(i.name));
-                                dataSlot = treeData.findIndex(t=>t.name===tile.items[slot].name);
+                                if(slot===-1) {
+                                    console.log('Error in LoggersPost->Cut Down Tree->onComplete: There are no trees here to cut down. Task cancelled');
+                                    return;
+                                }
+                            }else{
+                                slot = tile.items.findIndex(i=>i.name===worker.tasks[0].targetItem);
+                                if(slot===-1) {
+                                    console.log('Error in LoggersPost->Cut Down Tree->onComplete: could not find correct tree type of '+ worker.tasks[0].targetItem +'. Using another tree');
+                                    slot = tile.items.findIndex(i=>treeData.map(n=>n.name).includes(i.name));
+                                    if(slot===-1) {
+                                        console.log('Error in LoggersPost->Cut Down Tree->onComplete: There are no trees here to cut down. Task cancelled');
+                                        return;
+                                    }
+                                }
                             }
 
-                            // Go ahead and remove one of the tree instances
-                            tile.items.splice(slot,1);
+                            let dataSlot = treeData.findIndex(t=>t.name===tile.items[slot].name);
 
                             // Determine if there are any trees left here. If not, this land type will change
+                            tile.items.splice(slot,1);
                             if(!tile.items.some(i=>treeData.map(n=>n.name).includes(i.name))) {
                                 tile.newlandtype = 32;
                             }
@@ -396,49 +405,6 @@ export function LoggersPost() {
                             for(let i=0; i<treeData[dataSlot].sticks-removedCount; i++) {
                                 tile.items.push(game.createItem('Long Stick', 'item', {}));
                             }
-                            /*
-                            let logs = 1, sticks = 1;
-                            console.log('Changing item slot='+ slot);
-                            switch(tile.items[slot].name) {
-                                case 'Maple Tree':    logs = 15; sticks = 20; break;
-                                case 'Birch Tree':    logs = 1;  sticks = 6; break;
-                                case 'Oak Tree':      logs = 12; sticks = 16; break;
-                                case 'Mahogany Tree': logs = 8;  sticks = 20; break;
-                                case 'Pine Tree':     logs = 8;  sticks = 6; break;
-                                case 'Cedar Tree':    logs = 6;  sticks = 6; break;
-                                case 'Fir Tree':      logs = 4;  sticks = 4; break;
-                                case 'Hemlock Tree':  logs = 7;  sticks = 15; break;
-                                case 'Cherry Tree':   logs = 0;  sticks = 8; break;
-                                case 'Apple Tree':    logs = 1;  sticks = 12; break;
-                                case 'Pear Tree':     logs = 0;  sticks = 6; break;
-                                case 'Orange Tree':   logs = 1;  sticks = 10; break;
-                                case 'Hawthorn Tree': logs = 4;  sticks = 12; break;
-                                case 'Dogwood Tree':  logs = 0;  sticks = 6; break;
-                                case 'Locust Tree':   logs = 10; sticks = 24; break;
-                                case 'Juniper Tree':  logs = 3;  sticks = 6; break;
-                                default: console.log('Error: got tree type of '+ tile.items[slot].name +', not in trees list');
-                            }
-                            // Trees arrive in type & amount, not individually. So we need to reduce its amount, then remove it if it is zero.
-                            tile.items[slot].amount--;
-                            if(tile.items[slot].amount===0) {
-                                tile.items.splice(slot, 1);
-                                // Hmm, we should probably change the land type here too, since it no longer has trees
-                                // The empty grass tile type is #32
-                                tile.newlandtype = 32;
-                            }
-
-                            if(logs>0) {
-                                if(logs===1) {
-                                    // Produce a single log piece, that can be moved by a worker
-                                    tile.items.push(game.createItem('Log Chunk', 'item', {}));
-                                }else{
-                                    // These will all be connected; workers will have to cut them free before using them
-                                    tile.items.push(game.createItem('Connected Log', 'item', {amount:logs}));
-                                }
-                            }
-                            // Sticks will be a little simpler
-                            tile.items.push(game.createItem('Long Stick', 'item', {amount:sticks}));
-                            */
                         }
                     },{
                         name: 'Cut Log Chunk',
@@ -456,8 +422,9 @@ export function LoggersPost() {
                         create: ()=>{
                             let task = game.createTask({
                                 building: b,
+                                task: b.tasks.find(t=>t.name==='Cut Log Chunk'),
                                 taskType: 'workAtLocation',
-                                toolsNeeded: [{hasTool: false, tools: ['Flint Hatchet']}],
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Hatchet'], selected:null}],
                                 ticksToComplete: 20*90
                             });
                             b.activeTasks.push(task);
@@ -491,21 +458,12 @@ export function LoggersPost() {
                             // Delete a conected log, and create a log chunk. Or, if there is currently 2 connected logs, create 2 log chunks instead
                             let tile = game.tiles.find(t=>t.x === worker.x && t.y===worker.y);
                             let logSlot = tile.items.findIndex(i=>i.name==='Connected Log');
-                            // This should have an amount greater than 1
-                            if(tile.items[logSlot].amount>2) {
-                                // We can only recover one log chunk from this... that's fine
-                                tile.items[logSlot].amount--;
-                                tile.items.push(game.createItem('Log Chunk', 'item', {}));
-                            }else{
-                                if(tile.items[logSlot].amount<=1) {
-                                    console.log('We found '+ tile.items[logSlot].amount +' connected logs, it should be >=2');
-                                    // Go ahead and create one log chunk anyway
-                                    tile.items.push(game.createItem('Log Chunk', 'item', {}));
-                                }else{
-                                    tile.items.splice(logSlot);
-                                    tile.items.push(game.createItem('Log Chunk', 'item', {amount:2}));
-                                }
+                            if(logSlot===-1) {
+                                console.log('Error in LoggersPost: did not find Connected Log for making Log Chunk');
+                                return;
                             }
+                            tile.items.splice(logSlot, 1);
+                            tile.items.push(game.createItem('Log Chunk', 'item', {}));
                         }
                     },{
                         name: 'Cut Wooden Bucket',
@@ -520,14 +478,31 @@ export function LoggersPost() {
                         create: ()=>{
                             let task = game.createTask({
                                 building: b,
-                                task: b.tasks.find(t=>t.name==='Cut Wooden Buket'),
+                                task: b.tasks.find(t=>t.name==='Cut Wooden Bucket'),
                                 taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
                                 itemsNeeded: [{name: 'Log Chunk', qty:1, hasItem:false}],
-                                toolsNeeded: [{hasTool: false, tools: ['Flint Hatchet']}],
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Hatchet'], selected:null}],
                                 ticksToComplete: 20*60
                             });
                             b.activeTasks.push(task);
                             return task;
+                        },
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        },
+                        onComplete: (worker)=>{
+                            // Allows state changes when this task is complete.
+                            // Delete a conected log, and create a log chunk. Or, if there is currently 2 connected logs, create 2 log chunks instead
+                            let tile = game.tiles.find(t=>t.x === worker.x && t.y===worker.y);
+                            let logSlot = tile.items.findIndex(i=>i.name==='Log Chunk');
+                            if(logSlot===-1) {
+                                console.log('Error in LoggersPost: did not find Connected Log for making Log Chunk');
+                                return;
+                            }
+                            tile.items.splice(logSlot, 1);
+                            tile.items.push(game.createItem('Wooden Bucket', 'item', {}));
                         }
                     }
                 ],

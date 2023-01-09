@@ -123,13 +123,16 @@ export const game = {
                 if(typeof(t.items[j].amount)==='undefined') {
                     ni.push(t.items[j]);
                 }else{
-                    for(let k=0; k<t.items[j].amount; k++) {
+                    let amount = t.items[j].amount;
+                    delete t.items[j].amount;
+                    for(let k=0; k<amount; k++) {
                         ni.push(t.items[j]);
                     }
                 }
             }
             return {...t, items:ni};
         });
+        //console.log(game.tiles[10]);
         for (let i = 0; i < localWorkers.length; i++) createNewWorker(localWorkers[i]);
         game.updateLocalMap = funcUpdateTiles;
         game.updateWorkers = funcUpdateWorkers;
@@ -289,13 +292,14 @@ export const game = {
         // takes a list of items, and groups them into name & amount sets
         // Returns the completed groupings as an array
 
+        console.log(original);
         let list = [];
         for(let i=0; i<original.length; i++) {
             let slot = list.findIndex(l=>l.name===original[i].name);
             if(slot===-1) {
-                list.push({name:original[i].name, qty:original[i].amount || 1});
+                list.push({name:original[i].name, qty: 1});
             }else{
-                list[slot].qty += original[i].amount || 1;
+                list[slot].qty++;
             }
         }
         return list;
@@ -303,7 +307,21 @@ export const game = {
     createTask: (mods)=>{
         // Creates a new task, assigning it to the game.tasks list
         // mods - object that is attached to the new task object, replacing any pre-made properties
+
+        // It has become clear that I need to validate these settings, as I keep finding myself making incomplete tasks, and it's
+        // throwing all kinds of errors. Therefore, we should do some error checking on our input
+        if(mods.taskType==='workAtBuilding' && typeof(mods.targetx)==='undefined') {
+            console.log('Error: new task missing location');
+        }
+        if(typeof(mods.task)==='undefined') {
+            console.log('Error: new task missing root task instance');
+        }
+        // Well, that's all I can think of so far...
+
+        game.lastTaskId++;
+        
         let task = {
+            id: game.lastTaskId,
             building: null,
             task: null,
             taskType: '',

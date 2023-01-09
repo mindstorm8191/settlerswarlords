@@ -81,10 +81,34 @@ export function createNewWorker(pack) {
                 case 'workAtLocation':
                     // If the player has the worker decide a location, we will need to decide where to go here
                     if(w.tasks[0].targetx===null) {
+                        if(typeof(w.tasks[0].task)==='undefined') {
+                            console.log('This task has no root', w.tasks[0]);
+                        }
                         let result = w.tasks[0].task.findLocation(w);
                         if(result.result==='fail') {
                             console.log('Task cancelled:'+ result.message);
                             w.deleteTask();
+                            return;
+                        }
+                        if(result.result==='needItem') {
+                            // Could not find any existing items for this task. We will have to create this one first, then
+                            // Find a building with a task that outputs the item we need
+                            let taskSlot = -1;
+                            let build = game.blockList.find(b=>{
+                                let a = b.tasks.findIndex(u=>u.outputItems.includes(result.item));
+                                if(a===-1) return false;
+                                taskSlot = a;
+                                return true;
+                            });
+                            if(typeof(build)==='undefined') {
+                                console.log('Error in worker: could not find needed item of '+ result.item +'. Task cancelled');
+                                w.deleteTask();
+                            }
+                            // Create a task for this, and assign it to this worker
+                            let newTask = build.tasks[taskSlot].create();
+                            newTask.worker = w;
+                            newTask.status = 'active';
+                            w.tasks.unshift(newTask);
                             return;
                         }
                         w.tasks[0].targetx = result.x;
@@ -177,6 +201,7 @@ export function createNewWorker(pack) {
                     break;
                     case 'workAtBuilding':
                         w.tasks[0].progress++;
+                        w.useTools();
                         if(w.tasks[0].progress>=w.tasks[0].ticksToComplete) {
                             w.tasks[0].task.onComplete(w);
                             // With the task complete, we can now delete it
@@ -187,6 +212,7 @@ export function createNewWorker(pack) {
                     break;
                     case 'workAtLocation':
                         w.tasks[0].progress++;
+                        w.useTools();
                         if(w.tasks[0].progress>=w.tasks[0].ticksToComplete) {
                             w.tasks[0].task.onComplete(w);
                             w.deleteTask();
@@ -196,6 +222,34 @@ export function createNewWorker(pack) {
                     break;
                 }
             });
+        },
+        useTools: ()=>{
+            // Handles tool usage and removal when tools break.
+            // No return value, but several data sections may be modified
+
+            for(let i = 0; i<w.tasks[0].toolsNeeded.length; i++) {
+                w.tasks[0].toolsNeeded[i].selected.endurance--;
+                if(w.tasks[0].toolsNeeded[i].selected.endurance<0) {
+                    // This tool has broken. Now we need to remove all references to it
+                    // Start with the tile the tool is in
+                    let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                    let slot = tile.items.findIndex(j=>j===w.tasks[0].toolsNeeded[i].selected);
+                    if(slot===-1) {
+                        console.log('Error when deleting tool: tool not found on tile');
+                    }else{
+                        tile.items.splice(slot,1);
+                    }
+                    // Next, remove it from the task's tagged items
+                    slot = w.tasks[0].taggedItems.findIndex(j=>j===w.tasks[0].toolsNeeded[i].selected);
+                    if(slot===-1) {
+                        console.log('Error when deleting tool: tool not found in tagged items list');
+                    }else{
+                        w.tasks[0].taggedItems.splice(slot,1);
+                    }
+                    w.tasks[0].toolsNeeded[i].selected = null;
+                    w.tasks[0].toolsNeeded[i].hasTool = false;
+                }
+            }
         },
         validateTools: ()=>{
             // Ensures that the job site (where ever it is) has the correct tools needed to complete the worker's current task
@@ -247,10 +301,12 @@ export function createNewWorker(pack) {
                         // This should do for now. Once the tool is made, we will run this search again, find this tool, and create
                         // a task to move it to the job site
                     }else{
-                        // Our tool should be located at x,y. First, tag this item for use in our work
+                        // Our tool should be located at x,y. First, tag this item for use in our work - and also mark it as the selected
+                        // tool for this role
                         let item = game.tiles.find(t=>t.x===x && t.y===y).items.find(i=>i.name===toolName);
                         item.inTask = w.tasks[0];
                         w.tasks[0].taggedItems.push(item);
+                        w.tasks[0].toolsNeeded[i].selected = item;
 
                         // Now, see if this is already our work location
                         if(x===w.tasks[0].targetx && y===w.tasks[0].targety) {
@@ -258,7 +314,9 @@ export function createNewWorker(pack) {
                             w.tasks[0].toolsNeeded[i].hasTool = true;
                         }else{
                             // Create a fetchItem task to go take it to the work site
+                            game.lastTaskId++;
                             let newTask = {
+                                id: game.lastTaskId,
                                 building: w.tasks[0].building,
                                 task: 'Move '+ toolName +' to jobsite',
                                 taskType: 'fetchItem',
@@ -325,8 +383,10 @@ export function createNewWorker(pack) {
                             return true;
                         }else{
                             // Create a fetchItem task to take the item to the correct location
-                            console.log('Found '+ itemName +' at ['+ x +','+ y +']');
+                            //console.log('Found '+ itemName +' at ['+ x +','+ y +']');
+                            game.lastTaskId++;
                             let newTask = {
+                                id: game.lastTaskId,
                                 building: w.tasks[0].building,
                                 task: 'Move '+ itemName +' to jobsite',
                                 taskType: 'fetchItem',

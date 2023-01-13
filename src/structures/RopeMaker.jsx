@@ -75,6 +75,7 @@ export function RopeMaker() {
                             }
                             // create the rope!
                             tile.items.push(game.createItem("Small Rope", 'item', {}));
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     }

@@ -132,6 +132,7 @@ export function LoggersPost() {
                             // Unlike previous design, we want to add each debarked log portion individually
                             tile.items.push(game.createItem('Debarked Fallen Log', 'item', {}));
                             tile.items.push(game.createItem('Twine Strips', 'item', {}));
+                            tile.modified = true;
                         }
                     },{
                         name: 'Cut Long Stick',
@@ -234,6 +235,7 @@ export function LoggersPost() {
                             let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
                             if(typeof(tile.items)==='undefined') tile.items = [];
                             tile.items.push(game.createItem('Long Stick', 'item', {}), game.createItem('Removed Stick', 'item', {}));
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
@@ -296,6 +298,7 @@ export function LoggersPost() {
 
                             // Create the short stick!
                             tile.items.push(game.createItem('Short Stick', 'item', {}), game.createItem('Short Stick', 'item', {}));
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
@@ -388,6 +391,7 @@ export function LoggersPost() {
 
                             // Determine if there are any trees left here. If not, this land type will change
                             tile.items.splice(slot,1);
+                            tile.modified = true;
                             if(!tile.items.some(i=>treeData.map(n=>n.name).includes(i.name))) {
                                 tile.newlandtype = 32;
                             }
@@ -464,6 +468,7 @@ export function LoggersPost() {
                             }
                             tile.items.splice(logSlot, 1);
                             tile.items.push(game.createItem('Log Chunk', 'item', {}));
+                            tile.modified = true;
                         }
                     },{
                         name: 'Cut Wooden Bucket',
@@ -503,6 +508,7 @@ export function LoggersPost() {
                             }
                             tile.items.splice(logSlot, 1);
                             tile.items.push(game.createItem('Wooden Bucket', 'item', {}));
+                            tile.modified = true;
                         }
                     }
                 ],

@@ -15,7 +15,7 @@
     $con = verifyInput($msg, [
         ["name"=>"userid",   "required"=>true, "format"=>"posint"],
         ["name"=>"ajaxcode", "required"=>true, "format"=>"int"],
-        ["name"=>"tiles",    "required"=>true, "format"=>"array"],
+        //["name"=>"tiles",    "required"=>true, "format"=>"array"],
         ["name"=>"workers",  "required"=>true, "format"=>"array"]
     ], 'server/routes/save.php->verify input level 1');
 
@@ -23,6 +23,7 @@
     // verifyInput will stop the script if there are any issues
 
     // Start with the tile content
+    /*
     JSEvery($con['tiles'], function ($ele) {
         verifyInput($ele, [
             ['name'=>'x', 'required'=>true, 'format'=>'int'],
@@ -42,7 +43,7 @@
             return true;
         });
         return true;
-    });
+    });*/
 
     // Now, scan the worker content
     JSEvery($con['workers'], function ($ele) {
@@ -58,7 +59,7 @@
         ], 'server/routes/save.php->verify workers base');
         JSEvery($ele['carrying'], function($mel) {
             verifyInput($mel, [
-                ["name"=>"name",  "required"=>true, "format"=>"stringnotempty"],
+                ["name"=>"name",   "required"=>true, "format"=>"stringnotempty"],
                 ["name"=>"group",  "required"=>true, "format"=>"stringnotempty"],
                 ["name"=>"inTask", "required"=>true, "format"=>"int"],
                 ["name"=>"extras", "required"=>true, "format"=>"array"]
@@ -68,7 +69,7 @@
         return true;
     });
 
-    // Now, verify the user's input
+    // Now, verify the user
     $res = DanDBList("SELECT * FROM sw_player WHERE id=? AND ajaxcode=?;", 'ii', [$con['userid'], $con['ajaxcode']], 'routes/save.php->get player data');
     if(sizeof($res)===0) {
         // No player data was collected
@@ -80,18 +81,24 @@
     // Finally! We are ready to save data to the database
     // Local map tiles have the potential to have a lot of items in each tile. Fortunately, we still have the data stored as individual tiles in the
     // database. It'll take a bit more work here, but that's bearable
+    /*
     DanMultiDB("UPDATE sw_minimap SET newlandtype=?, buildid=?, items=? WHERE x=? AND y=?;", 'iisii', 
         array_map(function($ele) {
             return [
-                'x'=>$ele['x'],
-                'y'=>$ele['y'],
-                'newlandtype'=>$ele['newlandtype'],
-                'buildid'=>$ele['buildid'],
-                'items'=>json_encode($ele['items'])
+                $ele['newlandtype'],
+                $ele['buildid'],
+                json_encode($ele['items']),
+                $ele['x'],
+                $ele['y']
+                //'x'=>$ele['x'],
+                //'y'=>$ele['y'],
+                //'newlandtype'=>$ele['newlandtype'],
+                //'buildid'=>$ele['buildid'],
+                //'items'=>json_encode($ele['items'])
             ];
         }, $con['tiles']),
         'server/routes/save.php->save minimap tiles'
-    );
+    );*/
 
     // Now for the workers
     DanDBList("UPDATE sw_map SET workers=? WHERE x=? AND y=?;", 'sii', 

@@ -92,6 +92,7 @@ export function RockKnapper() {
                             // Well, I was going to put all similar items together, but each one can have different endurance values & efficiency
                             // rates... it'll be better to keep each one separate
                             tile.items.push(game.createItem('Flint Knife', 'tool', {efficiency:1, endurance:20*60})); // this lasts only a minute
+                            tile.modified = true;
 
                             if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
 
@@ -133,6 +134,7 @@ export function RockKnapper() {
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             if(typeof(tile.items)==='undefined') tile.items = [];
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60*2}));
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
@@ -182,6 +184,7 @@ export function RockKnapper() {
                             }
                             // now drop the Flint Hatchet
                             tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:2, endurance:20*60*5})); // aka 5 minutes
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
                             }else{
@@ -234,6 +237,7 @@ export function RockKnapper() {
                                 console.log('Error in Flint Shovel->onComplete: could not find Small Rope. Crafting anyway');
                             }
                             tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*7})); // 7 minutes
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
                             }else{
@@ -286,6 +290,7 @@ export function RockKnapper() {
                                 console.log('Error in Flint Spear->onComplete: could not find Small Rope. Crafting anyway');
                             }
                             tile.items.push(game.createItem('Flint Spear', 'tool', {efficiency:1, endurance:20*60*10})); // 10 minutes
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') {
                                 b.blinker(++b.blinkState);
                             }else{

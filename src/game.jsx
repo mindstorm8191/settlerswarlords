@@ -121,16 +121,20 @@ export const game = {
             let ni = [];
             for(let j=0; j<t.items.length; j++) {
                 if(typeof(t.items[j].amount)==='undefined') {
-                    ni.push(t.items[j]);
+                    ni.push({group:'item', inTask: 0, extras:{}, ...t.items[j]});
                 }else{
                     let amount = t.items[j].amount;
                     delete t.items[j].amount;
                     for(let k=0; k<amount; k++) {
-                        ni.push(t.items[j]);
+                        ni.push({group:'item', inTask: 0, extras:{}, ...t.items[j]});
                     }
                 }
             }
-            return {...t, items:ni};
+            return {...t, items:ni, modified:false};
+            // All tiles will have a field to show if they have been modified
+            // Places this gets altered:
+            //      when a new building is put down
+            //      when a worker adds / removes items from a tile
         });
         //console.log(game.tiles[10]);
         for (let i = 0; i < localWorkers.length; i++) createNewWorker(localWorkers[i]);
@@ -292,7 +296,7 @@ export const game = {
         // takes a list of items, and groups them into name & amount sets
         // Returns the completed groupings as an array
 
-        console.log(original);
+        //console.log(original);
         let list = [];
         for(let i=0; i<original.length; i++) {
             let slot = list.findIndex(l=>l.name===original[i].name);

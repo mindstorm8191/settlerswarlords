@@ -279,14 +279,14 @@
 
                 case 'arrayOfInts':
                     // Here, we have an array, but all the data is only integers. I think we can manage it this time
-                    return array_map(function($mele) use ($key) {
+                    return [danescape($key), array_map(function($mele) use ($key) {
                         if(!validInt($mele)) {
                             reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. $key .' is not an array of ints. IP='.
                                         $_SERVER['REMOTE_ADDR']);
                             ajaxreject('badinput', 'Input error: parameter '. $key .' must be an array of ints');
                         }
                         return $mele;
-                    }, $ele);
+                    }, $ele)];
                 
                 default:
                     reporterror($callfrom .'->verifyInput()', 'Input error: Format type of '. $params['format'] .' not allowed');

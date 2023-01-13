@@ -67,6 +67,7 @@ export function LocalMap(props) {
         let tileIndex = game.tiles.findIndex(ele=>ele.x===tile.x && ele.y===tile.y);
         game.tiles[tileIndex].buildid = b.id;
         game.tiles[tileIndex].image = b.image;
+        game.tiles[tileIndex].modified = true;
 
         // Next, see if there is a construct task. If so, it will be generated (and left unassigned)
         let buildTask = b.tasks.find(t=>t.taskType==='construct');

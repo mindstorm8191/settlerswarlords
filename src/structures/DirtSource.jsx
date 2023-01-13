@@ -72,6 +72,7 @@ export function DirtSource() {
                                     return !['Wheat', 'Wheat Seeds', 'Oat', 'Oat Seeds', 'Rye', 'Rye Seeds', 'Barley', 'Barley Seeds', 'Millet', 'Millet Seeds'].includes(i.name);
                                     // Not sure if this is the smartest way to clear vegetation, but don't know of a cleaner way
                                 });
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
@@ -107,6 +108,7 @@ export function DirtSource() {
                         onComplete: ()=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             tile.items.push(game.createItem('Dirt Ball', 'item', {})); // about a pound of dirt
+                            tile.modified = true;
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     }

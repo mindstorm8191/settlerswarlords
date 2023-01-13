@@ -72,6 +72,7 @@ export function WaterSource() {
                             }
                             tile.items.splice(slot,1);
                             tile.items.push(game.createItem('Water Wooden Bowl', 'item', {}));
+                            tile.modified = true;
                         }
                     }
                 ],

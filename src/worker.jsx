@@ -45,7 +45,8 @@ export function createNewWorker(pack) {
                     return false;
                 }
                 // Assign this task to this worker
-                w.status = openTask.name;
+                w.status = openTask.task.name;
+                console.log(w.status);
                 openTask.status = 'active';
                 openTask.worker = w;
                 w.tasks.push(openTask); // From here, we can determine if pre-tasks need to be completed before this task can be done
@@ -164,6 +165,7 @@ export function createNewWorker(pack) {
                         }else{
                             // pick up the item here
                             w.carrying.push(tile.items.splice(slot, 1)[0]);
+                            tile.modified = true;
 
                             // Next, change this to a moveItemTo task, and set our target to the other location in this task
                             // For the ForagePost, that would be the building location
@@ -179,6 +181,7 @@ export function createNewWorker(pack) {
                         if(typeof(tile.items)==='undefined') tile.items = [];
                         slot = w.carrying.findIndex(i=>i.name===w.tasks[0].targetItem);
                         tile.items.push(w.carrying.splice(slot, 1)[0]);
+                        tile.modified = true;
                         
                         if(typeof(w.tasks[0].task.onComplete)==='function') w.tasks[0].task.onComplete(w);
                         // For the ForagePost, we will use this same worker to search for the next item

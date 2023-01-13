@@ -9,8 +9,15 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Fix the groupItems code, since it isn't reporting the correct amount of an item anymore
-1) Start working on the save-game feature. Firstly, we need all tasks to have a unique ID
+1) Expand the saving method
+    a) Everything except the tiles can be sent in one message; I don't think it'll ever be that big
+    b) Tile data will be sent after that. When sending the first message, we'll store all tile data (that needs sent) into a separate variable.
+    c) With each message, we will splice out X number of rows to send to the server. With the response, we will call the same function, passing
+        in the remaining data, until no data is left to send.
+    d) We won't start working on efficiency improvements until this much is complete.
+    e) Set up a flag on all tiles to determine if its content has changed in any way. We can filter out any tiles that have had no changes.
+        This flag won't be set until after tile items have been ungrouped
+    f) Server-side, determine if running multiple queries in one call will run faster than a single one (I expect that it would, to a certain point).
 1) Some tree types don't provide logs. We need a way that, when log chunks are needed, any trees that won't produce logs won't be included in
     potential locations
 1) Find a solution for the bug that puts the tutorial portion in the wrong place in production mode
@@ -74,18 +81,18 @@ Process
         will still have that task assigned to them), unassigned from the given worker, cancelled, or re-assigned to a specific worker
 
 Project size (because it's fun to watch this grow)
-src/App.js                               src/structures/RockKnapper.jsx         server/globals.php                   automationtree.md
-    src/App.css                              src/structures/LoggersPost.jsx         server/weightedRandom.php           wartree.md
-        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx           server/getInput.php               worldgen.md
-           src/game.jsx                              src/structures/DirtSource.jsx         server/mapContent.php             workercrafting.md
-               src/worker.jsx                            src/comp_account.jsx                  server/routes/autologin.php
-                   src/comp_LocalMap.jsx                     src/libs/ErrorOverlay.jsx            server/routes/login.php
-                       src/libs/DraggableMap.jsx                server/common.php                    server/routes/logout.php
-                           src/libs/DanCommon.js                    server/jsarray.php                  server/routes/reporterror.php
-                              src/libs/DanInput.jsx                     server/config.php                  server/signup.php
-                                 src/stuctures/LeanTo.jsx                 server/DanGlobal.php                 README.md
-                                     src/structures/ForagePost.jsx           server/finishLogin.php               techtree.md
-290+126+49+379+457+564+172+74+65+185+166+316+552+100+132+228+68+285+221+8+37+38+319+126+33+448+36+43+30+25+224+38+27+12+8+53+11
+src/App.js                               src/structures/RockKnapper.jsx         server/finishLogin.php                README.md
+    src/App.css                              src/structures/LoggersPost.jsx        server/globals.php                    techtree.md
+        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx          server/weightedRandom.php            automationtree.md
+           src/game.jsx                              src/structures/DirtSource.jsx         server/getInput.php                 wartree.md
+               src/worker.jsx                            src/structures/WaterSource.jsx       server/mapContent.php              worldgen.md
+                   src/comp_LocalMap.jsx                    src/com_account.jsx                   server/routes/autologin.php       workercrafting.md
+                       src/libs/DraggableMap.jsx                src/libs/ErrorOverlay.jsx            server/routes/login.php
+                           src/libs/DanCommon.js                   server/common.php                    server/routes/logout.php
+                              src/libs/DanInput.jsx                    server/jsarray.php                  server/reporterror.php
+                                 src/stuctures/LeanTo.jsx                  server/config.php                  server/save.php
+                                     src/structures/ForagePost.jsx           server/DanGlobal.php                 server/signup.php
+332+126+49+397+517+570+170+74+65+185+166+316+527+100+132+95+228+68+296+221+8+37+38+319+126+33+449+36+43+30+25+108+224+38+27+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
@@ -93,6 +100,7 @@ src/App.js                               src/structures/RockKnapper.jsx         
 10/22/2022 = 5357 lines
 12/24/2022 = 5530 lines
 1/3/2023 = 5945 lines
+1/9/2023 = 6259 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -203,21 +211,69 @@ function App() {
 
     function onSave() {
         // Saves the entire game state to the server
-        // Normally we wouldn't provide a save button, but have the game save regularly, like every minute
+        // Normally we wouldn't provide a save button, but have the game save regularly, like every minute. But we need things working first
+
+        // Saving tile data is more complex than the rest of the data. First, we need to create a deep copy of the tile array
+        let sendTiles = game.tiles
+            .filter((t) => t.modified)
+            .map((t) => {
+                delete t.modified;
+                return {
+                    ...t,
+                    items: t.items.map((i) => {
+                        // the inTask reference has to be converted to an id, for proper saving
+                        if (i.inTask === 0) return i;
+                        return { ...i, inTask: i.inTask.id };
+                    }),
+                };
+            });
+        console.log(game.tiles[0]);
+        let timeTracker;
+
+        // Set up a function to handle sending tile data, that we can call later
+        function sendMoreTiles() {
+            // send another batch of tiles
+            let batch = sendTiles.splice(0, 50);
+            fetch(
+                serverURL + "/routes/savetiles.php",
+                DAX.serverMessage(
+                    {
+                        tiles: batch,
+                    },
+                    true
+                )
+            )
+                .then((res) => DAX.manageResponseConversion(res))
+                .catch((err) => console.log(err))
+                .then((data) => {
+                    if (data.result !== "success") {
+                        console.log(data);
+                        return;
+                    }
+                    let progress = new Date();
+                    console.log(progress - timeTracker);
+                    if (sendTiles.length === 0) {
+                        console.log("All done!");
+                        return;
+                    }
+                    sendMoreTiles();
+                });
+        }
 
         fetch(
             serverURL + "/routes/save.php",
             DAX.serverMessage(
                 {
-                    tiles: game.tiles, // this can be output directly
+                    //tiles: game.tiles, // this can be output directly
                     workers: game.workers.map((w) => ({
                         ...w,
-                        tasks: w.tasks.map((t) => t.id), // convert the tasks to only an id
+                        tasks: w.tasks.map((t) => t.id), // convert the tasks to only an id. It's still an array
                         carrying: w.carrying.map((i) => {
                             // carried items might also have an associated task, that must be converted to an id too
                             if (i.inTask === 0) return i;
                             return { ...i, inTask: i.inTask.id };
                         }),
+                        moveCounter: Math.round(w.moveCounter), // Not sure why but this seems to lose integer precision sometimes
                     })),
                 },
                 true
@@ -226,7 +282,12 @@ function App() {
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))
             .then((data) => {
-                console.log(data);
+                if (data.result !== "success") {
+                    console.log(data);
+                    return;
+                }
+                timeTracker = new Date();
+                sendMoreTiles();
             });
     }
 
@@ -301,11 +362,38 @@ function HomePage(props) {
             <RegisterForm onLogin={props.onLogin} />
             <p style={{ fontWeight: "bold" }}>Important Updates</p>
             <p>
-                Guess what? We're starting version 7! Maybe I AM a little crazy... but it doesn't matter. After spending a lot of time on
-                version 6, I started to realize things weren't as fun as I had wanted it to be. I wanted resource production to be tetious,
-                but this was TOO tedious. This time, work will be centered around a per-worker level. Workers are assigned tasks (or a
-                series of tasks) and they determine how to accomplish that. This may feel a lot more like Dwarf Fortress, but I don't mind.
+                This version of the game (seven) seems to be coming along alright, but hasn't escaped some changes along the way. A few
+                weeks ago I got back into playing Dwarf Fortress (by the way there's a new Steam version out, with full graphics and proper
+                controls), and have realized how much my game borrows concepts from it, but not fully. Dwarf Fortress lets you assign work,
+                but leaves it to your dwarves to decide who does it, and when. I started to realize that players probably won't care which
+                worker completes a given task, just as long as it gets done. Having already completed the code that assigns work to workers,
+                this means I need to rewrite things... but not everything. I rewrote everything related to workers completing assignments,
+                and it's been a success, so far.
             </p>
+            <p>
+                Now I'm onto bigger challenges - this one I didn't expect. This being a web game, I'll need to periodically save the state
+                of the game back to the server. It's simple enough, except for one problem: the local map is 41x41 tiles large (1681 in
+                total), and they all have data to send back. Even for a freshly started game, it took over 2 minutes! Not ideal for a
+                multi-user game, when this is saving content for only 1 person. But I have solutions in mind, and I want to future-proof
+                this, for when later game states get crazy.
+            </p>
+            <ol>
+                <li>
+                    Send map data to the server one chunk at a time. This will spread the work on the server over a larger time frame. I can
+                    create a complete copy of the existing tiles on the client side, dropping chunks as I send them
+                </li>
+                <li>
+                    Send only tiles that get modified. This will probably have the most significant impact on the amount of data needed to
+                    send. But, in planning for late-game, this may have diminishing effects.
+                </li>
+                <li>
+                    Change the way I update the tiles. Databases allow you to insert new data, or in the same statement, update data instead
+                    if it finds a matching record ID. The advantage of this method (besides preventing duplicate data) is you can send data
+                    about a lot of records all in one statement. My last method required sending one tile to the database at a time, waiting
+                    for a response before sending another. So this may have an even larger impact on the time it takes to save.
+                </li>
+            </ol>
+            <p>I think all these changes will make everything work, now and in future challenges. I just need to get it built</p>
             <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>
                 <p className="singleline">

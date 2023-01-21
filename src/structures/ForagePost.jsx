@@ -109,18 +109,6 @@ export function ForagePost() {
                             // Start by fetching the tile this structure is on
                             // Nothing is really needed to be done here
                             if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
-                            /*
-                            let tile = game.tiles.find(e=>e.x===b.x && e.y===b.y);
-                            if(typeof(tile)==='undefined') {
-                                console.log('Error: tile not found at ['+ b.x +','+ b.y +']. This should be the Forage Post tile.');
-                                return;
-                            }
-                            let slot = worker.carrying.findIndex(e=>e.name===worker.targetitem);
-                            if(slot===-1) {
-                                console.log(`Error: ${worker.name} tried to place an item, but not carrying it now. Item=${worker.targetitem}, carrying size=${worker.carrying.length}. Worker task cancelled`);
-                                worker.clearTask()
-                            }
-                            */
                         }
                     }
                 ],
@@ -158,6 +146,15 @@ export function ForagePost() {
                             ))}
                         </>
                     );
+                },
+                onSave: ()=>{
+                    return {
+                        id: b.id,
+                        name: b.name,
+                        x: b.x,
+                        y: b.y,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 },
             };
             return b;

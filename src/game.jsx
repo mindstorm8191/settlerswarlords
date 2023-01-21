@@ -108,16 +108,17 @@ export const game = {
     // This is probably not the place to have it, though; we need to use each existing building to check if features are unlocked, as
     // any buildings not placed won't matter in this check.
 
-    setupGame: (localTiles, localWorkers, funcUpdateTiles, funcUpdateWorkers) => {
+    setupGame: (content, funcUpdateTiles, funcUpdateWorkers) => {
         // A public function to set up game basics
         // parameters:
+        //  content - all data received from the server, as it was provided. It should contain the following
         //  localTiles - array of the local tiles, as received by the server
         //  localWorkers - array of the local workers, as received by the server
         //  funcUpdateTiles - callback function from React to update all game tiles
         //  funcUpdateWorkers - callback function from React to udpate all workers
 
         // For local tiles, convert all grouped items into individual items
-        game.tiles = localTiles.map(t=>{
+        game.tiles = content.localTiles.map(t=>{
             let ni = [];
             for(let j=0; j<t.items.length; j++) {
                 if(typeof(t.items[j].amount)==='undefined') {
@@ -136,8 +137,13 @@ export const game = {
             //      when a new building is put down
             //      when a worker adds / removes items from a tile
         });
-        //console.log(game.tiles[10]);
-        for (let i = 0; i < localWorkers.length; i++) createNewWorker(localWorkers[i]);
+
+        // Worker creation has its own function
+        for (let i = 0; i < content.workers.length; i++) createNewWorker(content.workers[i]);
+
+        // Generate existing structures... and figure out how they're generated to begin with
+        
+
         game.updateLocalMap = funcUpdateTiles;
         game.updateWorkers = funcUpdateWorkers;
     },

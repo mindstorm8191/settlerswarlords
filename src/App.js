@@ -9,19 +9,14 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Expand the saving method
-    a) Everything except the tiles can be sent in one message; I don't think it'll ever be that big
-    b) Tile data will be sent after that. When sending the first message, we'll store all tile data (that needs sent) into a separate variable.
-    c) With each message, we will splice out X number of rows to send to the server. With the response, we will call the same function, passing
-        in the remaining data, until no data is left to send.
-    d) We won't start working on efficiency improvements until this much is complete.
-    e) Set up a flag on all tiles to determine if its content has changed in any way. We can filter out any tiles that have had no changes.
-        This flag won't be set until after tile items have been ungrouped
-    f) Server-side, determine if running multiple queries in one call will run faster than a single one (I expect that it would, to a certain point).
+1) Start working on loading the game back into the client. We will start with the structures
+1) We will plan to reload the image path from the related building. Therefore, we can remove the image property from any tiles that have it
 1) Some tree types don't provide logs. We need a way that, when log chunks are needed, any trees that won't produce logs won't be included in
     potential locations
 1) Find a solution for the bug that puts the tutorial portion in the wrong place in production mode
-2) Create structures to fill buckets with water, then add dirt and filter out clay
+2) Create a structure to add dirt to water buckets and filter out the clay
+3) Allow a flint scythe to be crafted, and then clear out grasses. Use a Kitchen to separate the straw from the grain, using a knife
+4) Use a straw drying building to allow straw to be dried out
 3) Assign skill points for each task completed. Have workers gain skill points when tasks get completed
 4) Have idle workers, when they find a task to complete, check other idle workers to see if they have better skills for the job
 5) Have items get a quality value based on the skill used to craft each item
@@ -66,6 +61,23 @@ Process
 3) After 2 hours of gameplay time, wine is ready for use. It can be poured into other jars or containers. Jars that produce wine will become wine
     jars and will keep producing wine when used (Yeast will remain usable from the jars). Jars that produce vinegar will become vinegar jars; they
     can be used for other jobs.
+
+Metal properties (to look up)
+Tensile stress (pulling apart)
+Compressive stress (crushing)
+Shear (pushing side to side)
+Malleability - how easy it is to change its shape
+Toughness - how well it handles impacts
+Hardness - how well it avoids plasticity deformations
+Fatigue resistance - how long it lasts under regular stresses
+    these should work out to new properties for armor and weapons
+bendability
+blade sharpness
+impact strength
+puncture resistance
+cutting resistance
+tearing resistance
+impact absorbsion
 
 Fantasy horror creature: https://imgur.com/gallery/s8E9idW
 
@@ -199,7 +211,7 @@ function App() {
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        game.setupGame(pack.localTiles, pack.workers, setLocalTiles, setLocalWorkers);
+        game.setupGame(pack, setLocalTiles, setLocalWorkers);
         game.startGame();
 
         setUserData({ id: pack.userid, ajax: pack.ajaxcode });
@@ -217,15 +229,14 @@ function App() {
         let sendTiles = game.tiles
             .filter((t) => t.modified)
             .map((t) => {
-                delete t.modified;
-                return {
-                    ...t,
-                    items: t.items.map((i) => {
-                        // the inTask reference has to be converted to an id, for proper saving
-                        if (i.inTask === 0) return i;
-                        return { ...i, inTask: i.inTask.id };
-                    }),
-                };
+                let u = { ...t };
+                delete u.modified;
+                delete u.image;
+                u.items = u.items.map((i) => {
+                    if (i.inTask === 0) return i;
+                    return { ...i, inTask: i.inTask.id };
+                });
+                return u;
             });
         console.log(game.tiles[0]);
         let timeTracker;
@@ -264,7 +275,6 @@ function App() {
             serverURL + "/routes/save.php",
             DAX.serverMessage(
                 {
-                    //tiles: game.tiles, // this can be output directly
                     workers: game.workers.map((w) => ({
                         ...w,
                         tasks: w.tasks.map((t) => t.id), // convert the tasks to only an id. It's still an array
@@ -275,6 +285,55 @@ function App() {
                         }),
                         moveCounter: Math.round(w.moveCounter), // Not sure why but this seems to lose integer precision sometimes
                     })),
+                    blocks: game.blockList.map((block) => {
+                        return block.onSave();
+                    }),
+                    tasks: game.tasks.map((t) => {
+                        let nt = {
+                            id: t.id,
+                            building: typeof t.building !== "undefined" ? t.building.id : 0,
+                            task: typeof t.task === "string" ? t.task : t.task.name,
+                            taskType: t.taskType,
+                            worker: t.worker !== null ? t.worker.id : 0,
+                            status: t.status,
+                            targetx: t.targetx === null ? -1 : t.targetx,
+                            targety: t.targety === null ? -1 : t.targety,
+                            itemsNeeded: t.itemsNeeded, // this has at least some content, but may be empty. It can be a complex structure,
+                            // but we'll have to include the whole thing, in order to restore this task correctly
+                            toolsNeeded: t.toolsNeeded.map((r) => {
+                                // Tools-needed will need to be sent as an object too. But selected tools will need to be serlialized, in a way
+                                if (r.selected === null) return { ...r, selected: "null" };
+                                // Find the tile currently holding this specific item, so we can get its x & y coordinates
+                                let slot = game.tiles.findIndex((tile) => tile.items.includes(r.selected));
+                                if (slot === -1) {
+                                    // Hmm, maybe a worker is holding it?
+                                    slot = game.workers.findIndex((worker) => worker.carrying.includes(r.selected));
+                                    if (slot === -1) {
+                                        console.log("Error in saveGame: could not locate tool", r.selected);
+                                        return { ...r, selected: "error" };
+                                    }
+                                    return { ...r, selected: r.selected.name, selectedAt: "worker", selectedWorker: game.workers[slot].id };
+                                } else {
+                                    return {
+                                        ...r,
+                                        selected: r.selected.name,
+                                        selectedAt: "tile",
+                                        selectedx: game.tiles[slot].x,
+                                        selectedy: game.tiles[slot].y,
+                                    };
+                                }
+                            }),
+                            //taggedItems: [], I think we can actually skipped the tagged items. When items are loaded again (after tasks),
+                            //  we can run through all items with tags and add them back to the correct tasks
+                            // the next fields are optional
+                            ...(typeof t.targetItem !== "undefined" && { targetItem: t.targetItem }),
+                            ...(typeof t.carryTox !== "undefined" && { carryTox: t.carryTox }),
+                            ...(typeof t.carryToy !== "undefined" && { carryToy: t.carryToy }),
+                            ...(typeof t.ticksToComplete !== "undefined" && { ticksToComplete: t.ticksToComplete }),
+                        };
+                        return nt;
+                    }),
+                    unlockedItems: game.unlockedItems,
                 },
                 true
             )

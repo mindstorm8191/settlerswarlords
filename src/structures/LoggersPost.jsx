@@ -525,6 +525,16 @@ export function LoggersPost() {
                             ))}
                         </>
                     );
+                },
+
+                onSave: ()=>{
+                    return {
+                        id: b.id,
+                        name: "Loggers Post",
+                        x: b.x,
+                        y: b.y,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             };
             return b;

@@ -29,10 +29,20 @@ die(json_encode([
         'population'=>$worldTile['population']
     ],
     'localTiles'=>$localTiles,
-    //'blocks'        => json_decode($worldTile['blocks'], true),
-    'workers'       => json_decode($worldTile['workers'], true)//,
-    //'unlockedItems' => json_decode($worldTile['unlockeditems'], true),
-    //'allItems'      => json_decode($worldTile['allItems'], true),
+    'blocks'        => json_decode($worldTile['blocks'], true),
+    'workers'       => json_decode($worldTile['workers'], true),
+    'tasks'         => json_decode($worldTile['tasks'], true),
+    'unlockedItems' => json_decode($worldTile['unlockeditems'], true),
+    'tasks'         => json_decode($worldTile['tasks'], true)
     //'foodCounter'   => $worldTile['foodCounter']
-    // Well... we have a lot of pieces left to put into this
 ]));
+
+// 14 + 1/8" = 14.125"
+// a^2 + b^2 = c^2
+// c = sqrt(a^2 + b^2)
+// c = sqrt(14.0125^2 + 14.0125^2)
+// c = sqrt(199.515 + 199.515)
+// c = sqrt(399.031)
+// c = 19.9757" = 19 + 31/32
+
+?>

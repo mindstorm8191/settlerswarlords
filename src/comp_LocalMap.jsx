@@ -78,7 +78,7 @@ export function LocalMap(props) {
         // With the game tiles updated, trigger React to update the map
         // For this, we need to provide new instances of the updated tiles. Our function has us provide an array of them.
         // It will replace the whole list with a new one, inserting the updated one in place of the old one.
-        props.onTileUpdate([{...game.tiles[tileIndex], buildid:b.id, buildImage:b.image}]);
+        props.onTileUpdate([{...game.tiles[tileIndex], buildid:b.id, }]);
 
         // Clear the selected building type while we're here
         setBuildSelected(null);

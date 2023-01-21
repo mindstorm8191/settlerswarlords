@@ -173,6 +173,18 @@ export function LeanTo() {
                         return <>Under construction: {Math.floor((parseFloat(b.activeTasks[0].progress)/parseInt(b.activeTasks[0].ticksToComplete))*100)}%</>;
                     }
                     return <>In use. Health: {Math.round((parseFloat(b.progressBar)/(20*60*20))*100)}%</>;
+                },
+                onSave: ()=>{
+                    // Outputs data about this structure, so that it can be loaded again
+                    return {
+                        id: b.id,
+                        name: 'LeanTo',
+                        x: b.x,
+                        y: b.y,
+                        mode: b.mode,
+                        progressBar: b.progressBar,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             }
 

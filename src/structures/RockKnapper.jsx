@@ -313,6 +313,15 @@ export function RockKnapper() {
                             ))}
                         </>
                     );
+                },
+                onSave: ()=> {
+                    return {
+                        id: b.id,
+                        name: "Rock Knapper",
+                        x: b.x,
+                        y: b.y,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             }
             return b;

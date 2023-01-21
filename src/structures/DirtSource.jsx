@@ -126,6 +126,16 @@ export function DirtSource() {
                             ))}
                         </>
                     );
+                },
+                onSave: ()=>{
+                    return {
+                        id: b.id,
+                        name: 'Dirt Source',
+                        x: b.x,
+                        y: b.y,
+                        areaCleared: b.areaCleared,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             };
             return b;

@@ -29,8 +29,8 @@
             ['name'=>'newlandtype', 'required'=>true, 'format'=>'int'],
             ['name'=>'buildid',     'required'=>true, 'format'=>'int'],
             ['name'=>'items',       'required'=>true, 'format'=>'array'],
-            ['name'=>'image',       'required'=>false, 'format'=>'stringnotempty'],
-            ['name'=>'buildImage',  'required'=>false, 'format'=>'stringnotempty']
+            //['name'=>'image',       'required'=>false, 'format'=>'stringnotempty']
+            //['name'=>'buildImage',  'required'=>false, 'format'=>'stringnotempty']
         ], 'server/routes/savetiles.php->verify tile');
         JSEvery($tile['items'], function($item) {
             verifyInput($item, [

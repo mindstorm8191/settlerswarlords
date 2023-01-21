@@ -93,6 +93,15 @@ export function RopeMaker() {
                             ))}
                         </>
                     );
+                },
+                onSave: ()=>{
+                    return {
+                        id: b.id,
+                        name: "Rope Maker",
+                        x: b.x,
+                        y: b.y,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             };
             return b;

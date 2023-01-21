@@ -89,6 +89,15 @@ export function WaterSource() {
                             ))}
                         </>
                     );
+                },
+                onSave: ()=> {
+                    return {
+                        id: b.id,
+                        name: "Water Source",
+                        x: b.x,
+                        y: b.y,
+                        activeTasks: b.activeTasks.map(t=>t.id)
+                    };
                 }
             }
         }

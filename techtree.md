@@ -25,6 +25,7 @@ Settlers & Warlords is expected to have a complex tech tree, even before being a
 13. Water Bucket unlocks a Mixing Station. Adding dirt to a water bucket and then mixing will produce bits of clay.
     - 5 Clay Bits = 1 Clay Ball
     - 2 Clay Balls can be molded into 1 Wet Clay Brick. These must be dried in a Drying Space, and then they can be used to build a Kiln.
+    - 1 Clay Ball can be molded into 1 Wet Clay Bucket, which also needs to be dried and fired
 14. Flint spear will unlock a Hunter's Post. Like with foraging, existing supplies will diminish quickly. Chance of hunting success will start at 50%, and lose 1% for every successful hut. It will regain 1% every hour; the only long-term solution is via livestock & husbandry. There will be a 5% chance of the hunter coming back late & injured, and a 5% chance they don't come back at all (they died). Game animals will depend on the biome the player is in
     - Grasslands: chicken, deer, wolves, bison, cows, turkeys
     - Forests: wolves, deer, bears, mountain lions, raccoons, sheep, goats, eagles, owls
@@ -35,20 +36,23 @@ Settlers & Warlords is expected to have a complex tech tree, even before being a
 18. A successful hunt will also unlock a Butcher's Shop. A Flint Knife can be used to separate skin, bone, meat and even feathers.
 19. Any Bone will unlock a Bone Carver's Shop. The first use of this will be to make Bone Needles and other sewing tools.
 20. A Bone Needle will unlock a Clothier's Shop. Animal Skins can be crafted into clothes of all kinds, as well as carrying sacks. Skins can also be cleaned to start producing leather (need to research the leather-making process).
-21. Cut Meats will unlock the Meat Smoker, which will cook meats slower than the Fire Pit, but they'll remain edible for longer.
-22. Grains and Spears will unlock a Small Animal Trap. Traps can be taken along while hunting and set up. Upon a (separate) successful hunt, there will be a 50% chance of the trap catching something, and a 25% chance of the catch still being alive when brought home. Every usage attempt will require additional seeds taken along in order to catch something.
-23. Grains and Spears will also unlock a Chicken Coop. It is built with poles, long sticks and ropes. Once chickens are inside, a steady supply of grains will produce eggs. Eggs left in the Coup has a 50% chance to hatch.
-24. Planks and poles will open up paddle wheels, the first automated power source. This must be set up along streams of some kind. This can be used to move items automatically (some heavy), and to mill wheat. This could also be used to cut wood faster, using a flint-bladed saw. All this will require lots of parts, some recyclable. Power can be transfered some distances, as well.
-25. Wood poles can be used to build a crude crane, that can be used to lift heavy objects (though slowly).
-26. A Wooden Crane will unlock the Fire Miner. Workers will use hoes to dig down to rock, then use fire and water to bust rocks. Hoes will be used to clear rubble, and a crane can move/ remove larger rocks. When deep enough, the crane will be used to move transport items & workers in & out of the hole.
-27. True ore collection will depend on travel to different map tiles. Players will have to establish enough tech there to mine ores. Players won't know what is in any tile until they dig there. Many ores will be useless to new players (or at least be more valuable when at later tech, meaning using early processes isn't productive).
-28. Many different metals wil have different uses in early tech; we will try to follow ideas from Dwarf Fortress
+21. Animal skins and a clay bucket will unlock a Tanner's Shop, for producing leather. Tannins come from various tree barks and plant seeds, and can be leeched out by boiling those things. This produces a dilluted tannis mixture. This can be boiled down to produce a concentrated tannis mixture. Animal skins are placed in this for 6-12 months (we'll call this 1 hour of game time) and gives you leather.
+22. Leather opens up more production options at the Clothier's Shop, for working with leather. Most notably Leather Gloves
+23. Leather Gloves unlocks clearing options at the Forest Post. You can then use a knife to remove thorny bushes from the surrounding lands.
+24. Cut Meats will unlock the Meat Smoker, which will cook meats slower than the Fire Pit, but they'll remain edible for longer.
+25. Grains and Spears will unlock a Small Animal Trap. Traps can be taken along while hunting and set up. Upon a (separate) successful hunt, there will be a 50% chance of the trap catching something, and a 25% chance of the catch still being alive when brought home. Every usage attempt will require additional seeds taken along in order to catch something.
+26. Grains and Spears will also unlock a Chicken Coop. It is built with poles, long sticks and ropes. Once chickens are inside, a steady supply of grains will produce eggs. Eggs left in the Coup has a 50% chance to hatch.
+27. Planks and poles will open up paddle wheels, the first automated power source. This must be set up along streams of some kind. This can be used to move items automatically (some heavy), and to mill wheat. This could also be used to cut wood faster, using a flint-bladed saw. All this will require lots of parts, some recyclable. Power can be transfered some distances, as well.
+28. Wood poles can be used to build a crude crane, that can be used to lift heavy objects (though slowly).
+29. A Wooden Crane will unlock the Fire Miner. Workers will use hoes to dig down to rock, then use fire and water to bust rocks. Hoes will be used to clear rubble, and a crane can move/ remove larger rocks. When deep enough, the crane will be used to move transport items & workers in & out of the hole.
+30. True ore collection will depend on travel to different map tiles. Players will have to establish enough tech there to mine ores. Players won't know what is in any tile until they dig there. Many ores will be useless to new players (or at least be more valuable when at later tech, meaning using early processes isn't productive).
+31. Many different metals wil have different uses in early tech; we will try to follow ideas from Dwarf Fortress
     - Copper: fairly maleable. Will suffice for armor and swords, but is not very effective
     - Tin: rather brittle. As armor, will be easy to split
     - Lead: Heavy and very maleable
     - Iron: This is the easiest metal to produce weapons & armor with. It is still brittle on its own
-29. Pure iron can be used first, but will be brittle and limited to only some tools.
-30. Copper and tin will both be necessary for early tech. Smelting it together will give Bronze. Early Bronze production will be slow & tedious, many early Bronze tools will be Flint tools dipped in molten bronze
-31. New Bronze tools will provide better ways to cut wood, making products from wood cost less time and wood, and creating more wood based items
-32. As bronze production grows, weapons and armor can be equipped with it. Later bronze can provide low pressure steam production, for a variety of new machines.
-33. Eventually players will be able to smelt iron using charcoal or coal, producing steel. This will require better abilities in alloy production control, along with enough automated power to keep air flowing through a Smelter the whole time
+32. Pure iron can be used first, but will be brittle and limited to only some tools.
+33. Copper and tin will both be necessary for early tech. Smelting it together will give Bronze. Early Bronze production will be slow & tedious, many early Bronze tools will be Flint tools dipped in molten bronze
+34. New Bronze tools will provide better ways to cut wood, making products from wood cost less time and wood, and creating more wood based items
+35. As bronze production grows, weapons and armor can be equipped with it. Later bronze can provide low pressure steam production, for a variety of new machines.
+36. Eventually players will be able to smelt iron using charcoal or coal, producing steel. This will require better abilities in alloy production control, along with enough automated power to keep air flowing through a Smelter the whole time

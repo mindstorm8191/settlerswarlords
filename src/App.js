@@ -9,8 +9,11 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
-1) Start working on loading the game back into the client. We will start with the structures
-1) We will plan to reload the image path from the related building. Therefore, we can remove the image property from any tiles that have it
+1) Allow the tutorial mode to be saved to the server. We currently have no method to update the tutorial state yet.
+1) Fix bug: Forage Post does not remain enabled after save & reload. I think it's because the state is being converted to a string, but
+    (for some reason) I'm still able to re-enable it.
+1) Continue working on loading a game. Next is to associate all tasks to the correct workers and buildings. We also need to associate
+   all items (found in tiles and workers) to the correct tiles. That might be enough
 1) Some tree types don't provide logs. We need a way that, when log chunks are needed, any trees that won't produce logs won't be included in
     potential locations
 1) Find a solution for the bug that puts the tutorial portion in the wrong place in production mode
@@ -62,6 +65,13 @@ Process
     jars and will keep producing wine when used (Yeast will remain usable from the jars). Jars that produce vinegar will become vinegar jars; they
     can be used for other jobs.
 
+Tanning process
+* Tanning is done using a tannin solution. Tannins are leached from certain barks, or certain seeds. Most seeds containing tannins are non-edible;
+    some of those are still non-edible after leaching the tannins. Tannins can be extracted by boiling the source materials (this will require
+    clay pots / jars / buckets)
+* Tannins will need to be concentrated to a sufficient level. We will combine 8 jars worth of tannin solution to get concentrated tannin solution
+* Leave the animal skins in the tannin solution for 6-12 months; we'll count this as 1 hour of gameplay
+
 Metal properties (to look up)
 Tensile stress (pulling apart)
 Compressive stress (crushing)
@@ -93,18 +103,18 @@ Process
         will still have that task assigned to them), unassigned from the given worker, cancelled, or re-assigned to a specific worker
 
 Project size (because it's fun to watch this grow)
-src/App.js                               src/structures/RockKnapper.jsx         server/finishLogin.php                README.md
-    src/App.css                              src/structures/LoggersPost.jsx        server/globals.php                    techtree.md
-        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx          server/weightedRandom.php            automationtree.md
-           src/game.jsx                              src/structures/DirtSource.jsx         server/getInput.php                 wartree.md
-               src/worker.jsx                            src/structures/WaterSource.jsx       server/mapContent.php              worldgen.md
-                   src/comp_LocalMap.jsx                    src/com_account.jsx                   server/routes/autologin.php       workercrafting.md
-                       src/libs/DraggableMap.jsx                src/libs/ErrorOverlay.jsx            server/routes/login.php
-                           src/libs/DanCommon.js                   server/common.php                    server/routes/logout.php
-                              src/libs/DanInput.jsx                    server/jsarray.php                  server/reporterror.php
-                                 src/stuctures/LeanTo.jsx                  server/config.php                  server/save.php
-                                     src/structures/ForagePost.jsx           server/DanGlobal.php                 server/signup.php
-332+126+49+397+517+570+170+74+65+185+166+316+527+100+132+95+228+68+296+221+8+37+38+319+126+33+449+36+43+30+25+108+224+38+27+12+8+53+11
+src/App.js                               src/structures/RockKnapper.jsx          server/finishLogin.php               server/signup.php
+    src/App.css                              src/structures/LoggersPost.jsx         server/globals.php                    README.me
+        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx           server/weightedRandom.php            techtree.md
+           src/game.jsx                              src/structures/DirtSource.jsx          server/getInput.php                 automationtree.md
+               src/worker.jsx                            src/structures/WaterSource.jsx        server/mapContent.php               wartree.md
+                   src/comp_LocalMap.jsx                     src/com_account.jsx                   server/routes/autologin.php       worldgen.md
+                       src/libs/DraggableMap.jsx                 src/libs/ErrorOverlay.jsx            server/routes/login.php           workercrafting.md
+                           src/libs/DanCommon.js                    server/common.php                    server/routes/logout.php
+                              src/libs/DanInput.jsx                     server/jsarray.php                  server/reporterror.php
+                                 src/stuctures/LeanTo.jsx                   server/config.php                  server/save.php
+                                     src/structures/ForagePost.jsx            server/DanGlobal.php                 server/savetiles.php
+505+126+49+493+527+571+170+74+65+215+169+335+547+114+149+109+228+68+307+221+8+37+48+319+126+33+449+36+43+30+25+218+89+224+38+58+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
@@ -113,6 +123,7 @@ src/App.js                               src/structures/RockKnapper.jsx         
 12/24/2022 = 5530 lines
 1/3/2023 = 5945 lines
 1/9/2023 = 6259 lines
+1/22/2023 = 6907 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -233,12 +244,17 @@ function App() {
                 delete u.modified;
                 delete u.image;
                 u.items = u.items.map((i) => {
-                    if (i.inTask === 0) return i;
+                    if (typeof i === "undefined") {
+                        console.log(i, u);
+                    }
+                    if (i.inTask === 0) {
+                        return i;
+                    }
                     return { ...i, inTask: i.inTask.id };
                 });
                 return u;
             });
-        console.log(game.tiles[0]);
+        console.log(sendTiles[0]);
         let timeTracker;
 
         // Set up a function to handle sending tile data, that we can call later
@@ -271,6 +287,8 @@ function App() {
                 });
         }
 
+        console.log("Last task id=" + game.lastTaskId);
+
         fetch(
             serverURL + "/routes/save.php",
             DAX.serverMessage(
@@ -280,7 +298,9 @@ function App() {
                         tasks: w.tasks.map((t) => t.id), // convert the tasks to only an id. It's still an array
                         carrying: w.carrying.map((i) => {
                             // carried items might also have an associated task, that must be converted to an id too
-                            if (i.inTask === 0) return i;
+                            if (i.inTask === 0) {
+                                return i;
+                            }
                             return { ...i, inTask: i.inTask.id };
                         }),
                         moveCounter: Math.round(w.moveCounter), // Not sure why but this seems to lose integer precision sometimes
@@ -330,10 +350,11 @@ function App() {
                             ...(typeof t.carryTox !== "undefined" && { carryTox: t.carryTox }),
                             ...(typeof t.carryToy !== "undefined" && { carryToy: t.carryToy }),
                             ...(typeof t.ticksToComplete !== "undefined" && { ticksToComplete: t.ticksToComplete }),
+                            ...(typeof t.progress !== "undefined" && { progress: t.progress }),
                         };
                         return nt;
                     }),
-                    unlockedItems: game.unlockedItems,
+                    unlockeditems: game.unlockedItems,
                 },
                 true
             )

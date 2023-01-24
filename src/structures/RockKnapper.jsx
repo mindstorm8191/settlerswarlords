@@ -72,11 +72,7 @@ export function RockKnapper() {
                         },
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function for RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: (worker)=>{
                             // Add an item to this block's inventory
@@ -96,10 +92,7 @@ export function RockKnapper() {
 
                             if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
 
-                            if(typeof(b.blinker)==='function') {
-                                b.blinkState++;
-                                b.blinker(b.blinkState);
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
                         name:'Craft Flint Stabber',
@@ -161,11 +154,7 @@ export function RockKnapper() {
                             return task;
                         },
                         onProgress: ()=>{
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function in RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: (worker)=>{
                             // delete the used items from this tile
@@ -185,11 +174,7 @@ export function RockKnapper() {
                             // now drop the Flint Hatchet
                             tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:2, endurance:20*60*5})); // aka 5 minutes
                             tile.modified = true;
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function in RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
                         name:'Craft Flint Shovel',
@@ -216,11 +201,7 @@ export function RockKnapper() {
                             return task;
                         },
                         onProgress: ()=>{
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function in RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: ()=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
@@ -238,11 +219,7 @@ export function RockKnapper() {
                             }
                             tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*7})); // 7 minutes
                             tile.modified = true;
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function in RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     },{
                         name:'Craft Flint Spear',
@@ -269,11 +246,7 @@ export function RockKnapper() {
                             return task;
                         },
                         onProgress: ()=>{
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
-                            }else{
-                                console.log('b.blinker not a function in RockKnapper');
-                            }
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         },
                         onComplete: ()=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
@@ -291,11 +264,57 @@ export function RockKnapper() {
                             }
                             tile.items.push(game.createItem('Flint Spear', 'tool', {efficiency:1, endurance:20*60*10})); // 10 minutes
                             tile.modified = true;
-                            if(typeof(b.blinker)==='function') {
-                                b.blinker(++b.blinkState);
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        }
+                    },{
+                        name: 'Craft Flint Scythe',
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        canAssist: true,
+                        hasQuantity: true,
+                        userPicksLocation: false,
+                        itemsNeeded: ['Long Stick', 'Short Stick', 'Small Rope'],
+                        toolsNeeded: [],
+                        buildTime: 20*90, // aka 1.5 minutes
+                        outputItems: ['Flint Scythe'],
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Craft Flint Scythe'),
+                                taskType: 'workAtBuilding',
+                                targetx: b.x,
+                                targety: b.y,
+                                itemsNeeded: [{name: 'Long Stick', qty: 1, hasItem:false}, {name: 'Short Stick', qty: 1, hasItem:false}, {name:'Small Rope', qty:1, hasItem:false}],
+                                ticksToComplete: 20*90
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        },
+                        onComplete: ()=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
                             }else{
-                                console.log('b.blinker not a function in RockKnapper');
+                                console.log('Error in Flint Scythe->onComplete: could not find Long Stick. Crafting anyway');
                             }
+                            slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Scythe->onComplete: could not find Short Stick. Crafting anyway');
+                            }
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot!==-1) {
+                                tile.items.splice(slot,1);
+                            }else{
+                                console.log('Error in Flint Scythe->onComplete: Could not find Small Rope. Crafting anyway');
+                            }
+                            tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*5})); // 5 minutes
+                            tile.modified = true;
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
                         }
                     }
                 ],
@@ -322,6 +341,11 @@ export function RockKnapper() {
                         y: b.y,
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
+                },
+                onLoad: pack=>{
+                    b.id = pack.id;
+                    b.progressBar = pack.progressBar;
+                    b.activeTasks = pack.activeTasks;
                 }
             }
             return b;

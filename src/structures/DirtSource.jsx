@@ -136,6 +136,11 @@ export function DirtSource() {
                         areaCleared: b.areaCleared,
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
+                },
+                onLoad: pack => {
+                    b.id = pack.id;
+                    b.areaCleared = pack.areaCleared;
+                    b.activeTasks = pack.activeTasks;
                 }
             };
             return b;

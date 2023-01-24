@@ -156,6 +156,12 @@ export function ForagePost() {
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
                 },
+                onLoad: (pack) =>{
+                    b.id = pack.id;
+                    b.progressBar = pack.progressBar;
+                    b.activeTasks = pack.activeTasks;
+                    // Hmm... progressBar we're not even using, and the other two are common to all structure types... hmm...
+                }
             };
             return b;
         }

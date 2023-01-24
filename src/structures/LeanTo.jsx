@@ -108,11 +108,23 @@ export function LeanTo() {
                         },
                         canAssist: true,
                         hasQuantity:false,
-                        itemsNeeded: [],
                         userPicksLocation: false,
+                        itemsNeeded: [],
+                        toolsNeeded: [],
                         buildTime: (20*30), // 30 seconds
                         outputItems: [],
-                        getTask: (worker)=>({subtask:'construct', targetx:b.x, targety:b.y}),
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.anme==='Repair'),
+                                taskType: 'construct',
+                                targetx: b.x,
+                                targety: b.y,
+                                ticksToComplete: 20*30
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
                         onProgress: ()=>{
                             // Allows context updates whenever progress is made on this task
                             if(typeof(b.blinker)==='function') {
@@ -134,8 +146,6 @@ export function LeanTo() {
                             b.blinker(b.blinkState);
                             // Perhaps updating this every frame, when actual display only happens occasionally, is overkill. But better than
                             // nothing, and it's simpler to manage.
-                        }else{
-                            console.log('Lean-To: Blinker is no longer a function... huh?');
                         }
                         if(b.progressBar>0) return;
                         // This has run out of wear time. Set back to the pre-built state
@@ -178,13 +188,19 @@ export function LeanTo() {
                     // Outputs data about this structure, so that it can be loaded again
                     return {
                         id: b.id,
-                        name: 'LeanTo',
+                        name: 'Lean-To',
                         x: b.x,
                         y: b.y,
                         mode: b.mode,
                         progressBar: b.progressBar,
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
+                },
+                onLoad: content => {
+                    b.id = content.id;
+                    b.mode = content.mode;
+                    b.progressBar = content.progressBar;
+                    b.activeTasks = content.activeTasks; // for now, we'll only be able to store the task ids. We'll have to associate them later
                 }
             }
 

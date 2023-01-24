@@ -29,7 +29,7 @@ die(json_encode([
         'population'=>$worldTile['population']
     ],
     'localTiles'=>$localTiles,
-    'blocks'        => json_decode($worldTile['blocks'], true),
+    'structures'    => json_decode($worldTile['blocks'], true),
     'workers'       => json_decode($worldTile['workers'], true),
     'tasks'         => json_decode($worldTile['tasks'], true),
     'unlockedItems' => json_decode($worldTile['unlockeditems'], true),

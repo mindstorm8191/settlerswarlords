@@ -112,22 +112,25 @@ export const game = {
         // A public function to set up game basics
         // parameters:
         //  content - all data received from the server, as it was provided. It should contain the following
-        //  localTiles - array of the local tiles, as received by the server
-        //  localWorkers - array of the local workers, as received by the server
         //  funcUpdateTiles - callback function from React to update all game tiles
         //  funcUpdateWorkers - callback function from React to udpate all workers
+
+        //game.unlockedItems = content.unlockedItems;
+        for(let i=0; i<content.unlockedItems.length; i++) {
+            game.checkUnlocks(content.unlockedItems[i]);
+        }
 
         // For local tiles, convert all grouped items into individual items
         game.tiles = content.localTiles.map(t=>{
             let ni = [];
             for(let j=0; j<t.items.length; j++) {
                 if(typeof(t.items[j].amount)==='undefined') {
-                    ni.push({group:'item', inTask: 0, extras:{}, ...t.items[j]});
+                    ni.push({group:'item', inTask: 0, ...t.items[j]});
                 }else{
                     let amount = t.items[j].amount;
                     delete t.items[j].amount;
                     for(let k=0; k<amount; k++) {
-                        ni.push({group:'item', inTask: 0, extras:{}, ...t.items[j]});
+                        ni.push({group:'item', inTask: 0, ...t.items[j]});
                     }
                 }
             }
@@ -142,8 +145,106 @@ export const game = {
         for (let i = 0; i < content.workers.length; i++) createNewWorker(content.workers[i]);
 
         // Generate existing structures... and figure out how they're generated to begin with
-        
+        //console.log(content.structures);
+        if(content.structures!==null) {
+            for (let i = 0; i < content.structures.length; i++) {
+                // Find the tile needed to place this on
+                let tile = game.tiles.find(t=>t.x===content.structures[i].x && t.y===content.structures[i].y);
+                if(typeof(tile)==='undefined') {
+                    console.log('Error in game.setupGame->load structures: structure location of '+ content.structures[i].x +','+ content.structures[i].y +' could not be found. '+ content.structures[i].name +' not loaded');
+                    continue;
+                }
+                
+                /* wait... I don't need all this! Use the name in the 
+                switch(content.structures[i].name) {
+                    case "LeanTo": b = game.blockTypes.find(ty=>ty.name==='Lean-To').create(tile); break;
+                    case "Forage Post": b = game.blockTypes.find(ty=>ty.name==="Forage Post").create(tile); break;
+                    case "Rock Knapper": b = game.blockTypes.find(ty=>ty.name==='Rock Knapper').create(tile); break;
+                    case "Rope Maker": b = game.blockTypes.find(ty=>ty.name==='Rope Maker').create(tile); break;
 
+                    default:
+                        console.log('Error in game.setupGame->load structures: structure type '+ content.structures[i].name +' not found in list');
+                }*/
+                let bType = game.blockTypes.find(ty=>ty.name===content.structures[i].name);
+                if(typeof(bType)==='undefined') {
+                    console.log('Error in game.setupGame->load structures: structure type '+ content.structures[i].name +' could not be loaded');
+                    continue;
+                }
+                let b = bType.create(tile);
+                b.onLoad(content.structures[i]); // Let the structure collect all its relevant data
+
+                game.blockList.push(b);
+                tile.buildid = b.id;
+                tile.image = b.image;
+                tile.modified = false; // nothing counts as modified here, as it still matches the status that is saved on the server
+                // We also don't need to generate a construct task (when applicable); if not built there should already be that task assigned
+            }
+        }
+
+        // Now, we must load tasks. This really involves converting task content from server into working tasks here
+        if(content.tasks!==null) {
+            game.tasks = content.tasks.map(task => {
+                if(task.building===0) {
+                    delete task.building;
+                }else{
+                    task.building = game.blockList.find(b=>b.id===task.building);
+                    // The task field will need to be correctly associated with the target building's tasks, too. However, not all tasks
+                    // are associated with a specific building type.
+                    let rootTask = task.building.tasks.find(t=>t.name===task.task);
+                    if(typeof(rootTask)!=='undefined') {
+                        task.task = rootTask;
+                    }
+                }
+                if(task.targetx===-1) delete task.targetx;
+                if(task.targety===-1) delete task.targety;
+
+                // Also attach the worker, instead of only its id
+                if(task.worker!==0) {
+                    task.worker = game.workers.find(w=>w.id===task.worker);
+                }
+
+                // The ToolsNeeded structure will need quite a bit more management
+                task.toolsNeeded = task.toolsNeeded.map(tn=>{
+                    // Case 1: no tool has been selected yet
+                    if(tn.selected==="null") {
+                        tn.selected = null;
+                        return tn;
+                    }
+
+                    // Case 2: a worker is carrying the target tool. We need the selected property to target the specific tool,
+                    // then clear the other variables
+                    if(tn.selectedAt==='worker') {
+                        let worker = game.workers.find(w=>w.id===tn.selectedWorker);
+                        tn.selected = worker.carrying.find(i=>i.name===tn.selected);
+                        delete tn.selectedAt;
+                        delete tn.selectedWorker;
+                        return tn;
+                    }
+
+                    // Case 3: the item is on a map tile. Again, set the selected property to target the specific tool
+                    let tile = game.tiles.find(t=>t.x===tn.selectedx && t.y===tn.selectedy);
+                    tn.selected = tile.items.find(i=>i.name===tn.selected);
+                    delete tn.selectedx;
+                    delete tn.selectedy;
+                    return tn;
+                });
+                return task;
+            });
+        }
+        
+        // At this point, we have all buildings, workers and tasks loaded. But they're not associated with each other.
+        // Run through all buildings and swap the task id for the task itself (with the same id)
+        for(let i=0; i<game.blockList.length; i++) {
+            game.blockList[i].activeTasks = game.blockList[i].activeTasks.map(t=>game.tasks.find(u=>u.id===t));
+        }
+        for(let i=0; i<game.workers.length; i++) {
+            game.workers[i].tasks = game.workers[i].tasks.map(t=>game.tasks.find(u=>u.id===t));
+        }
+        console.log(game.workers);
+
+        // Lastly, we need to get the last task id of the current list, to prevent duplicating task ids between saves
+        game.lastTaskId = game.tasks.reduce((carry, task)=>Math.max(carry, task.id), 0);
+        
         game.updateLocalMap = funcUpdateTiles;
         game.updateWorkers = funcUpdateWorkers;
     },
@@ -164,7 +265,33 @@ export const game = {
         game.timeout = null;
         game.runState = 0;
     },
+    checkUnlocks: (itemName)=>{
+        // Determines if any existing buildings will become unlocked with a specific item. This is run every time a new item is created,
+        // and again when the game is loaded.
 
+        // If the item is already in the list, don't add it again
+        if(game.unlockedItems.some(i=>i===itemName)) return;
+
+        game.unlockedItems.push(itemName);
+        // Also determine if this unlocks a specific building type
+        for(let i=0; i<game.blockTypes.length; i++) {
+            if(game.blockTypes[i].locked===0) continue;
+            // Run through each element of the prereq array. The outer array denotes AND clauses, the inner array denotes OR clauses
+            if(game.blockTypes[i].prereq.every(outer=>(
+                outer.some(inner=>game.unlockedItems.some(item=>item===inner))
+            ))) {
+                game.blockTypes[i].locked = 0;
+                if(typeof(game.updateWorkers)==='function')
+                    game.updateWorkers([...game.workers]); // We need to trigger a page update, so that this building will display
+            }
+        }
+
+        // For all existing structures, we also want to determine if this item unlocks new abilities in the structures
+        for(let i=0; i<game.blockTypes.length; i++) {
+            if(game.blockTypes[i].newFeatures.includes(itemName)) game.blockTypes[i].featuresUnlocked = true;
+        }
+        
+    },
     createItem:(itemname, itemgroup, extras)=>{
         // Creates a new item, returning its structure. New items are added to the unlock list, if they don't already exist in it
         // itemname - name of this new object
@@ -179,25 +306,8 @@ export const game = {
         // Returns the completed object; it is not attached to anything specific
 
         // First, check if this item type is in the unlocked items list yet
-        if(!game.unlockedItems.some(i=>i===itemname)) {
-            game.unlockedItems.push(itemname);
-            // Also determine if this unlocks a specific building type
-            for(let i=0; i<game.blockTypes.length; i++) {
-                if(game.blockTypes[i].locked===0) continue;
-                // Run through each element of the prereq array. The outer array denotes AND clauses, the inner array denotes OR clauses
-                if(game.blockTypes[i].prereq.every(outer=>(
-                    outer.some(inner=>game.unlockedItems.some(item=>item===inner))
-                ))) {
-                    game.blockTypes[i].locked = 0;
-                    game.updateWorkers([...game.workers]); // We need to trigger a page update, so that this building will display
-                }
-            }
-
-            // For all existing structures, we want to determine if this item unlocks new abilities in the structures
-            for(let i=0; i<game.blockTypes.length; i++) {
-                if(game.blockTypes[i].newFeatures.includes(itemname)) game.blockTypes[i].featuresUnlocked = true;
-            }
-        }
+        
+        game.checkUnlocks(itemname);
 
         // The rest is easy...
         return {name:itemname, group:itemgroup, inTask:0, ...extras};
@@ -328,7 +438,7 @@ export const game = {
         }
         // Well, that's all I can think of so far...
 
-        game.lastTaskId++;
+        game.lastTaskId = game.lastTaskId+1;
         
         let task = {
             id: game.lastTaskId,

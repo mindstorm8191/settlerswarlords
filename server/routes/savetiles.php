@@ -36,8 +36,11 @@
             verifyInput($item, [
                 ['name'=>'name',   'required'=>true, 'format'=>'stringnotempty'],
                 ['name'=>'group',  'required'=>true, 'format'=>'stringnotempty'],
-                ['name'=>'inTask', 'required'=>true, 'format'=>'int'],
-                ['name'=>'extras', 'required'=>true, 'format'=>'array']
+                ['name'=>'inTask',    'required'=>true, 'format'=>'int'],
+                //['name'=>'extras', 'required'=>true, 'format'=>'array']
+                // we don't really have an extras column in items. We have additional optional attributes, though
+                ['name'=>'endurance',  'required'=>false, 'format'=>'float'],
+                ['name'=>'efficiency', 'required'=>false, 'format'=>'float']
             ], 'server/routes/savetiles.php->verify items in tile');
             return true;
         });
@@ -62,12 +65,16 @@
             $tile['x'] .','.
             $tile['y'] .','.
             $tile['newlandtype'] .','.
-            $tile['buildid'] .','.
-            json_encode($tile['items']) .')';
+            $tile['buildid'] .",'".
+            json_encode($tile['items']) ."')";
     }, $con['tiles']);
-    $db->query("INSERT INTO sw_minimap (mapid, x, y, newlandtype, buildid, items) VALUES ".
+    $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, newlandtype, buildid, items) VALUES ".
         implode(',', $tileString)
-    ." ON DUPLICATE KEY UPDATE newlandtype=VALUES(newlandtype), buildid=VALUES(buildid) items=VALUES(items);");
+    ." ON DUPLICATE KEY UPDATE newlandtype=VALUES(newlandtype), buildid=VALUES(buildid), items=VALUES(items);");
+    if(!$result) {
+        reporterror("server/savetiles.php->query", "error; mysql says ". mysqli_error($db));
+        ajaxreject('internal', 'DB error');
+    }
 
     /* old method - this is slow, because each tile requires another query to the database
     DanMultiDB("UPDATE sw_minimap SET newlandtype=?, buildid=?, items=? WHERE mapid=? AND x=? AND y=?;", 'iisiii',

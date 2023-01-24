@@ -6,6 +6,7 @@ import {game} from "./game.jsx";
 import {minimapTiles} from "./comp_LocalMap.jsx";
 
 let lastWorkerId = 0;
+let debugTag = 0;
 
 export function createNewWorker(pack) {
     // Creates a new worker from server data, adding it to the game's workers list
@@ -22,6 +23,10 @@ export function createNewWorker(pack) {
         lastWorkerId++;
         workerid = lastWorkerId;
     }
+    let tasks = [];
+    if(typeof(pack.tasks)!=='undefined'){
+        tasks = pack.tasks;
+    }
     let w = {
         name: pack.name,
         id: workerid,
@@ -29,7 +34,7 @@ export function createNewWorker(pack) {
         y: pack.y,
         status: 'idle',
         moveCounter: pack.moveCounter ?? 0,
-        tasks: [],
+        tasks: tasks,
         carrying: [],
         tick: () => {
             // Handles all actions of this worker
@@ -73,6 +78,8 @@ export function createNewWorker(pack) {
                             // Add an apple at this location, for the worker to find & pick up
                             let tile = game.tiles.find(t=>t.x===targetx && t.y===targety);
                             tile.items.push(game.createItem("Apple", 'food', {}));
+                            w.tasks[0].targetItem = 'Apple';
+                        }else{
                             w.tasks[0].targetItem = 'Apple';
                         }
                         w.tasks[0].targetx = targetx;
@@ -518,3 +525,5 @@ export function createNewWorker(pack) {
     };
     game.workers.push(w);
 }
+
+

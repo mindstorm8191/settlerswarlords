@@ -18,7 +18,7 @@
         ["name"=>"workers",  "required"=>true, "format"=>"array"],
         ['name'=>'blocks',   'required'=>true, 'format'=>'array'],
         ['name'=>'tasks',    'required'=>true, 'format'=>'array'],
-        ['name'=>'unlockedItems', 'required'=>true, 'format'=>'arrayOfStrings']
+        ['name'=>'unlockeditems', 'required'=>true, 'format'=>'arrayOfStrings']
     ], 'server/routes/save.php->verify input level 1');
 
     // An array doesn't really verify anything, so we need to verify the worker data now
@@ -38,8 +38,11 @@
             verifyInput($mel, [
                 ["name"=>"name",   "required"=>true, "format"=>"stringnotempty"],
                 ["name"=>"group",  "required"=>true, "format"=>"stringnotempty"],
-                ["name"=>"inTask", "required"=>true, "format"=>"int"],
-                ["name"=>"extras", "required"=>true, "format"=>"array"]
+                ["name"=>"inTask",    "required"=>true, "format"=>"int"],
+                //["name"=>"extras", "required"=>true, "format"=>"array"]
+                // we don't really have an extras column in items. We have additional optional attributes, though
+                ['name'=>'endurance',  'required'=>false, 'format'=>'float'],
+                ['name'=>'efficiency', 'required'=>false, 'format'=>'float']
             ], 'server/routes/save.php->verify worker items');
             return true;
         });
@@ -49,7 +52,7 @@
     JSEvery($con['blocks'], function ($block) {
         // Each block type will have different variables
         switch($block['name']) {
-            case "LeanTo":
+            case "Lean-To":
                 verifyInput($block, [
                     ['name'=>'id',   'required'=>true, 'format'=>'posint'],
                     ['name'=>'name', 'required'=>true, 'format'=>'stringnotempty'],
@@ -143,9 +146,10 @@
             ['name'=>'itemsNeeded', 'required'=>true,  'format'=>'array'],
             ['name'=>'toolsNeeded', 'required'=>true,  'format'=>'array'],
             ['name'=>'targetItem',  'required'=>false, 'format'=>'stringnotempty'],
-            ['name'=>'carryTox',    'required'=>false, 'format'=>'int'],
+            ['name'=>'carryTox',        'required'=>false, 'format'=>'int'],
             ['name'=>'carryToy',        'required'=>false, 'format'=>'int'],
-            ['name'=>'ticksToComplete', 'required'=>false, 'format'=>'int']
+            ['name'=>'ticksToComplete', 'required'=>false, 'format'=>'int'],
+            ['name'=>'progress',        'required'=>false, 'format'=>'int']
         ], 'server/routes/save.php->verify tasks base');
         if(sizeof($task['itemsNeeded'])>0) {
             JSEvery($task['itemsNeeded'], function($item) {
@@ -207,8 +211,11 @@
     // This will tell us which map tile we need to update
 
     // Now update everything in the local map tile
-    DanDBList("UPDATE sw_map SET workers=?, blocks=?, tiles=? WHERE x=? AND y=?;", 'sssii',
-        [json_encode($con['workers']), json_encode($con['blocks']), json_encode($con['tiles']), $player['currentx'], $player['currenty']],
+    DanDBList("UPDATE sw_map SET workers=?, blocks=?, tasks=?, unlockeditems=? WHERE x=? AND y=?;", 'ssssii',
+        [
+            json_encode($con['workers']), json_encode($con['blocks']), json_encode($con['tasks']), json_encode($con['unlockeditems']),
+            $player['currentx'], $player['currenty']
+        ],
         'routes/save.php->save map content'
     );
 

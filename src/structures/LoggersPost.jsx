@@ -535,6 +535,10 @@ export function LoggersPost() {
                         y: b.y,
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
+                },
+                onLoad: pack => {
+                    b.id = pack.id;
+                    b.activeTasks = pack.activeTasks;
                 }
             };
             return b;

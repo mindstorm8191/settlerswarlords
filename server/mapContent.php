@@ -435,8 +435,7 @@ function ensureMinimap($worldTile, $newPlayer) {
         }, $long));
     }, $localTiles));
 
-    reporterror('server/mapContent.php->ensureMinimap()->pre-save',
-                'Minimap save: '. $built);
+    //reporterror('server/mapContent.php->ensureMinimap()->pre-save', 'Minimap save: '. $built);
 
     // We should be all set to save the data... in one sweep
     $db->query("INSERT INTO sw_minimap (mapid,x,y,landtype,items) VALUES ". $built .";");

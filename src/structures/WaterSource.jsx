@@ -98,8 +98,14 @@ export function WaterSource() {
                         y: b.y,
                         activeTasks: b.activeTasks.map(t=>t.id)
                     };
+                },
+                onLoad: pack => {
+                    b.id = pack.id;
+                    b.activeTasks = pack.activeTasks;
                 }
             }
         }
     };
 }
+
+

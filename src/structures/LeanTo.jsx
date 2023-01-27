@@ -55,6 +55,7 @@ export function LeanTo() {
                 tasks: [
                     {
                         name: 'Build',
+                        desc: `Build this Lean-To structure`,
                         taskType: 'construct',
                         canAssign: () => {
                             if(b.mode==='use') return false; // if the lean-to runs out of time during use, its mode will become Collapsed
@@ -99,6 +100,7 @@ export function LeanTo() {
                         }
                     },{
                         name: 'Repair',
+                        desc: `Make repairs to this structure so that it can continue to be used`,
                         taskType: 'construct',
                         canAssign: ()=> {
                             if(b.mode!=='use') return false;

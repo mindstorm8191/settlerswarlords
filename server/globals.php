@@ -91,7 +91,17 @@
                 ['name'=>'locust','amount'=>1],
                 ['name'=>'apple', 'amount'=>1],
                 ['name'=>'water', 'amount'=>2],
-                ['name'=>'rock',  'amount'=>2],
+                ['name'=>'rock',  'amount'=>2]
+            ]),
+            'rarePlants'=> new WeightedRandom([
+                ['name'=>'carrots', 'amount'=>10],
+                ['name'=>'potatoes', 'amount'=>10],
+                ['name'=>'tomatoes', 'amount'=>7],
+                ['name'=>'turnip', 'amount'=>4],
+                ['name'=>'peanut', 'amount'=>7],
+                ['name'=>'maize', 'amount'=>12],
+                ['name'=>'beans', 'amount'=>10],
+                ['name'=>'onion', 'amount'=>10],
             ])
         ],[
             'biome'=>'forest',
@@ -128,6 +138,16 @@
                 ['name'=>'millet','amount'=>1],
                 ['name'=>'water', 'amount'=>5],
                 ['name'=>'rock', 'amount'=>2]
+            ]),
+            'rarePlants'=> new WeightedRandom([
+                ['name'=>'carrots', 'amount'=>10],
+                ['name'=>'potatoes', 'amount'=>10],
+                ['name'=>'turnip', 'amount'=>8],
+                ['name'=>'beans', 'amount'=>10],
+                ['name'=>'onion', 'amount'=>8],
+                ['name'=>'broccoli', 'amount'=>4],
+                ['name'=>'pumpkin', 'amount'=>5],
+                ['name'=>'mushroom', 'amount'=>12]
             ])
         ],[
             'biome'=>'desert',
@@ -235,7 +255,9 @@
     //     5        6       7         8        9       10       11      12         13       14       15       16          17         18         19         20
         'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorn', 'dogwood', 'locust', 'juniper',
     //    21       22       23      24      25     26        27       28         29        30            31
-        'rock', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank'
+        'rock', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank',
+    //    32           33          34         35        36        37      38      39        40           41         42
+        'carrots', 'potatoes', 'tomatoes', 'turnip', 'peanut', 'maize', 'bean', 'onion', 'broccoli', 'pumpkin', 'mushroom'
     ];
     
     // I think it's time to figure out what type of trees we're going to have.

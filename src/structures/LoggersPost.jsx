@@ -153,8 +153,16 @@ export function LoggersPost() {
                             if(tile.newlandtyle<5 && tile.newlandtype>20) return false;
 
                             // Count the number of trees here, and compare it with the number of removed sticks
-                            let removed = tile.items.findIndex(i=>i.name==='Removed Stick');
-                            let treeSlot = tile.items.findIndex(i=>treeData.map(t=>t.name).includes(i.name));
+                            let removed = tile.items.findIndex((i,key)=>{
+                                if(typeof(i)==='undefined') {
+                                    console.log('Tile ['+ tile.x +','+ tile.y +'], slot '+ key +'. Tile contents: ', tile.items);
+                                }
+                                return i.name==='Removed Stick';
+                            });
+                            let treeSlot = tile.items.findIndex(i=>{
+                                return treeData.map(t=>t.name).
+                                    includes(i.name);
+                            });
                             if(treeSlot===-1) return false; // We found no trees here at all
                             let sticksPotential = treeData.find(t=>t.name===tile.items[treeSlot].name).sticks * tile.items[treeSlot].amount;
                             if(removed===-1) {
@@ -191,7 +199,10 @@ export function LoggersPost() {
                                 let tile = game.tiles.find(t=>t.x===x && t.y===y);
                                 if(typeof(tile)==='undefined') return '';
 
-                                let slot = tile.items.findIndex(i=>treeData.map(r=>r.name).includes(i.name));
+                                let slot = tile.items.findIndex(i=>{
+                                    return treeData.map(r=>r.name)
+                                        .includes(i.name);
+                                });
                                 if(slot===-1) return ''; // No trees found here
                                 // we have a valid tree type at tile.items[slot]
                                 let removedCount = tile.items.filter(i=>i.name==='Removed Stick').length;
@@ -244,10 +255,15 @@ export function LoggersPost() {
                         canAssign: ()=>true,
                         canAssist: true,
                         hasQuantity: true,
-                        userPicksLocation: true,
+                        userPicksLocation: false,
                         validLocations: tile=>{
                             // This time, we need to find a long stick within the tile's inventory
-                            return (tile.items.findIndex(i=>i.name==='Long Stick')!==-1);
+                            return (tile.items.findIndex((i,key)=>{
+                                if(typeof(i.name)==='undefined') {
+                                    console.log('Tile ['+ tile.x +','+ tile.y +'], slot '+ key +', contents:', i);
+                                }
+                                return i.name==='Long Stick';
+                            })!==-1);
                         },
                         itemsNeeded: [
                             {name: 'Long Stick', qty:1, hasItem:false}

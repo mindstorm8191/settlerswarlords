@@ -186,9 +186,21 @@ export function createNewWorker(pack) {
                         // The worker has carried an item to this location. Place it in inventory... that should be all
                         tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
                         if(typeof(tile.items)==='undefined') tile.items = [];
+                        if(typeof(w.tasks[0].targetItem)==='undefined') console.log('Error in moveItemTo: targetItem is undefined. Task:', w.tasks[0]);
+                        if(w.tasks[0].targetItem===null) console.log('Error in moveItemTo: targetItem is null. Task:', w.tasks[0]);
+                        if(w.tasks[0].targetItem==='') console.log('Error in moveItemTo: targetItem is empty. Task:', w.tasks[0]);
                         slot = w.carrying.findIndex(i=>i.name===w.tasks[0].targetItem);
                         tile.items.push(w.carrying.splice(slot, 1)[0]);
                         tile.modified = true;
+
+                        // Filter out any instances of 'undefined'
+                        tile.items = tile.items.filter(i=>{
+                            if(typeof(i)==='undefined') {
+                                console.log('Found an undefined instance');
+                                return false;
+                            }
+                            return true;
+                        });
                         
                         if(typeof(w.tasks[0].task.onComplete)==='function') w.tasks[0].task.onComplete(w);
                         // For the ForagePost, we will use this same worker to search for the next item
@@ -208,6 +220,7 @@ export function createNewWorker(pack) {
                             // if it's not the forage post, we can be done with this task
                             w.deleteTask();
                         }
+                        return true;
                     break;
                     case 'workAtBuilding':
                         w.tasks[0].progress++;
@@ -477,7 +490,7 @@ export function createNewWorker(pack) {
             // Have we reached our destination?
             if(w.x===w.tasks[0].targetx && w.y===w.tasks[0].targety) {
                 callback();
-                return false;
+                return true;
             }
 
             // Are we done waiting on this tile?

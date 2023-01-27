@@ -9,6 +9,8 @@ import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
 
 /* Task List
+1) Finish adding the single-tile vegetables to the game. We forgot to include squash. We'll also need vegetables for other biomes, like
+    the desert
 1) Allow the tutorial mode to be saved to the server. We currently have no method to update the tutorial state yet.
 1) Fix bug: Forage Post does not remain enabled after save & reload. I think it's because the state is being converted to a string, but
     (for some reason) I'm still able to re-enable it.
@@ -314,7 +316,7 @@ function App() {
                             building: typeof t.building !== "undefined" ? t.building.id : 0,
                             task: typeof t.task === "string" ? t.task : t.task.name,
                             taskType: t.taskType,
-                            worker: t.worker !== null ? t.worker.id : 0,
+                            worker: t.worker === null ? 0 : t.worker.id,
                             status: t.status,
                             targetx: t.targetx === null ? -1 : t.targetx,
                             targety: t.targety === null ? -1 : t.targety,

@@ -274,46 +274,24 @@ function ensureMinimap($worldTile, $newPlayer) {
         }
     }
 
+    // Now would be a good time to add other additional tile types. These won't cover more than one tile each, so they won't be part of the
+    // clustermap generation
+    // We have a list of possible vegetable crops in $biomeData[$worldTile['biome']]['rarePlants']
+    for($i=0; $i<5; $i++) {
+        $localTiles[rand(0,40)][rand(0,40)]['landType'] = $biomeData[$worldTile['biome']]['rarePlants']->pull();
+    }
+
     // Now, we need to fill out these tiles with additional item content. Usually for forest tiles, this will be trees of various sizes
     // We don't really have much to fill in here besides trees yet, but we can expand on this later
     $localTiles = array_map(function($long) {
         return array_map(function($wide) {
             switch($wide['landType']) {
-                case 'wheat': // Wheat fields
-                    $wheatAmount = rand(5,30);
-                    $wide['items'] = [
-                        ['name'=>'Wheat', 'amount'=>$wheatAmount],
-                        ['name'=>'Wheat Seeds', 'amount'=>$wheatAmount/2]
-                    ];
-                break;
-                case 'oat': // Oat fields
-                    $oatAmount = rand(5,30);
-                    $wide['items'] = [
-                        ['name'=>'Oat', 'amount'=>$oatAmount],
-                        ['name'=>'Oat Seeds', 'amount'=>$oatAmount]
-                    ];
-                break;
-                case 'rye': // Rye fields
-                    $ryeAmount = rand(5,25);
-                    $wide['items'] = [
-                        ['name'=>'Rye', 'amount'=>$ryeAmount],
-                        ['name'=>'Rye Seeds', 'amount'=>$ryeAmount/4]
-                    ];
-                break;
-                case 'barley': // Barley
-                    $barleyAmount = rand(3,35);
-                    $wide['items'] = [
-                        ['name'=>'Barley', 'amount'=>$barleyAmount],
-                        ['name'=>'Barley Seeds', 'amount'=>$barleyAmount*1.25]
-                    ];
-                break;
-                case 'millet': // Millet
-                    $milletAmount = rand(8,20);
-                    $wide['items'] = [
-                        ['name'=>'Millet', 'amount'=>$milletAmount],
-                        ['name'=>'Millet Seeds', 'amount'=>$milletAmount*.75]
-                    ];
-                break;
+                case 'wheat': $wide['items'] = [['name'=>'Wheat Grass', 'amount'=>rand(5,30)]]; break;  // wheat fields
+                case 'oat': $wide['items'] = [['name'=>'Oat Grass', 'amount'=>rand(5,30)]]; break; // oat fields
+                case 'rye': $wide['items'] = [['name'=>'Rye Grass', 'amount'=>rand(5,25)]]; break; // rye fields
+                case 'barley': $wide['items'] = [['name'=>'Barley Grass', 'amount'=>rand(3,35)]]; break; // barley fields
+                case 'millet': $wide['items'] = [['name'=>'Millet Grass', 'amount'=>rand(8,20)]]; break; // millet fields
+
                 // I think trees should work a little differently. Each tree will have a fixed size and number of sticks / bark / 
                 // fruits on them. But... I guess this can be calculated later on, when we start actually using the trees.
                 // We don't even really need a seed count here. When a tree starts getting used, this count will decrement; this

@@ -1,5 +1,5 @@
 /*  RockKnapper.jsx
-    Code for the Rock Knapper, a way to create the firs tools
+    Code for the Rock Knapper, a way to create the first tools
     For the game Settlers & Warlords
 */
 

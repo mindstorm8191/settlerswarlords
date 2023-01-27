@@ -10,6 +10,7 @@ import {RockKnapper} from "./structures/RockKnapper.jsx";
 import {LoggersPost} from "./structures/LoggersPost.jsx";
 import {RopeMaker} from "./structures/RopeMaker.jsx";
 import {DirtSource} from "./structures/DirtSource.jsx";
+import {FarmersPost} from "./structures/FarmersPost.jsx";
 
 let clockCounter = 0;
 
@@ -102,7 +103,8 @@ export const game = {
         RockKnapper(),
         LoggersPost(),
         RopeMaker(),
-        DirtSource()
+        DirtSource(),
+        FarmersPost(),
     ],
     // We did have a newFeatures column here, where we would have the left-side block highlight green when a new task becomes available.
     // This is probably not the place to have it, though; we need to use each existing building to check if features are unlocked, as
@@ -116,8 +118,10 @@ export const game = {
         //  funcUpdateWorkers - callback function from React to udpate all workers
 
         //game.unlockedItems = content.unlockedItems;
-        for(let i=0; i<content.unlockedItems.length; i++) {
-            game.checkUnlocks(content.unlockedItems[i]);
+        if(content.unlockedItems!==null) {
+            for(let i=0; i<content.unlockedItems.length; i++) {
+                game.checkUnlocks(content.unlockedItems[i]);
+            }
         }
 
         // For local tiles, convert all grouped items into individual items
@@ -412,6 +416,8 @@ export const game = {
         // takes a list of items, and groups them into name & amount sets
         // Returns the completed groupings as an array
 
+        // Filter out any undefined instances, because that's a problem now
+        original = original.filter(i=>typeof(i)!=='undefined');
         //console.log(original);
         let list = [];
         for(let i=0; i<original.length; i++) {

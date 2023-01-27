@@ -39,6 +39,7 @@ export function ForagePost() {
                 tasks: [
                     {
                         name:'Forage for Food',
+                        desc:`Locate edible plants from the area`,
                         taskType: 'fetchItem',  // fetching items only will become more prevalent when we have machines to process things
                         canAssign:()=>{
                             // This can only be assigned to one person. See if we have an active task of the same type

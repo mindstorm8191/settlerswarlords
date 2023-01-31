@@ -5,6 +5,7 @@
 
 import React from "react";
 import {game} from "../game.jsx";
+import { minimapTiles } from "../minimapTiles.js";
 
 /*
 Sticks
@@ -409,7 +410,8 @@ export function LoggersPost() {
                             tile.items.splice(slot,1);
                             tile.modified = true;
                             if(!tile.items.some(i=>treeData.map(n=>n.name).includes(i.name))) {
-                                tile.newlandtype = 32;
+                                //tile.newlandtype = 42;
+                                tile.newlandtype = minimapTiles.find(m=>m.name==='Grass').id;
                             }
 
                             if(treeData[dataSlot].logs>1) {

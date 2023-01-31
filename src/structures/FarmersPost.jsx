@@ -5,6 +5,7 @@
 
 import React from "react";
 import {game} from "../game.jsx";
+import { minimapTiles } from "../minimapTiles.js";
 
 const wildGrasses = ["Wheat Grass", "Oat Grass", "Rye Grass", "Barley Grass", "Millet Grass"];
 
@@ -53,7 +54,7 @@ export function FarmersPost() {
                                 task: b.tasks.find(t=>t.name==='Harvest Grasses'),
                                 taskType: 'workAtLocation',
                                 toolsNeeded: [{hasTool: false, tools: ['Flint Scythe'], selected:null}],
-                                ticksToComplete: 20*60 // 1 minute
+                                ticksToComplete: 20*60*2 // 2 minutes to clear the whole tile
                             });
                             b.activeTasks.push(task);
                             return task;
@@ -77,8 +78,9 @@ export function FarmersPost() {
                                 return;
                             }
                             // The output is dependent on the type of grass we have
+                            let inName = tile.items[slot].name;
                             let outName = '';
-                            switch(tile.items[slot].name) {
+                            switch(inName) {
                                 case 'Wheat Grass':  outName = 'Cut Wheat';  break;
                                 case 'Oat Grass':    outName = 'Cut Oat';    break;
                                 case 'Rye Grass':    outName = 'Cut Rye';    break;
@@ -88,10 +90,52 @@ export function FarmersPost() {
                                     console.log('Grass type of '+ tile.items[slot].name +' not handled. Task cancelled');
                                     return;
                             }
-                            // Now we can delete the existing grass item
-                            tile.items.splice(slot,1);
-                            tile.items.push(game.createItem(outName, 'item', {}));
+                            // Now we can delete the existing grass item. We need to find & remove all entries of this crop, while also
+                            // tracking how many we removed.
+                            let removedCount = 0;
+                            tile.items = tile.items.filter(i=>{
+                                if(i.name===inName) {
+                                    removedCount++;
+                                    return false;
+                                }
+                                return true;
+                            });
+                            for(let i=0;i<removedCount; i++) {
+                                tile.items.push(game.createItem(outName, 'item', {}));
+                            }
+                            // With the tile cleared of grass (except for what's loose now), we can change the tile type for this
+                            tile.newlandtype = minimapTiles.find(m=>m.name==='Grass').id;
                             tile.modified = true;
+                        }
+                    },{
+                        name: 'Separate Grain From Grass',
+                        canAssign: ()=>game.unlockedItems.some(i=>['Cut Wheat', 'Cut Oat', 'Cut Rye', 'Cut Barley', 'Cut Millet'].includes(i)),
+                        canAssist: true,
+                        hasQuantity: true,
+                        userPicksLocation: false,
+                        itemsNeeded: [], // umm, not sure how to fill this column out. It can use any of 5 options - but only needs one, not all
+                        toolsNeeded: ['Flint Knife'],
+                        buildTime: 20*20,
+                        outputItems: ['Straw', 'Grain'], // this is also hard to quanity, since there will be 5 grain types
+                        create: ()=>{
+                            let task = game.createTask({
+                                building: b,
+                                task: b.tasks.find(t=>t.name==='Separate Grain From Grass'),
+                                taskType: 'workAtBuilding',
+                                toolsNeeded: [{hasTool: false, tools: ['Flint Knife'], selected:null}],
+                                ticksToComplete: 20*20
+                            });
+                            b.activeTasks.push(task);
+                            return task;
+                        },
+                        onProgress: ()=>{
+                            if(typeof(b.blinker)==='function') b.blinker(++b.blinkState);
+                        },
+                        onComplete: worker => {
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            // find a suitable grass type to cut
+                            let slot = tile.items.findIndex(i=>['Cut Wheat', 'Cut Oat', 'Cut Rye', 'Cut Barley', 'Cut Millet'].includes(i.name));
+                            // ... this isn't going to work, because we never know what item to bring to the building
                         }
                     }
                 ],

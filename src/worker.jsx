@@ -3,7 +3,7 @@
 */
 
 import {game} from "./game.jsx";
-import {minimapTiles} from "./comp_LocalMap.jsx";
+import {minimapTiles} from "./minimapTiles.js";
 
 let lastWorkerId = 0;
 let debugTag = 0;

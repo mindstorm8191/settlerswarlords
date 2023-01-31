@@ -2,15 +2,21 @@ import React from "react";
 import "./App.css";
 
 import { DAX } from "./libs/DanAjax.js"; // A library to make Fetch calls a little easier
+import { DanLog } from "./libs/LogManager.jsx";
 
 import { game } from "./game.jsx";
 
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
 import { LocalMap } from "./comp_LocalMap.jsx";
+import { ShowBlog } from "./libs/ShowBlog.jsx";
 
 /* Task List
-1) Finish adding the single-tile vegetables to the game. We forgot to include squash. We'll also need vegetables for other biomes, like
-    the desert
+1) Look into adding logging of the game's progression, to be saved on the database. This will only be active in development mode. We'll have
+    to figure out ways to use this effectively to track down phantom bugs
+    a) use logging levels. Important things should be kept from common things
+    b) Display full objects in the logs. Have a way to output objects in json-able formats, which basically means converting object
+        references to object IDs
+2) In worldgen, add items to the new vegetable tiles; they currently contain nothing
 1) Allow the tutorial mode to be saved to the server. We currently have no method to update the tutorial state yet.
 1) Fix bug: Forage Post does not remain enabled after save & reload. I think it's because the state is being converted to a string, but
     (for some reason) I'm still able to re-enable it.
@@ -37,6 +43,8 @@ import { LocalMap } from "./comp_LocalMap.jsx";
 2) Provide a drop-down list (or something) at the top of the page showing workers, and scroll over to them when selected
 
 Things to add later
+* Finish adding the single-tile vegetables to the game. We forgot to include squash. We'll also need vegetables for other biomes, like
+    the desert
 * We need some buildings to be able to be equipped with items. For example, the rope maker could be equipped with rope turning tools
 * A task's FindLocation function should really return an object, so it can better portray failures
 * All items should have a quality level, that is affected by the skill level of the person who crafted it. Items crafted by high-quality base
@@ -105,18 +113,18 @@ Process
         will still have that task assigned to them), unassigned from the given worker, cancelled, or re-assigned to a specific worker
 
 Project size (because it's fun to watch this grow)
-src/App.js                               src/structures/RockKnapper.jsx          server/finishLogin.php               server/signup.php
-    src/App.css                              src/structures/LoggersPost.jsx         server/globals.php                    README.me
-        src/libs/DanAjax.js                      src/structures/RopeMaker.jsx           server/weightedRandom.php            techtree.md
-           src/game.jsx                              src/structures/DirtSource.jsx          server/getInput.php                 automationtree.md
-               src/worker.jsx                            src/structures/WaterSource.jsx        server/mapContent.php               wartree.md
-                   src/comp_LocalMap.jsx                     src/com_account.jsx                   server/routes/autologin.php       worldgen.md
-                       src/libs/DraggableMap.jsx                 src/libs/ErrorOverlay.jsx            server/routes/login.php           workercrafting.md
-                           src/libs/DanCommon.js                    server/common.php                    server/routes/logout.php
-                              src/libs/DanInput.jsx                     server/jsarray.php                  server/reporterror.php
-                                 src/stuctures/LeanTo.jsx                   server/config.php                  server/save.php
-                                     src/structures/ForagePost.jsx            server/DanGlobal.php                 server/savetiles.php
-505+126+49+493+527+571+170+74+65+215+169+335+547+114+149+109+228+68+307+221+8+37+48+319+126+33+449+36+43+30+25+218+89+224+38+58+12+8+53+11
+src/App.js                               src/structures/RopeMaker.jsx            server/common.php                    server/routes/login.php           worldgen.md
+    src/App.css                              src/structures/DirtSource.jsx           server/jsarray.php                  server/routes/logout.php          workercrafting.md
+        src/libs/DanAjax.js                      src/structures/WaterSource.jsx          server/config.php                  server/routes/reporterror.php
+           src/libs/LogManager.js                    src/structures/FarmersPost.jsx        server/DanGlobal.php                server/routes/save.php
+              src/game.jsx                               src/comp_account.jsx                 server/finishLogin.php               server/routes/savelog.php
+                  src/worker.jsx                             src/libs/DanInput.jsx               server/globals.php                   server/routes/savetiles.php
+                      src/minimapTile.js                        src/libs/DanCommon.js                server/weightedRandom.php           server/routes/signup.php
+                         src/structures/LeanTo.jsx                 src/libs/ErrorOverlay.jsx             server/getInput.php                 README.md worldgen.md
+                             src/structures/ForagePost.jsx            src/comp_localMap.jsx                 server/mapContent.php               techtree.md
+                                 src/strctures/RockKnapper.jsx            src/libs/DraggableMap.jsx             server/routes/autologin.php        automationtree.md
+                                     src/structures/LoggersPost.jsx           src/libs/ShowBlog.jsx                server/routes/getblog.php          wartree.md
+518+126+49+38+523+540+72+214+170+354+565+114+149+109+173+228+65+74+68+532+170+96+307+221+8+37+48+341+126+33+426+36+38+43+30+25+223+46+96+224+38+58+12+8+53+11
 8/31/2022 = 3804 lines
 9/5/2022 = 4365 lines
 9/14/2022 = 4629 lines
@@ -126,6 +134,7 @@ src/App.js                               src/structures/RockKnapper.jsx         
 1/3/2023 = 5945 lines
 1/9/2023 = 6259 lines
 1/22/2023 = 6907 lines
+1/29/2023 = 7435 lines
 */
 
 // Accessing the server will work differently between if this project is in dev mode or in production mode.
@@ -176,7 +185,8 @@ function App() {
     // Startup processes. We're primarily concerned about letting existing players log in automatically
     React.useEffect(() => {
         if (typeof localStorage.getItem("userid") == "object") return; // Do nothing if no data is in localStorage
-
+        DanLog.setup(serverURL + "/routes/savelog.php");
+        DanLog.add("src/App.js", "basic", { msg: "Test works" });
         fetch(
             serverURL + "/routes/autologin.php",
             DAX.serverMessage({ userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") }, false)
@@ -442,7 +452,9 @@ function HomePage(props) {
             <img src={imageURL + "homepage_neighbors.png"} alt="neighbor negotiations" />
             <p>Develop your land to dominate the world</p>
             <RegisterForm onLogin={props.onLogin} />
-            <p style={{ fontWeight: "bold" }}>Important Updates</p>
+            <p style={{ fontWeight: "bold" }}>Development Blog</p>
+            <ShowBlog serverURL={serverURL + "routes/getblog.php"} />
+            {/*
             <p>
                 This version of the game (seven) seems to be coming along alright, but hasn't escaped some changes along the way. A few
                 weeks ago I got back into playing Dwarf Fortress (by the way there's a new Steam version out, with full graphics and proper
@@ -476,6 +488,17 @@ function HomePage(props) {
                 </li>
             </ol>
             <p>I think all these changes will make everything work, now and in future challenges. I just need to get it built</p>
+
+Humans are not ready to encounter aliens.
+I've been reading a book called The City Stained Red. Is it fiction?
+In the book there's several other races of creatures; Schicts, the Tauru, Dragonmen, and many others. All much more capable in combat than
+humans. But humans came into this area, forced out all other species, and built a massive city that capitalizes on the silk made by giant
+spiders. The other humanoid species are left fighting over scraps, being at the mercy of the humans and their schemes.
+Sure, the book is fiction, but when hasn't humanity done this in the past? If humankind were to encounter aliens today, it would go one of
+two ways: either they would decimate us, or we would deal and scheme and weasel our way to the point where the aliens would be at our mercy.
+Humans have always been this way. We are not ready.
+
+            */}
             <div style={{ textAlign: "center" }}>
                 <p className="singleline">Feel free to check out my other projects:</p>
                 <p className="singleline">

@@ -56,6 +56,7 @@ export function AccountBox(props) {
                     localStorage.removeItem("userid");
                     localStorage.removeItem("access");
                 }
+                props.setErrorText('');
                 props.onLogin(data);
             });
         // While we wait for a response, let's show that we're doing something
@@ -190,8 +191,8 @@ export function RegisterForm(props) {
     }
 
     return (
-        <div>
-            <div style={{ fontSize: 20 }}>Sign up today - its free</div>
+        <div style={props.style}>
+            <div style={{ fontSize: 20 }}>Sign-up Form</div>
             <p className="singleline">
                 <DanInput placeholder="Username" onUpdate={inputUpdate} fieldName="username" />
             </p>

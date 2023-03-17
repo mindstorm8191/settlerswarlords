@@ -61,7 +61,7 @@ export const minimapTiles = [
     { id: 35, name: "Turnips", img: "wildturnip.png", desc: "Wild turnips. A nutritious vegetable", walkLag: 8 },
     { id: 36, name: "Peanuts", img: "wildpeanut.png", desc: "Wild peanuts. A tasty snack", walkLag: 8 },
     { id: 37, name: "Maize", img: "wildmaize.png", desc: "Wild Maize - also known as corn. Has many uses", walkLag: 8 },
-    { id: 38, name: "Beans", img: "wilbean.png", desc: "Wild beans. A very filling vegetable", walkLag: 8 },
+    { id: 38, name: "Beans", img: "wildbean.png", desc: "Wild beans. A very filling vegetable", walkLag: 8 },
     { id: 39, name: "Onions", img: "wildonion.png", desc: "Wild onion. A sharp taste on its own, but great with other foods", walkLag: 8 },
     { id: 40, name: "Broccoli", img: "wildbroccoli.png", desc: "Wild broccoli. A good vegetable", walkLag: 8 },
     { id: 41, name: "Pumpkins", img: "wildpumpkin.png", desc: "Wild pumpkin.", walkLag: 8 },

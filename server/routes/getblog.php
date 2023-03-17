@@ -6,8 +6,8 @@
     */
 
     require_once("../config.php");
-    require_once("../common.php");
-    require_once("../jsarray.php");
+    require_once("../libs/common.php");
+    require_once("../libs/jsarray.php");
 
     // Collect the message
     require_once("../getInput.php");

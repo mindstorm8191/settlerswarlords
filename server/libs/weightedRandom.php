@@ -20,6 +20,7 @@
         function __construct($startList) {
             // Creates a new weightedRandom class instance. Pass a list of marbles to start with, as names with amount. For example,
             // [['name'=>'red marble', 'amount'=>99],['name'=>'blue marble', 'amount'=>10]]
+
             $this->marbles = $startList;
             $this->count = 0;
             for($i=0; $i<sizeof($this->marbles); $i++) {

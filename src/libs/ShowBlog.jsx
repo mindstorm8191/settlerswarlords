@@ -42,7 +42,7 @@ export function ShowBlog(props) {
         return <div>Blog loading failed</div>;
     }
     return (
-        <div>
+        <div style={props.style}>
             {blogList.map((blog,key)=>{
                 if(blog.id!==blogSelected) {
                     return (

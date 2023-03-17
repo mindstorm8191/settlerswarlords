@@ -1,31 +1,11 @@
-.app {
-    padding: 5px;
-}
-
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
-
-.App-header {
-    background-color: #282c34;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
 
 .singleline {
+    /* For <p> elements that should take only one line of space */
     margin-top: 0.35em;
     margin-bottom: 0em;
 }
 .fakelink {
+    /* For text that has a clickable action */
     text-decoration: underline;
     cursor: pointer;
 }
@@ -37,53 +17,17 @@
     font-size: 40px;
 }
 
-#titleblock {
-    padding: -15px;
-    min-height: 150px;
-    width: 100%;
-}
-
 #loginblock {
     position: absolute;
     right: 15px;
     top: 15px;
 }
 
-#localmapbox {
+#titleblock {
+    /* Provides the game's static header */
+    padding: -15px;
+    min-height: 150px;
     width: 100%;
-    height: calc(100vh - 185px);
-    display: block;
-    position: relative;
-    overflow: hidden;
-}
-
-#localmaprightpanel {
-    display: block;
-    /*width is set in the app, and is dependent on mobile mode */
-    background-color: white;
-    height: calc(100vh - 185px);
-}
-
-.haslinespacing {
-    /* Generic span class that gives space betwen each element */
-    margin: 10px;
-}
-
-.buildingListSelected {
-    margin: 10px;
-    border: 1px solid green;
-    text-align: center;
-}
-
-.buildingListChoice {
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.simpletitle {
-    /* Used for small titles to sections */
-    text-align: center;
-    font-weight: bold;
 }
 
 .localmaptile {
@@ -91,36 +35,5 @@
     position: absolute;
     width: 40px;
     height: 40px;
-    cursor: pointer;
-}
-
-.worldmaptile {
-    display: block;
-    position: absolute;
-    width: 55px;
-    height: 55px;
-    cursor: pointer;
-}
-
-.worldmaptileimageoverlay {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    pointer-events: none;
-}
-
-.worldmaptiledetailbox {
-    display: block;
-    position: absolute;
-    border: 1px solid black;
-    min-width: 200px;
-    background-color: white;
-    padding: 2px;
-}
-
-.exitbutton {
-    position: absolute;
-    top: 6px;
-    right: 6px;
     cursor: pointer;
 }

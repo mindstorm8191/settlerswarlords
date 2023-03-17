@@ -42,17 +42,17 @@
     }
 
     function JSFindIndex($array, $callable) {
-        // Returns the array index of the first element that passes the provided function ($callable). If none passes the test, null
+        // Returns the array index of the first element that passes the provided function ($callable). If none passes the test, -1
         // will be returned
         // Note: If your source array is only a list of basic data types, just use array_search($target, $array); it's built into php
 
         // Note that when testing against null (aka result!=null), zero will count as null. To check properly, do gettype($result)!="NULL"
-        if(gettype($array)!='array') return null;
-        if(sizeof($array)==0) return null;
+        if(gettype($array)!='array') return -1;
+        if(sizeof($array)==0) return -1;
         for($i=0; $i<sizeof($array); $i++) {
             if($callable($array[$i])) return $i;
         }
-        return null;
+        return -1;
     }
 
     function JSMapWithKeys($array, $callable) {
@@ -95,6 +95,15 @@
         $outp = array();
         for($i=$start; $i<=$end; $i+=$step) {
             $outp[$i] = $callable($i);
+        }
+        return $outp;
+    }
+
+    function forrange2($count, $callable) {
+        // Generates an array based on a total number of elements to create
+        $outp = [];
+        for($i=0; $i<$count; $i++) {
+            array_push($outp, $callable($i));
         }
         return $outp;
     }

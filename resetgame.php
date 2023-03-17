@@ -8,7 +8,7 @@
     //die();
 
     include_once("server/config.php");
-    include_once("server/common.php");
+    include_once("server/libs/common.php");
 
     DanDBList("DELETE FROM sw_error;", '', [], 'resetgame.php->clear all errors');
     DanDBList("DELETE FROM sw_event;", '', [], 'resetgame.php->clear all events');

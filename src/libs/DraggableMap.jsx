@@ -1,7 +1,7 @@
 /*  DraggableMap
     Offers a draggable interface, where images or other DOM elements can be added to a map. This interface works with mouse and touch
     Created for Settlers & Warlords; can be used in other projects too
-    Copywright 2022 by Daniel Bartsch
+    Copywright 2023 by Daniel Bartsch
 
     How to use
     <DraggableMap style={{width:'100%', height:'100vh'}}>
@@ -39,6 +39,12 @@ let dragFlag = false;
 let oldMapX = 0;
 let oldMapY = 0;
 
+// I was previously using event.movementX & Y to determine mouse movement. However, this doesn't behave correctly in Chrome (sometimes
+// they fix it, sometimes it breaks), as it was moving slower than the mouse, unless moving slowly. Now I am recording the start
+// position of the cursor
+let dragStartX = 0;
+let dragStartY = 0;
+
 // I would have exported only the dragFlag, but Javascript seems unwilling to share simple variables. It'll have to be a function
 export function clearDragFlag() {
     let lastValue = dragFlag;
@@ -58,26 +64,27 @@ export function DraggableMap(props) {
     const [scrollPos, setScrollPos] = React.useState({ moveState: false, x: 0, y: 0, touchStartX: 0, touchStartY:0 });
     let threshhold = (typeof(props.threshhold)==='undefined')?2:(props.threshhold<0)?0:props.threshhold;
 
-    function startPan() {
+    function startPan(e) {
         //dragFlag = true;
         oldMapX = scrollPos.x;
         oldMapY = scrollPos.y;
         setScrollPos({ ...scrollPos, moveState: true });
+        dragStartX = e.clientX - scrollPos.x;
+        dragStartY = e.clientY - scrollPos.y;
     }
 
     function continuePan(e) {
         if (!scrollPos.moveState) return;
-        setScrollPos({ moveState: true, x: scrollPos.x + e.movementX, y: scrollPos.y + e.movementY });
+        setScrollPos({ moveState: true, x: e.clientX -dragStartX, y: e.clientY -dragStartY});
     }
 
-    function endPan() {
+    function endPan(e) {
         // Check if the user has moved the map's position any. We are using within() to allow for inaccuracies in the user's clicks.
         // For example, if the user is trying to click something fast, and the mouse slides a little bit, this will still count as
         // a non-drag click
         if(!within(scrollPos.x, oldMapX, threshhold) || !within(scrollPos.y, oldMapY, threshhold)) {
             dragFlag = true;
         }
-        //console.log('old spot '+ oldMapX +','+ oldMapY);
         setScrollPos({ ...scrollPos, moveState: false });
     }
 
@@ -119,7 +126,7 @@ export function DraggableMap(props) {
         setScrollPos({ ...scrollPos, moveState: false});
     }
 
-    // Convert the child elements to an array, so we can single out the FixedPositionChild element
+    // Convert the child elements to an array, so we can single out any FixedPositionChild elements
     const children = React.Children.toArray(props.children);
     const normalChildren = children.filter(c => {
         if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item

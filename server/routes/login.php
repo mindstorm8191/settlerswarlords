@@ -1,43 +1,41 @@
 <?php
 /*  login.php
-    Allows users to log in to the game, using username & password
+    Allows existing users to log in and continue their game
     For the game Settlers & Warlords
 */
 
-require_once("../config.php");
-require_once("../common.php");
+    require_once("../config.php");
+    require_once("../libs/common.php");
 
-// Start with collecting the actual message
-require_once("../getInput.php");    // This will now have the full content in $msg
+    // Start with converting the message from the client
+    require_once("../getInput.php"); // all content is now in $msg
 
-// Verify the message contents
-$con = verifyInput($msg, [
-    ['name'=>'username', 'required'=>true, 'format'=>'stringnotempty'],
-    ['name'=>'password', 'required'=>true, 'format'=>'stringnotempty']
-], 'ajax.php->action login->verify user input');
+    // Verify the input
+    $con = verifyInput($msg, [
+        ['name'=>'username', 'required'=>true, 'format'=>'stringnotempty'],
+        ['name'=>'password', 'required'=>true, 'format'=>'stringnotempty']
+    ], 'server/routes/login.php->verify input');
 
-// Now, gather the user information from the database, verifying their login credentials are correct
-$res = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'routes/login.php->get player data');
-if(sizeof($res)===0) {
-    // There was no player data found
-    ajaxreject('invaliduser', 'Sorry, that user name doesn\'t exist. Please try again');
-}
-$player = $res[0];
-if($player['password']!=$con['password']) {
-    // The password provided doesn't match
-    ajaxreject('invaliduser', 'Sorry, that password doesn\'t match. Please try again');
-}
-$playerid = $player['id'];
-$playerx = $player['currentx'];
-$playery = $player['currenty'];
+    $res = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'server/routes/login.php->get player data');
+    if(sizeof($res)==0) {
+        // No player of that username was found
+        ajaxreject('invaliduser', "Sorry, that user name doesn't exist. Please try again");
+    }
+    $player = $res[0];
+    if($player['password']!=$con['password']) {
+        ajaxreject('invaliduser', "Sorry, that password doesn't match. Please try again");
+    }
 
-// Generate a new ajax code. We will need to save it to the database, along with sending it to the user
-srand(time());
-$ajaxcode = rand(0, pow(2, 31));
-DanDBList("UPDATE sw_player SET ipaddress=?, ajaxcode=?, lastlogin=NOW() WHERE id=?;", 'sii',
-          [$_SERVER['REMOTE_ADDR'], $ajaxcode, $player['id']], 'routes/login.php->update player at login');
+    // Generate a new ajax code. We will need to save it to the database too
+    srand(time());
+    $ajaxcode = rand(0, pow(2,31));
+    DanDBList("UPDATE sw_player SET ipaddress=?, ajaxcode=?, lastlogin=NOW() WHERE id=?;", 'sii',
+            [$_SERVER['REMOTE_ADDR'], $ajaxcode, $player['id']], 'server/routes/login.php->update player at login');
 
-// We are ready to send a response to the client
-require_once("../finishLogin.php");
+    // Now set variable for using the response script
+    $playerid = $player['id'];
+    $playerx = $player['currentx'];
+    $playery = $player['currenty'];
+    require_once("../finishLogin.php");
 
 ?>

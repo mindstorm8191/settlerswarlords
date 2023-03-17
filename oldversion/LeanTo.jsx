@@ -5,6 +5,7 @@
 
 import React from "react";
 import { game } from "../game.jsx";
+import { createTask } from "../tasks.jsx";
 
 export function LeanTo() {
     // Returns a structure used to build & manage the Lean-To block type
@@ -71,15 +72,13 @@ export function LeanTo() {
                         create: () => {
                             // Generates a new task instance, returning it. This is also saved to the game's tasks list
 
-                            let task = game.createTask({
+                            let task = createTask({
                                 building: b,
-                                task: b.tasks.find(t=>t.name==='Build'),
                                 taskType: 'construct',
-                                targetx: b.x,
-                                targety: b.y,
-                                ticksToComplete: 20*60*1.5 // aka 1.5 minutes
+                                ticksToComplete: 20*60*1.5, // aka 1.5 minutes
                             });
-                            b.activeTasks.push(task);
+                            // targetx&y will be assigned when the first check happens, since this is a construct task type
+                            //b.activeTasks.push(task);
                             if(game.tutorialModes[game.tutorialState].name==='shelter1') game.advanceTutorial();
                             return task;
                         },

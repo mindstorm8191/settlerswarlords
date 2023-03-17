@@ -5,220 +5,337 @@
     */
 
     require_once("../config.php");
-    require_once("../common.php");
-    require_once("../mapContent.php");
-    require_once("../globals.php");
-    require_once("../DanGlobal.php"); // A simple library w/ a DB table to manage global game variables
+    require_once("../libs/common.php");
+    require_once("../libs/DanGlobal.php");
+    require_once("../libs/clustermap.php");
 
-    // Start with collecting the actual message
+    require_once("../globals.php");
+    require_once("../minimap.php");
+
+    // Start by collecting the data
     require_once("../getInput.php");
 
-    // Verify the input that was provided
+    // Validate the input
     $con = verifyInput($msg, [
-        ["name"=>"username", "required"=>true, "format"=>"stringnotempty"],
-        ["name"=>"password", "required"=>true, "format"=>"stringnotempty"],
-        ["name"=>"pass2", "required"=>true, "format"=>"stringnotempty"],
-        ["name"=>"email", "required"=>true, "format"=>"email"]
+        ['name'=>'username', 'required'=>true, 'format'=>'stringnotempty'],
+        ['name'=>'password', 'required'=>true, 'format'=>'stringnotempty'],
+        ['name'=>'pass2', 'required'=>true, 'format'=>'stringnotempty'],
+        ['name'=>'email', 'required'=>true, 'format'=>'email']
     ], 'server/routes/signup.php->verify input');
-    // Also check that the two passwords match
+
+    // check that the two passwords match
     if($con['password'] !== $con['pass2']) ajaxreject('badinput', 'Your passwords did not match');
 
-    // Before continuing to create this user, check that the username provided does not already exist
-    $testUser = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'routes/signup.php->check username in db');
-    reporterror('server/routes/signup.php', json_encode($testUser));
+    // Check that the username provided doesn't already exist
+    $testUser = DanDBList("SELECT * FROM sw_player WHERE name=?;", 's', [$con['username']], 'routes->signup->check username in db');
     if(sizeof($testUser)!==0) {
-        // Oh - we found one. Return an error. The front end should manage things from here
-        ajaxreject('badinput', 'That user name already exists. Try another');
+        // Oh - we found one... Return an error. The front end will decide what to do from here
+        ajaxreject('badinput', 'That username already exists. Try another');
     }
 
-    // Set up some randomized variables to use for this user
     srand(time());
-    $ajaxcode = rand(0, pow(2, 31));
-    $emailcode = rand(0, pow(2, 31)); // We should also be sending the user a verification email, but we don't have that option on LocalHost
+    $ajaxcode = rand(0, pow(2,31));
+    $emailcode = rand(0, pow(2,31));
+    // We should be sending the user a verification email, but we don't have that option on Localhost
 
-    // Start by ensuring a map has been generated here. If not, we need to make one now
+    // Ensure we have a world map generated. If there isn't one, we can generate one now
     $playerLevel = 0;
     $playerMode = 0;
-    $playerCount = 0;
-    if(sizeof(DanDBList("SELECT * FROM sw_map LIMIT 1;", '', [], 'ajax.php->action signup->check for existing map' ))===0) {
+    $playerCount = 0;  // These will be the initial values for the first player
+    if(sizeof(DanDBList("SELECT * FROM sw_map LIMIT 1;", '', [], 'server/routes/signup.php->verify world map exists'))===0) {
         worldmap_generate();
     }else{
-        $playerLevel = getGlobal('newplayerlevel');
-        $playerMode  = getGlobal('newplayermode');
-        $playerCount = getGlobal('newplayercount');
+        $playerLevel = getGlobal('newPlayerLevel');
+        $playerMode  = getGlobal('newPlayerMode');
+        $playerCount = getGlobal('newPlayerCount');
     }
 
-    // Next, determine where the player will be placed. Even for the first player, they may end up in a place
-    // that is not ideal to build in. This will pick a location that is most suitable for a new player
+    // Next, determine where the player will be placed. Even for the first player, they may end up in a place that is not ideal
+    // to start in.
     [$playerx, $playery] = newPlayerLocation($playerLevel, $playerMode, $playerCount);
 
-    // With the player's coordinates known, we can now generate the player record
-    DanDBList("INSERT INTO sw_player (name, password, email, ajaxcode, ipaddress, lastlogin, currentx, currenty) VALUES (?,?,?,?,?,NOW(),?,?);",
-              'sssisii', [$con['username'], $con['password'], $con['email'], $ajaxcode, $_SERVER['REMOTE_ADDR'], $playerx, $playery],
-              'ajax.php->action signup->add new user');
+    DanDBList("INSERT INTO sw_player (name, password, email, ajaxcode, emailcode, ipaddress, lastlogin, currentx, currenty) ".
+              "VALUES (?,?,?,?,?,?,NOW(),?,?);", 'sssiisii', [
+                  $con['username'], $con['password'], $con['email'], $ajaxcode, $emailcode, $_SERVER['REMOTE_ADDR'],
+                  $playerx, $playery
+              ], 'server/routes/signup.php->add new player');
     $playerid = mysqli_insert_id($db);
 
-    // Now is a good time to generate the workers for this land plot
+    // Now is a good time to create the workers on this map
     $workers = createWorkers(4);
 
-    // We also need to update the map location to show that the user owns this land. This is where we put active worker data into the DB
-    DanDBList("UPDATE sw_map SET owner=?, population=4, workers=? WHERE x=? and y=?;", 'isii',
-              [ $playerid, json_encode($workers), $playerx, $playery], 'ajax.php->action signup->update map with new user');
-
-    // Update the player's known map now to show that they're aware of their own starting land
-    //worldMap_updateKnown($uid, $playerx, $playery, "NOW()", $uid, 1, 4);
-
-    // Generate the localMap content of this worldMap tile
-    ensureMiniMapXY($playerx, $playery, true);
-
-    // With that finished, we can send the request back to the client. That step is handled in a separate piece of code.
-    include_once("../finishLogin.php");
-    /*
+    DanDBList("UPDATE sw_map SET owner=?, population=4, workers=? WHERE x=? AND y=?;", 'isii',
+              [$playerid, json_encode($workers), $playerx, $playery], 'server/routes/signup.php->update players map');
     
-    $worldTile = DanDBList("SELECT * FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx,$playery],
-                           'server/routes/signup.php->get world map data for response')[0];
-    $localTiles = DanDBList("SELECT x,y,landtype,buildid,newlandtype,items FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
-                            [$worldTile['id']], 'server/routes/signup.php->get local map tiles');
-    die(json_encode([
-        'result'  =>'success',
-        'userid'  =>$playerid,
-        'userType'=>'player',
-        'access'  =>$ajaxcode,
-        'localContent'=>[
-            'biome'     =>$biomeData[$worldTile['biome']]['biome'],
-            'ugresource'=>$oreTypes[$worldTile['ugresource']],
-            'ugamount'  =>$worldTile['ugamount'],
-            'population'=>$worldTile['population']
-        ],
-        'localTiles'=>$localTiles//,
-        //'blocks'        => json_decode($worldTile['blocks'], true),
-        //'workers'       => json_decode($worldTile['workers'], true),
-        //'unlockedItems' => json_decode($worldTile['unlockeditems'], true),
-        //'allItems'      => json_decode($worldTile['allItems'], true),
-        //'foodCounter'   => $worldTile['foodCounter']
-        // Well... we have a lot of pieces left to put into this
-    ]));
-    */
+    // Update the player's known map now to show they're aware of their own starting land
+    // worldMap_updateKnown($playerid, $playerx, $playery, "NOW()", $uid, 1, 4);
+
+    // Generate the localMap content for this worldMap tile
+    ensureMinimap($playerx, $playery, true);
+
+    // We're ready to send a response to the user. This will be the same response as when a user signs back in, so we have combined
+    // that into one script
+    include("../finishLogin.php");
+
+
+    function randomFloat() {
+        // Returns a random float value between 0 and 1.
+        return mt_rand(0, PHP_INT_MAX)/PHP_INT_MAX;
+    }
+
+    function newPlayerLocation($level, $mode, $count) {
+        // Recursive function to determine where a new player should be placed. This will avoid inhospitable locations such as oceans,
+        // lavascapes and civilization-occupied tiles.
+        // $level, $mode, $count - variables used to determine placement. These are normally gathered from the database's globals
+        //      table, but each start on zero. Level is how far from center the point is, mode determines what face of the square
+        //      it is on, and count is how far along that face the location is from a corner
+        // Returns an array holding X & Y coordinates of where the next player should be placed. The level, mode and count values
+        // will be saved to the database's globals table
+
+        global $biomeData;
+
+        // Start by determining where on the grid this location will be
+        $x = 0;
+        $y = 0;
+        $limit = 0;  // How far along this line we can go before changing modes (and/or levels)
+        switch($mode) {
+            case 0: // top, from left to right
+                $limit = $level*2+1;
+                $x = -$level +$count;
+                $y = -$level;
+            break;
+            case 1: // right, from top to bottom
+                $limit = $level*2 -1;
+                $x = $level;
+                $y = -$level +$count;
+            break;
+            case 2: // bottom, from right to left
+                $limit = $level*2 +1;
+                $x = $level -$count;
+                $y = $level;
+            break;
+            case 3: // left, from bottom to top
+                $limit = $level*2 -1;
+                $x = -$level;
+                $y = $level -$count;
+            break;
+        }
+
+        // No matter what mode, we need to scale this, giving more space between each user
+        $x = $x *5;
+        $y = $y *5;
+
+        // Determine if this is a suitable location to place a player
+        $mappos = DanDBList("SELECT biome, owner, civilization FROM sw_map WHERE x=? AND y=?;", 'ii', [$x,$y],
+                            'server/routes/signup.php->newPlayerLocation->check location')[0];
+        if(
+            $biomeData[$mappos['biome']]['supportsNewPlayers']===false ||
+            $mappos['owner'] !== 0 ||
+            $mappos['civilization'] !== -1
+        ) {
+            $out = advanceStartPos($level, $mode, $count);
+            return newPlayerLocation($out['level'], $out['mode'], $out['count']);
+        }
+        // This location is acceptable. Before returning it, update the fields in the database with the next values
+        $out = advanceStartPos($level, $mode, $count);
+        setGlobal('newPlayerLevel', $out['level']);
+        setGlobal('newPlayerMode', $out['mode']);
+        setGlobal('newPlayerCount', $out['count']);
+        return [$x, $y];
+    }
+
+    function advanceStartPos($level, $mode, $count) {
+        // Determines where the next position for a new player should be.
+        // $level - how far from the center of the map the current location is
+        // $mode - which face of the square we are working at
+        // $count - how far along this face of the square we are
+
+        // At level 0, the only way forward is to increase level
+        if($level===0) return ['level'=>1, 'mode'=>0, 'count'=>0];
+
+        $limit = $level * 2; // This determines how far we should go before switching sides
+        switch($mode) {
+            case 0: case 2: $limit++; break;
+            case 1: case 3: $limit--; break;
+        }
+        
+        $count++;
+        if($count>$limit) {
+            $count=0;
+            $mode++;
+            if($mode>4) {
+                $mode=0;
+                $level++;
+            }
+        }
+        return ['level'=>$level, 'mode'=>$mode, 'count'=>$count];
+    }
 
     function worldmap_generate() {
-        // Our goal will be to create an area that spans from -50 to +50 in both x and y directions. At the same time, we will set global
-        // variables to help control where the next player will spawn at
+        // Creates an entire new world. This is called when the first player is created.
 
         global $db;
-        global $civilizations;
         global $biomeData;
+
+        // Our goal is to create an area that spans from -50 to 50 in both x & y directions. We will also set global variables that determine
+        // where new players will spawn at.
 
         $mapsize = 101;
         $mapminx = -50; $mapmaxx = 50;
         $mapminy = -50; $mapmaxy = 50;
-        $civdensity = 5;
-        
-        // We need to generate the clustered map, as a base. This has been moved to its own function, since the clustering system is
-        // also done on the localmap, too.
-        $fullMap = generateClusterMap(-50, 50, -50, 50, new WeightedRandom([
-            ['name'=>'grassland', 'amount'=>10],
-            ['name'=>'forest', 'amount'=>10],
-            ['name'=>'desert', 'amount'=>7],
-            ['name'=>'swamp', 'amount'=>6],
-            ['name'=>'water', 'amount'=>12],
-            ['name'=>'jungle', 'amount'=>9]
-        ]), 25);
+        $civDensity = 5;
 
-        // We need to convert our biome names to an ID, as it matches the indexing of other parts, including the database
-        //reporterror('server/mapbuilder.php->worldmap_generate()->before landType update', 'Center land type='. $fullMap[0][0]['landType']);
+        //$time = microtime(true);
+        // Start by generating a clustered map, as a base
+        $fullMap = ClusterMap($mapminx, $mapmaxx, $mapminy, $mapmaxy,
+            new WeightedRandom(
+                // We already have this data managed in our $biomeData structure. A useful programming concept is known as Single Source of Truth.
+                // Instead of having multiple places where we need to replicate data, it is better to use a single structure. That way, if the
+                // data needs to change, I don't need to search out all the places it was used.
+                array_values(
+                    array_filter(
+                        array_map(function($biome) {
+                            //reporterror('server/routes/signup.php->worldmap_generate()->create weighted randoms list',
+                            //            'name='. $biome['biome'] .', amount='. $biome['frequency']);
+                            return ['name'=>$biome['biome'], 'amount'=>$biome['frequency']];
+                        }, $biomeData),
+                        function($ele) {
+                            //reporterror('server/routes/signup.php->worldmap_generate()->filter weighted randoms list', json_encode($ele));
+                            //return $ele['amount']>0; this doesn't work the same way in php
+                            if($ele['amount']>0) return true;
+                            //reporterror('server/routes/signup.php->worldmap_generate()->filter weighted randoms list',
+                            //            'Biome '. $ele['name'] .' has no civilizations listed');
+                            return false;
+                        }
+                    )
+                )
+            ),
+            25, 0
+        );
+        //$time = (microtime(true) - $time) * 1000;
+        //reporterror('server/routes/signup.php->worldmap_generate()', 'ClusterMap run time: '. $time);
+
+        // Place down some civilizations. Choices are determined by land types, so we need to determine which biome we're at before
+        // deciding a civilization there
+        $civCount = floor(($mapsize * $mapsize) / $civDensity);
+        reporterror('server/routes/signup.php->worldmap_generate()', 'We have '. $civCount .' civs to add');
+        $time = microtime(true);
+        for($i=0; $i<$civCount; $i++) {
+            $xpos = rand($mapminx, $mapmaxx);
+            $ypos = rand($mapminy, $mapmaxy);
+            // First, make sure there isn't already a civilization here
+            if(isset($fullMap[$xpos][$ypos]['civ'])) {
+                //reporterror('server/routes/signup.php->worldmap_generate()->civ generator',
+                //            'i'. $i .', @'. $xpos .'x'. $ypos .', civ '. $fullMap[$xpos][$ypos]['civ'] .' already here');
+                $i--; // move back the stepper so we can try again
+                continue;
+            }
+            // First select the civ list from the current biome
+            $biomeList = JSFind($biomeData, function($biome) use ($fullMap, $xpos, $ypos) {
+                //reporterror('server/routes/signup.php->worldmap_generate()->civ generator->find biome structure',
+                //            $fullMap[$xpos][$ypos]['landType'] .' vs '. $biome['biome']);
+                return $fullMap[$xpos][$ypos]['landType'] === $biome['biome'];
+            });
+            
+            // Not all biomes will have a civilization list associated to them. If not, we should pick another location
+            if($biomeList['civs']) {
+                $fullMap[$xpos][$ypos]['civ'] = $biomeList['civs']->cyclepull();
+            }else{
+                //reporterror('server/routes/signup.php->worldmap_generate()->civ generator',
+                //            'i'. $i .', @'. $xpos .'x'. $ypos .', biome '. $biomeList['name'] .' has no civ');
+                $i--;
+                continue;
+            }
+
+            // Some civilizations alter the biome they exist in. Let's do that now
+            if($fullMap[$xpos][$ypos]['civ'] == 'ice horrors') {
+                $fullMap[$xpos][$ypos]['landType'] = 'frozen wasteland';
+            }
+            if($fullMap[$xpos][$ypos]['civ'] == 'ork tribe') {
+                $fullMap[$xpos][$ypos]['landType'] = 'lavascape';
+            }
+
+            // All civilizations will have a strength value. We will also display abandoned civilizations.
+            // This range is currently from 0 to 3; I would like to eventually have civs expand to additional territories if it is strong enough
+            $fullMap[$xpos][$ypos]['civstrength'] = max(0, randomFloat()*4.5 -1.5);
+            //reporterror('server/routes/signup.php->worldmap_generate()->civ generator',
+            //            'i'. $i .', @'. $xpos .'x'. $ypos .' now has '. $fullMap[$xpos][$ypos]['civ'] .' at strength '. $fullMap[$xpos][$ypos]['civstrength']);
+        }
+        $time = (microtime(true) - $time) * 1000;
+        reporterror('server/routes/signup.php->worldmap_generate()->after civs', 'civ adds took time='. $time);
+
+        // We need to convert biome names to an ID, so it matches the indexing of other areas, including the database
         $fullMap = array_map(function($long) {
             return array_map(function($wide) {
-                global $worldBiomes;
-                $wide['landType'] = array_search($wide['landType'], $worldBiomes);
+                global $biomeData;
+                $wide['landType'] = array_search($wide['landType'], array_map(function($biome) {
+                    return $biome['biome']; // this gives us only a list of names
+                }, $biomeData));
                 return $wide;
             }, $long);
         }, $fullMap);
-        //reporterror('server/mapbuilder.php->worldmap_generate()->after landType update', 'Center  land type='. $fullMap[0][0]['landType']);
 
-        // Place down some civilizations. Civilization choices will be determined by land types, so we need to determine which
-        // biome we're at before deciding a civilization there
-        $civcount = floor(($mapsize * $mapsize) / $civdensity);
-        for($i=0; $i<$civcount; $i++) {
-            $xspot = rand($mapminx, $mapmaxx);
-            $yspot = rand($mapminy, $mapmaxy);
-            // First, make sure there isn't already a civilization here. If so, find a new place
-            if(isset($fullMap[$xspot][$yspot]['civ'])) {
-                $i--;
-            }else{
-                // Since civilizations are stored in order, we can use the land type value to select which list of civilizations
-                // to pick from, which will match the correct biome
-                $fullMap[$xspot][$yspot]['civ'] = $biomeData[$fullMap[$xspot][$yspot]['landType']]['civs']->cyclepull();
-                // Some civilizations can alter the biome they are in. Let's do that now
-                if($fullMap[$xspot][$yspot]['civ'] == 'ice horrors') {
-                    $fullMap[$xspot][$yspot]['landType'] = 7;//'frozen wasteland';
-                }
-                if($fullMap[$xspot][$yspot]['civ'] == 'ork tribe') {
-                    $fullMap[$xspot][$yspot]['landType'] = 6;//'lavascape';
-                }
-                // Also include a strength of this civilization. We want to display lots of abandoned civilization places, too
-                // Anything zero is considered abandoned, so the real range is from 0 to 3
-                $fullMap[$xspot][$yspot]['civstrength'] = max(0, randomFloat()*4.5-1.5);
-            }
-        }
+        // Ore types and their amount can be determined while saving our content
         
-        // Now we need to save this to the database.
-        // Rather than running 101x101 queries, we need to build this into a full string. This is the part where we add additional
-        // land parameters
-        // The first one will be the underground resource type, which can be any of the following:
-        // 0: Coal
-        // 1: Banded iron
-        // 2: Cassiterite (source of tin)
-        // 3: Chalcopyrite (source of copper)
-        // 4: Aluminum
-        // 5: Bauxite (aluminum and titanium - requires advanced tech to extract, though
-        // 6: Stibnite (sulfur-rich antimony)
-        // 7: Limonite (more iron)
-        // 8: Magnetite (iron used for magnets)
-        // 9: Lignite coal (yields less coal than regular)
-        // 10: Tin
-        // 11: Copper
-        // 12: Silicon
-        // 13: Lithium
-        // We may add more in the future. We may later decide to add a more balance-controlled random, but this will do for now.
-        // We also need to determine how much of that resource will be there. This will be a float value ranging from 0.5 to 2.
-        // We need to fit a value X between a range of 0.5 and 2.0. It starts out as between 0 and 1.
-        // x = (0 to 1) * 1.5
-        // x = (0 to 1.5) + 0.5
-        // x = (0.5 to 2.0)
-
-        // So, we have the data stored in a 2D array, but still need to insert one at a time
-        $comm = $db->prepare('INSERT INTO sw_map (x, y, biome, ugresource, ugamount, civilization, civlevel) VALUES (?,?,?,?,?,?,?);');
-        if(!$comm) {
-            reporterror('server/mapbuilder.php->worldmap_generate()->save map', 'query preparation failed');
-            return null;
-        }
+        // Saving this much data is challenging; saving each tile separately can take a very long time. But saving everything in one lump
+        // statement may be too large to save in one go. We will try a mix of the two methods
+        //$comm = $db->prepare('INSERT INTO sw_map (x,y,biome,ugresource,ugamount,civilization,civlevel) VALUES (?,?,?,?,?,?,?);');
         foreach($fullMap as $long) {
-            foreach($long as $wide) {
+            $adds = implode(',', array_map(function($tile) {
+                // Convert our object into a string, each with surrounding parenthesis
+                global $biomeData;
                 global $civData;
-                // We have a few variables left to determine. One is the civilization type, which is reduced to a number
-                $civ = -1;
-                $civLevel = 0;
-                if(isset($wide['civ'])) {
-                    // Before we can save, we need to convert our civ value to an int. Best to do that before returning a value...
-                    $civObj = JSFind($civData, function($civ) use ($wide) {
-                        return strtolower($civ['name']) === strtolower($wide['civ']);
-                    });
-                    if($civObj==null) {
-                        reporterror('server/mapbuilder.php->worldmap_generate()', 'Error: civilization '. $wide['civ'] .' not found');
-                    }else{
-                        $civ = $civObj['id'];
-                        $civLevel = $wide['civstrength'];
-                    }
-                }
-                $ugtype = rand(0,13);
-                $ugamt  = randomFloat()*1.5+0.5;
-                $comm->bind_param('iiiidid', $wide['x'], $wide['y'], $wide['landType'], $ugtype, $ugamt, $civ, $civLevel);
-                if(!$comm->execute()) {
-                    reporterror('server/mapbuilder.php->worldmap_generate()', 'Query execution failed. Mysql says '. mysqli_error($db));
-                    return null;
-                }        
+                global $oreTypes;
+
+                return '('.
+                    $tile['x'] .','.
+                    $tile['y'] .','.
+                    $tile['landType'] .','.
+                    rand(0,sizeof($oreTypes)-1) .','.
+                    (randomFloat()*1.5+0.5) .','.
+                    (isset($tile['civ'])?
+                        JSFindIndex($civData, function($civ) use ($tile) {
+                            if(strtolower($civ['name']) == strtolower($tile['civ'])) return true;
+                            return false;
+                        }) .','. $tile['civstrength']
+                    :('-1,0')) .')';
+            }, $long));
+            $result = $db->query("INSERT INTO sw_map (x,y,biome,ugresource,ugamount,civilization,civlevel) VALUES ". $adds .";");
+            if(!$result) {
+                reporterror('server/routes/signup.php->save world map', 'Worldmap save failed. Content='. $adds .', error='. $db->error);
+                ajaxreject('internal', 'There was an error when saving the world (map)');
             }
         }
     }
-    
+
+    function createWorkers($workerCount) {
+        // Creates new workers, each with a unique name and location on the local map.
+        // workerCount - how many workers to produce in this batch
+
+        // Workers all need unique IDs. And since workers will (eventually) be able to change local maps, they all need unique IDs across the
+        // map. So we'll use a global variable to hold that
+        $lastId = getGlobal('lastWorkerId');
+        if(is_null($lastId)) $lastId = 0;
+
+        $workers = forrange2($workerCount, function($v) use ($lastId) {
+            global $workerNames;
+            //$lastId = $lastId +1;
+            return [
+                'name'=>getRandomFrom($workerNames),
+                'id'=>$lastId +1 +$v,
+                'x'=>rand(0,40),
+                'y'=>rand(0,40),
+                'status'=>'idle',
+                'moveCounter'=>0,
+                'tasks'=>[],
+                'carrying'=>[]
+            ];
+        });
+
+        // With that done, we need to save the last used ID
+        setGlobal('lastWorkerId', $lastId+$workerCount);
+        return $workers;
+    }
 ?>
+
+

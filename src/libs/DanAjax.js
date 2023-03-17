@@ -6,7 +6,6 @@ export const DAX = {
     serverMessage: (content, includeUserData) => {
         // Handles building a message that is sent to the server.  This cleans up the repetitiveness of the code here, whenever
         // fetch calls are made
-        // command - action value to send to the server. Determines generally what the server will do for the client
         // content - any other data to send to the server with this request
         // includeUserData - Set to true if userdata should be provided with the message, or false if not.
 

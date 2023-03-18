@@ -3,18 +3,18 @@
 */
 
 // Lines count
-// src/app.js                          src/LocalMap.jsx                       server/libs/common.php             automationtree.md
-//     src/app.css                         src/libs/DraggableMap.jsx              server/libs/DanGlobal.php         wartree.md
-//        src/libs/DanCarousel.jsx             src/minimapTiles.jsx                  server/routes/autologin.php      worldgen.md
-//            src/libs/ShowBlog.jsx               server/config.php                     server/routes/getblog.php        workercrafting.md
-//               src/libs/DanAjax.js                server/finishLogin.php                 server/routes/log.php            tasklist.md
-//                  src/libs/DanLog.js                 server/globals.php                     server/routes/login.php
-//                     src/comp_account.jsx                server/libs/weightedRandom.php        server/routes/save.php
-//                         src/libs/DanInput.jsx               server/getInput.php                  server/routes/signup.php
-//                            src/libs/DanCommon.js               server/minimap.php                    resetgame.php
-//                               src/libs/ErrorOverlay.jsx            server/libs/jsarray.php              README.md
-//                                  src/game.jsx                          server/libs/clustermap.php          techtree.md
-// 241+39+120+96+48+38+229+65+74+68+67+111+177+72+8+37+283+127+33+223+230+141+307+37+33+38+35+41+22+320+21+44+58+12+8+53+11+14
+// src/app.js                          src/structures/LeanTo.jsx             server/libs/clustermap.php          techtree.md
+//     src/app.css                        src/LocalMap.jsx                       server/libs/common.php             automationtree.md
+//        src/libs/DanCarousel.jsx            src/libsDraggableMap.jsx               server/DanGlobal.php              wartree.md
+//            src/libs/ShowBlog.jsx               src/minimapTiles.jsx                  server/routes/autologin.php      worldgen.md
+//               src/libs/DanAjax.js                 server/config.php                     server/routes/getblog.php        workercrafting.md
+//                  src/libs/DanLog.js                 server/finishLogin.php                 server/routes/log.php            tasklist.md
+//                     src/comp_account.jsx               server/globals.php                     server/routes/login.php
+//                         src/libs/DanInput.jsx              server/libs/weithedRandom.php         server/routes/save.php
+//                            src/libs/DanCommon.js               server/getInput.php                  server/routes/signup.php
+//                               src/libs/ErrorOverlay.jsx           server/minimap.php                    resetgame.php
+//                                  src/game.jsx                         server/libs/jsarray.php              README.md
+// 241+39+120+96+48+38+229+65+74+68+88+43+111+179+72+8+37+283+127+33+223+230+141+307+37+33+38+35+41+22+320+21+44+58+12+8+53+11+14
 // 3/16/23: 3397 lines
 
 import "./App.css";

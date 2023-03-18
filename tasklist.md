@@ -2,7 +2,7 @@
 
 1.  Use Gimp to create a paper texture for showing the Blog on the front page. We can use new textures and effects as the game's tech progresses.
 2.  Do the fix for the Carousel, and see if that corrects the issue - which is, the setTimeout calls stop matching up with the normal running time variables when the user is looking at other webpages for a while. The fix for this is to switch to using the running time variables exclusively.
-3.  Get buildings to be placeable on the map again. We should allow for dragging and dropping fo buildings, as it is the most natural way to place them.
+3.  Start designing the new task management system.
 4.  Get the lean-to to declare a construction task automatically. Start designing the new task control system from here
     -   Tasks should automatically locate all items needed for its operation. Assume all tasks will need this to run, unless the lists are empty
     -   Tasks will only have two possible locations: at the structure's site, or at a location holding a target item

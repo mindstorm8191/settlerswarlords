@@ -16,7 +16,7 @@
     // We were including UG resource info here, but I think that shouldn't be shared with the client side until workers are able to begin mining
     $worldTile = DanDBList("SELECT id,biome,population,name,blocks,workers,unlockeditems,tasks,foodCounter FROM sw_map WHERE x=? AND y=?;",
                            'ii', [$playerx, $playery], 'server/finishLogin.php->get world map data')[0];
-    $localTiles = DanDBList("SELECT x,y,landtype,newlandtype,items FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
+    $localTiles = DanDBList("SELECT x,y,landtype,newlandtype,items,structureid FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
                             [$worldTile['id']], 'server/finishLogin.php->get local map tiles');
     die(json_encode([
         'result'=>'success',

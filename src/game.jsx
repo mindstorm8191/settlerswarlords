@@ -12,8 +12,45 @@ export const game = {
     structures: [], // all structures added to this map
     localMapBiome: '',
 
+        // Each structure needs a unique ID
+    lastStructureId: 0,
+    getNextStructureId: ()=>{
+        game.lastStructureId++;
+        return game.lastStructureId;
+    },
+
     structureTypes: [
-        {name: 'Lean-To', image:'leanto.png'}
+        {
+            name: 'Lean-To',
+            image:'leanto.png',
+            canBuild: (tile)=>{
+                // Returns true if this structure can be built here
+                // Any tile with trees in it will do
+                if(tile.newlandtype===-1) {
+                    if(tile.landtype>=5 && tile.landtype<=20) return '';
+                    return 'This must be placed on a tile with trees';
+                }
+                if(tile.newlandtype>=5 && tile.newlandtype<=20) return '';
+                return 'This must be placed on a tile with trees';
+            },
+            create: (tile)=>{
+                let b = {
+                    id: game.getNextStructureId(),
+                    x: tile.x,
+                    y: tile.y,
+                    name: 'Lean-To',
+                    descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
+                            for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
+                            on top, this is fast & easy to set up, but wont last long in the elements itself.`,
+                    usage: `Your workers must set this up. Once built, it will function for a few nights, then need to be rebuilt. Or you can
+                            repair it before it fails`,
+                    image: 'leanto.png',
+                    mode: 'build',
+                    activeTasks: []
+                };
+                return b;
+            }
+        }
     ],
 
     setup: (content) => {
@@ -62,7 +99,12 @@ export const game = {
     },
 
     start: ()=>{
-        // Gets the game started, making the game ticks happen at regular intervals
+        // A public function to get the game started, making the game ticks happen at regular intervals
+        game.tickTime = new Date().valueOf();
+        game.runState = 1;
+        game.timeout = setTimeout(function() {
+            window.requestAnimationFrame(game.tick);
+        }, 50);
     }
 };
 

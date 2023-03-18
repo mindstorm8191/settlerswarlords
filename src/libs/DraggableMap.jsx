@@ -130,10 +130,12 @@ export function DraggableMap(props) {
     const children = React.Children.toArray(props.children);
     const normalChildren = children.filter(c => {
         if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item
+        if(typeof(c.type)==='undefined') return true; // Normal text not contained in a DOM element should be treated as a DOM element
         return c.type.name !== 'FixedPositionChild';
     });
     const fixedChildren = children.filter(c => {
         if(typeof(c.type)==='string') return false; // This can't be one of the FixedPositionChild elements
+        if(typeof(c.type)==='undefined') return false;
         return c.type.name === 'FixedPositionChild';
     });
 

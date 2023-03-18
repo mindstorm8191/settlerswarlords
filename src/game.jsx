@@ -4,6 +4,7 @@
 */
 
 import { DanLog } from "./libs/DanLog.js";
+import { LeanTo } from "./structures/LeanTo.jsx";
 
 export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
@@ -20,37 +21,7 @@ export const game = {
     },
 
     structureTypes: [
-        {
-            name: 'Lean-To',
-            image:'leanto.png',
-            canBuild: (tile)=>{
-                // Returns true if this structure can be built here
-                // Any tile with trees in it will do
-                if(tile.newlandtype===-1) {
-                    if(tile.landtype>=5 && tile.landtype<=20) return '';
-                    return 'This must be placed on a tile with trees';
-                }
-                if(tile.newlandtype>=5 && tile.newlandtype<=20) return '';
-                return 'This must be placed on a tile with trees';
-            },
-            create: (tile)=>{
-                let b = {
-                    id: game.getNextStructureId(),
-                    x: tile.x,
-                    y: tile.y,
-                    name: 'Lean-To',
-                    descr: `Before food, even before water, one must find shelter from the elements. It is the first requirement for survival;
-                            for the elements, at their worst, can defeat you faster than anything else. Consisting of a downed branch with leaves
-                            on top, this is fast & easy to set up, but wont last long in the elements itself.`,
-                    usage: `Your workers must set this up. Once built, it will function for a few nights, then need to be rebuilt. Or you can
-                            repair it before it fails`,
-                    image: 'leanto.png',
-                    mode: 'build',
-                    activeTasks: []
-                };
-                return b;
-            }
-        }
+        LeanTo()
     ],
 
     setup: (content) => {
@@ -105,6 +76,14 @@ export const game = {
         game.timeout = setTimeout(function() {
             window.requestAnimationFrame(game.tick);
         }, 50);
+    },
+
+    tick: ()=>{
+        //Handles update to the local game world. This function should run about once every 50 ticks, or 20 times a second
+        if(game.runState===0) return; // Break the continuous cycle if the game has actually stopped
+
+        // Manage the workers
+        let hasWorkerUpdate = false;
     }
 };
 

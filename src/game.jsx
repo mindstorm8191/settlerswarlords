@@ -9,8 +9,12 @@ export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
     tiles: [], // all tiles of the local map
     workers: [], // all workers on this map
-    structuresList: [], // all structures added to this map
+    structures: [], // all structures added to this map
     localMapBiome: '',
+
+    structureTypes: [
+        {name: 'Lean-To', image:'leanto.png'}
+    ],
 
     setup: (content) => {
         // Sets up the game, using content received from the server
@@ -56,6 +60,10 @@ export const game = {
 
         game.workers = content.workers;
     },
+
+    start: ()=>{
+        // Gets the game started, making the game ticks happen at regular intervals
+    }
 };
 
 

@@ -3,18 +3,18 @@
 */
 
 // Lines count
-// src/app.js                           src/minimapTile.jsx                   server/libs/DanGlobal.php         wartree.md
-//     src/app.css                         src/game.jsx                          server/routes/autologin.php      worldgen.md
-//        src/libs/DanCarousel.jsx            server/config.php                     server/routes/getblog.php        workercrafting.md
-//            src/libs/ShowBlog.jsx             server/finishLogin.php                 server/routes/log.php            tasklist.md
-//               src/libs/DanAjax.js               server/globals.php                     server/routes/login.php
-//                  src/libs/DraggableMap.jsx          server/libs/weightedRandom.php        server/routes/save.php
-//                      src/libs/DanLog.js                 server/getInput.php                  server/routes/signup.php
-//                         src/comp_account.jsx               server/minimap.php                    resetgame.php
-//                             src/libs/DanInput.jsx              server/libs/jsarray.php              README.md
-//                                src/libs/DanCommon.js               server/libs/clustermap.php          techtree.md
-//                                   src/libs/ErrorOverlay.jsx            server/libs/common.php             automationtree.md
-// 342+39+120+96+49+177+38+229+65+74+68+72+58+8+37+283+127+33+223+230+141+307+37+33+38+35+41+22+320+21+44+58+12+8+53+11+14
+// src/app.js                          src/LocalMap.jsx                       server/libs/common.php             automationtree.md
+//     src/app.css                         src/libs/DraggableMap.jsx              server/libs/DanGlobal.php         wartree.md
+//        src/libs/DanCarousel.jsx             src/minimapTiles.jsx                  server/routes/autologin.php      worldgen.md
+//            src/libs/ShowBlog.jsx               server/config.php                     server/routes/getblog.php        workercrafting.md
+//               src/libs/DanAjax.js                server/finishLogin.php                 server/routes/log.php            tasklist.md
+//                  src/libs/DanLog.js                 server/globals.php                     server/routes/login.php
+//                     src/comp_account.jsx                server/libs/weightedRandom.php        server/routes/save.php
+//                         src/libs/DanInput.jsx               server/getInput.php                  server/routes/signup.php
+//                            src/libs/DanCommon.js               server/minimap.php                    resetgame.php
+//                               src/libs/ErrorOverlay.jsx            server/libs/jsarray.php              README.md
+//                                  src/game.jsx                          server/libs/clustermap.php          techtree.md
+// 241+39+120+96+48+38+229+65+74+68+67+111+177+72+8+37+283+127+33+223+230+141+307+37+33+38+35+41+22+320+21+44+58+12+8+53+11+14
 // 3/16/23: 3397 lines
 
 import "./App.css";
@@ -22,13 +22,12 @@ import React from "react";
 
 import { DanCarousel } from "./libs/DanCarousel.jsx";
 import { ShowBlog } from "./libs/ShowBlog.jsx";
-import { DraggableMap } from "./libs/DraggableMap.jsx";
 import { DAX } from "./libs/DanAjax.js";
 import { DanLog } from "./libs/DanLog.js";
 
 import { AccountBox, RegisterForm } from "./comp_account.jsx";
-import { minimapTiles } from "./minimapTiles.js";
 import { game } from "./game.jsx";
+import { LocalMap } from "./LocalMap.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
@@ -173,64 +172,6 @@ function App() {
             </div>
             {PickPage()}
         </div>
-    );
-}
-
-function LocalMap(props) {
-    // Displays the local map
-    // Prop fields - functions
-    //      onSave - called when the Save button is clicked
-
-    return (
-        <>
-            <div style={{ display: "flex", width: "100%" }}>
-                <span>Biome: {game.localMapBiome}</span>
-                <span style={{ marginLeft: 20 }}>Population: 4</span>
-            </div>
-            <div style={{ display: "flex", width: "100%" }}>
-                <div style={{ display: "block", width: 150 }}>
-                    <div>
-                        <span className="fakelink" onClick={() => props.onSave()}>
-                            Save
-                        </span>
-                    </div>
-                    Block Types
-                </div>
-                <DraggableMap style={{ width: "100vh", height: "calc(100vh - 185px)", touchAction: "none" }} threshhold={5}>
-                    {game.tiles.map((tile, key) => {
-                        // Determine what tile type to show. When new tiles are added we might not have an image, so that needs
-                        // to be checkedfirst.
-                        let targetTile = minimapTiles.find((e) => e.id === parseInt(tile.landtype));
-                        if (typeof targetTile === "undefined") {
-                            targetTile = "snow.png";
-                        } else {
-                            targetTile = targetTile.img;
-                        }
-
-                        // Check if there's a worker here
-                        let hasWorker = game.workers.some((wk) => {
-                            return parseInt(wk.x) === parseInt(tile.x) && parseInt(wk.y) === parseInt(tile.y);
-                        });
-
-                        return (
-                            <div
-                                key={key}
-                                className="localmaptile"
-                                style={{
-                                    top: tile.y * 42,
-                                    left: tile.x * 42,
-                                    backgroundImage: `url(${imageURL}localtiles/${targetTile})`,
-                                    border: "1px solid grey",
-                                }}
-                            >
-                                {/* Show contents of this tile. This is a multi-choice result */}
-                                {hasWorker === true ? <img src={imageURL + "worker.png"} alt="worker" /> : ""}
-                            </div>
-                        );
-                    })}
-                </DraggableMap>
-            </div>
-        </>
     );
 }
 

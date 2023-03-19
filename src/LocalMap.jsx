@@ -4,7 +4,7 @@
 */
 
 import React from "react";
-import { DraggableMap, FixedPositionChild } from "./libs/DraggableMap.jsx";
+import { DraggableMap, FixedPositionChild, clearDragFlag } from "./libs/DraggableMap.jsx";
 
 import { imageURL } from "./App.js";
 import { minimapTiles } from "./minimapTiles.js";
@@ -20,6 +20,7 @@ export function LocalMap(props) {
     //const [strSelected, setStrSelected] = React.useState(null); // which tile on the right is selected
     const [dragStructure, setDragStructure] = React.useState(null); // This will hold the structure (as 'selected') and the x&y coordinate of the mouse's last location
     const [errorText, setErrorText] = React.useState('');
+    const [tileSelected, setTileSelected] = React.useState(null);
 
     return (
         <div
@@ -88,6 +89,8 @@ export function LocalMap(props) {
                                     border: "1px solid grey",
                                 }}
                                 onMouseUp={(e) => {
+                                    // Handle dragging & dropping new structures this way. When an image is dropped here, we will only
+                                    // recieve a mouseUp event.
                                     if(dragStructure===null) return;
                                     if(tile.structureid!==0) {
                                         setErrorText('There is already a building here');
@@ -118,6 +121,13 @@ export function LocalMap(props) {
                                     tile.image = structure.image;
 
                                     setDragStructure(null);
+                                    setTileSelected(tile); // also select the tile once the structure is placed
+                                }}
+                                onClick={()=>{
+                                    // Start by checking the drag flag state. If it returns true, we just finished dragging the map
+                                    if(clearDragFlag()) return;
+
+                                    setTileSelected(tile);
                                 }}
                             >
                                 {/* Show contents of this tile. This is a multi-choice result */}
@@ -154,12 +164,56 @@ export function LocalMap(props) {
                         </FixedPositionChild>
                     )}
                 </DraggableMap>
+                <LocalMapRightPanel selected={tileSelected} />
             </div>
             {!(dragStructure===null)?(
                 <div style={{display:'block', position:'absolute', top:dragStructure.y-20, left:dragStructure.x-20, width:40, height:40, pointerEvents:'none'}}>
                     <img src={imageURL +"structures/"+ dragStructure.selected.image} alt={dragStructure.selected.name} draggable="false" />
                 </div>
             ):('')}
+        </div>
+    );
+}
+
+function LocalMapRightPanel(props) {
+    // Manages displaying the right panel of the local map, with whatever is needed to be shown there
+
+    if(props.selected===null) {
+        // Nothing is selected
+        return <div className="localmaprightpanel">Click a tile to view its details</div>;
+    }
+
+    let worker = game.workers.find(w=>w.x===props.selected.x && w.y===props.selected.y);
+
+    if(parseInt(props.selected.structureid)===0) {
+        // Nothing is built here. Show basic data about it
+        //<div id="localmaprightpanel">
+        let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
+        let tileData = minimapTiles.find(e=>e.id===landType);
+        if(typeof(tileData)==='undefined') {
+            return <div className="localmaprightpanel">Oops, there's no description for land type where id={landType}</div>;
+        }
+        return <div className="localmaprightpanel"><p>{tileData.desc}</p></div>;
+    }
+
+    // The default case; this is a tile with a structure on it
+    const structure = game.structures.find(e=>parseInt(e.id)===parseInt(props.selected.structureid));
+    if(typeof(structure)==='undefined') {
+        return <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>Error: Did not find building id={props.selected.structureid}</div>;
+    }
+    if(typeof(structure.SidePanel)==='undefined') {
+        return <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>Error: Block (type={structure.name}) missing SidePanel function</div>;
+    }
+
+    const SidePanel = structure.SidePanel;
+
+    //return <div className="localmaprightpanel">There's something here...</div>;
+    return (
+        <div className="localmaprightpanel" style={{width:300}}>
+            <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{structure.name}</div>
+            <p>{structure.descr}</p>
+            <p>{structure.usage}</p>
+            <SidePanel />
         </div>
     );
 }

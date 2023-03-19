@@ -35,7 +35,10 @@ export function LeanTo() {
                         repair it before it fails`,
                 image: 'leanto.png',
                 mode: 'build',
-                activeTasks: []
+                activeTasks: [],
+                SidePanel: ()=>{
+                    return <div>Mode: {b.mode}</div>;
+                }
             };
             return b;
         }

@@ -47,6 +47,10 @@ let dragStartY = 0;
 
 // I would have exported only the dragFlag, but Javascript seems unwilling to share simple variables. It'll have to be a function
 export function clearDragFlag() {
+    // Clears the current drag flag setting, and returns the last mode it was in.
+    // onClick() gets called whenever the cursor is lifted from the map, whether you were dragging the map around or not.
+    // If this returns true, the map was previously in a dragging state; you probably don't want to run your onClick() code if it was.
+    
     let lastValue = dragFlag;
     dragFlag = false;
     return lastValue;

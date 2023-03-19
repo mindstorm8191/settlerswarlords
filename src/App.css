@@ -30,6 +30,13 @@
     width: 100%;
 }
 
+#localmaprightpanel {
+    display: block;
+    /*width is set in the app, and is dependent on mobile mode */
+    background-color: white;
+    height: calc(100vh - 185px);
+}
+
 .localmaptile {
     display: block;
     position: absolute;
@@ -37,3 +44,5 @@
     height: 40px;
     cursor: pointer;
 }
+
+

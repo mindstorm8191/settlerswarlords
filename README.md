@@ -4,7 +4,11 @@ This game is a blend of an Idle game, a factory-builder and an MMO game. It is a
 
 ![Game Map](img/homepage_gameshot.png)
 
-Players will start the game with a piece of land, and 4 workers - nothing else. They will have to manage survival needs (food, shelter, warmth, safety, health) while building their technology from the land around them. The world will be fraught with dangers, some magical and unnatural, and also other players.
+Players will start the game with a piece of land, and 4 workers - nothing else. They will have to manage survival needs (food, shelter, warmth, safety, health) while building their technology from the land around them.
+
+![World Map](img/homepage_worldmap.png)
+
+The world will be fraught with dangers, some magical and unnatural, and also other players.
 
 I have learned a lot about early technology through working on this project (How do you mine without a pickaxe? Where does twine come from? How do you ferment wine?) I hope to, if nothing else, spark interest in the subject for others.
 
@@ -40,5 +44,6 @@ And additional information
 
 -   [World Gen](/worldgen.md)
 -   [Worker Crafting](/workercrafting.md)
+-   [Future Processes Planned]("/future processes.md")
 
 Currently, players can start playing the game, but there's only two structures available: the lean-to and forage post. I am still working on getting workers to accept tasks properly.

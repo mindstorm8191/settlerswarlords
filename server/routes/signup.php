@@ -328,7 +328,8 @@
                 'status'=>'idle',
                 'moveCounter'=>0,
                 'tasks'=>[],
-                'carrying'=>[]
+                'carrying'=>[],
+                'walkPath'=>''
             ];
         });
 

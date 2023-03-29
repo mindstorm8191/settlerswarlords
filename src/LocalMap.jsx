@@ -14,8 +14,12 @@ let errorTimeout = null;
 
 export function LocalMap(props) {
     // Displays the local map
+    // Prop fields - data
+    //      tiles - all tiles of the local map
+    //      workers - all workers on this map
     // Prop fields - functions
     //      onSave - called when the Save button is clicked
+    //      onTileUpdate - called when a tile has been updated
 
     //const [strSelected, setStrSelected] = React.useState(null); // which tile on the right is selected
     const [dragStructure, setDragStructure] = React.useState(null); // This will hold the structure (as 'selected') and the x&y coordinate of the mouse's last location
@@ -74,7 +78,7 @@ export function LocalMap(props) {
                         }
 
                         // Check if there's a worker here
-                        let hasWorker = game.workers.some((wk) => {
+                        let hasWorker = props.workers.some((wk) => {
                             return parseInt(wk.x) === parseInt(tile.x) && parseInt(wk.y) === parseInt(tile.y);
                         });
 
@@ -115,10 +119,17 @@ export function LocalMap(props) {
                                         return;
                                     }
                                     
+                                    // Now we're ready to actually add the structure
                                     let structure = dragStructure.selected.create(tile);
                                     game.structures.push(structure);
                                     tile.structureid = structure.id;
                                     tile.image = structure.image;
+                                    
+                                    // Look for a Construct task for this building
+                                    let buildTask = structure.tasks.find(task=>task.taskType==='construct');
+                                    if(typeof(buildTask)!=='undefined') {
+                                        console.log(game.createTask(structure, buildTask));
+                                    }
 
                                     setDragStructure(null);
                                     setTileSelected(tile); // also select the tile once the structure is placed

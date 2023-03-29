@@ -8,22 +8,33 @@
     Extrusive Igneous - Comes from lava, cools rapidly. May form smooth or jagged glass surfaces
     Sedimentary - Produced from sand and dusts smashed together
     Metamorphic - Comes from many rocks that are heated and crushed deep underground
+
+    Copper refining methods
+    Froth Flotation (most commonly used)
+        Crush ore into fine powder
+        Mix with water & chemicals to create a fine slurry
+        Blow air into the slurry to create bubbles. The copper attaches to the bubbles and floats to the surface.
+        Skim off the top froth and allow to dry
+    Electrorefining (purify already-extracted copper)
+        Electrolysis; use pure copper on cathode, impure copper on anode. With current, impurities from anode plate onto the cathode
+    Bioleaching: bacteria produces acids that dissolve the copper
 */
 
 // Lines count
-// src/app.js                          src/structures/LeanTo.jsx             server/libs/clustermap.php          techtree.md
-//     src/app.css                        src/LocalMap.jsx                       server/libs/common.php             automationtree.md
-//        src/libs/DanCarousel.jsx            src/libsDraggableMap.jsx               server/DanGlobal.php              wartree.md
-//            src/libs/ShowBlog.jsx               src/minimapTiles.jsx                  server/routes/autologin.php      worldgen.md
-//               src/libs/DanAjax.js                 server/config.php                     server/routes/getblog.php        workercrafting.md
-//                  src/libs/DanLog.js                 server/finishLogin.php                 server/routes/log.php            future processes.md
-//                     src/comp_account.jsx               server/globals.php                     server/routes/login.php          tasklist.md
-//                         src/libs/DanInput.jsx              server/libs/weightedRandom.php        server/routes/save.php
-//                            src/libs/DanCommon.js               server/getInput.php                  server/routes/signup.php
-//                               src/libs/ErrorOverlay.jsx           server/minimap.php                    resetgame.php
-//                                  src/game.jsx                         server/libs/jsarray.php              README.md
-// 241+39+120+96+48+38+229+65+74+68+88+43+165+179+72+8+37+283+127+33+223+230+141+307+37+33+38+35+41+22+320+21+44+58+12+8+53+11+30+14
+// src/app.js                           src/structures/LeanTo.jsx             server/libs/clustermap.php          techtree.md
+//     src/app.css                         src/LocalMap.jsx                       server/libs/common.php             automationtree.md
+//        src/libs/DanCarousel.jsx             src/libs/DraggableMap.jsx              server/DanGlobal.php              wartree.md
+//            src/libs/ShowBlog.jsx                src/minimapTiles.jsx                  server/routes/autologin.php      worldgen.md
+//               src/libs/DanAjax.js                  server/config.php                     server/routes/getblog.php        workercrafting.md
+//                  src/libs/DanLog.js                  server/finishLogin.php                 server/routes/log.php            future processes.md
+//                     src/comp_account.jsx                server/globals.php                     server/routes/login.php          tasklist.md
+//                         src/libs/DanInput.jsx               server/libs/weightedRandom.php        server/routes/save.php
+//                            src/libs/DanCommon.js                server/getInput.php                  server/routes/signup.php
+//                               src/libs/ErrorOverlay.jsx            server/minimap.php                    resetgame.php
+//                                  src/game.jsx                          server/libs/jsarray.php              README.md
+// 259+46+120+96+48+38+229+65+74+68+198+63+226+183+72+8+37+283+127+33+223+230+141+307+37+33+38+35+41+44+340+21+49+58+12+8+53+11+30+14
 // 3/16/23: 3397 lines
+// 3/23/23: 3998 lines
 
 import "./App.css";
 import React from "react";
@@ -44,6 +55,8 @@ function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
+
+    const [localWorkers, setLocalWorkers] = React.useState([]);
 
     // Manage startup processes, including auto-login
     React.useEffect(() => {
@@ -75,7 +88,7 @@ function App() {
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        game.setup(pack);
+        game.setup(pack, setLocalWorkers);
 
         setPage("LocalMap");
     }
@@ -161,7 +174,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap onSave={onSave} />;
+                return <LocalMap workers={localWorkers} onSave={onSave} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }

@@ -35,7 +35,24 @@ export function LeanTo() {
                         repair it before it fails`,
                 image: 'leanto.png',
                 mode: 'build',
-                activeTasks: [],
+                activeTasks: [],  // why do we need whole tasks here? Just store the IDs, we can look them up as needed
+                tasks: [
+                    {
+                        name: 'Build',
+                        desc: 'Build this lean-to structure',
+                        taskType: 'construct',
+                        workLocation: 'structure', //workAtStructure: true,
+                        itemsNeeded: [],
+                        outputItems: [],
+                        buildTime: (20*90*1.5), // 1.5 minutes
+                        onComplete: ()=>{
+                            // Determines what happens when the task is completed. Not all tasks will include this attribute
+                            b.mode = 'inuse';
+                            b.progressBar = (20*60*20); // 20 minutes
+                        }
+                    }
+                ],
+
                 SidePanel: ()=>{
                     return <div>Mode: {b.mode}</div>;
                 }

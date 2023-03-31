@@ -115,6 +115,8 @@ function App() {
                 // remove unneeded fields
                 delete u.modified;
                 delete u.image;
+                delete u.landtype; // we won't need to send this either, since it will never change
+
                 // items in tasks needs their task links converted to a task ID
                 u.items = u.items.map((i) => {
                     if (i.inTask === 0) {
@@ -147,7 +149,16 @@ function App() {
         // Now we can send the actual save-game message. This manages everything except the tile content
         let pack = {
             workers: game.workers,
-            structures: [],
+            structures: game.structures.map((st) => {
+                return {
+                    id: st.id,
+                    name: st.name,
+                    x: st.x,
+                    y: st.y,
+                    activeTasks: st.activeTasks,
+                    ...st.onSave(),
+                };
+            }),
             tasks: [],
             unlockeditems: [],
         };

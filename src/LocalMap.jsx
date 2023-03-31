@@ -124,11 +124,12 @@ export function LocalMap(props) {
                                     game.structures.push(structure);
                                     tile.structureid = structure.id;
                                     tile.image = structure.image;
+                                    tile.modified = true;
                                     
                                     // Look for a Construct task for this building
                                     let buildTask = structure.tasks.find(task=>task.taskType==='construct');
                                     if(typeof(buildTask)!=='undefined') {
-                                        console.log(game.createTask(structure, buildTask));
+                                        //console.log(game.createTask(structure, buildTask));
                                     }
 
                                     setDragStructure(null);

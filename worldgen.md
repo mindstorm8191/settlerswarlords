@@ -32,19 +32,33 @@ Mining will be filled with many dangers. Mining workers will need light at all t
 
 The world map will have various types of biomes, which affects the tile sets available in the local map for that tile. The existing biome types are:
 
--   Plains
--   Forests
--   Desert
+-   Plains (temperate, moderate-dry, normal)
+-   Forests (temperate, moderate-wet, normal)
+-   Desert (hot, dry, barren)
 -   Swamp
 -   Water
 -   Jungle
 -   Lavascape (this doesn't generate naturally, but is selected if the civilization type for that tile is Ork Tribe)
 -   Frozen Waste (this doesn't generate naturally, but is selected if the civilization type for that tile is Ice Horrors)
-    Additional biome types can be added as well; we may include mixed-class biomes, such as part-plains part-forest, or other more exotic biome types.
+
+Additional biome types can be added as well; we may include mixed-class biomes, such as part-plains part-forest, or other more exotic biome types. I would also like to incorporate hot / cold, wet / dry biome ranges into this, and possibly barren / lush and blighted / enchanted biome ranges as well. It could be viewed as a 4D terrain selection map
+
+-   Hot, wet, barren, blighted: Goblin territories
+-   Hot, wet, barren, normal: Steam-pitted scape
+-   Hot, wet, barren, enchanted: Magical fire towers
+-   Hot, wet, normal, blighted: tainted lands
+-   Hot, wet, normal, normal: light jungle
+-   Hot, wet, normal, enchanted:
+-   Hot, wet, lush, blighted: terribly tainted lands
+-   Hot, wet, lush, normal: heavy jungle
+-   Hot, wet, lush, enchanted:
+-   Hot, damp, barren, blighted:
+
+There should be a total of 3x3x4x4=144 different biomes, this way
 
 ## Civilizations
 
-Non-player civilizations will be spread randomly across the map. I already have many types available. Currently the only difference between each type is the biomes they appear in, and how hostile they are to newcomers. Later (once I can actually write relevant code for them) players will be able to trade with them for certain goods, some of which are only available through trade.
+Non-player civilizations will be spread randomly across the map. I already have many types available, listed [here](server/globals.php). Currently the only difference between each type is the biomes they appear in, and how hostile they are to newcomers. Later (once I can actually write relevant code for them) players will be able to trade with them for certain goods, some of which are only available through trade.
 
 The range of hostility to new players will have a major impact on how easily their map tiles can be explored. Friendly civilizations will invite explorers to trade with them, even sending explorers home with gifts. Hostile civilizations will kill any explorers they are able to, and can only be approached with an army of considerable size (or technology)
 

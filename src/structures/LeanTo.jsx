@@ -35,6 +35,7 @@ export function LeanTo() {
                         repair it before it fails`,
                 image: 'leanto.png',
                 mode: 'build',
+                progress: 0,
                 activeTasks: [],  // why do we need whole tasks here? Just store the IDs, we can look them up as needed
                 tasks: [
                     {
@@ -55,6 +56,14 @@ export function LeanTo() {
 
                 SidePanel: ()=>{
                     return <div>Mode: {b.mode}</div>;
+                },
+
+                onSave: ()=>{
+                    // Returns data related specifically to this structure
+                    return {
+                        mode: b.mode,
+                        progress: 0
+                    };
                 }
             };
             return b;

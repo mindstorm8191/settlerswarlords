@@ -72,7 +72,7 @@ export const game = {
         // denote any tiles that have been modified.
         game.tiles = content.localTiles.map((t) => {
             let source = JSON.parse(t.items);
-            let items = [];
+            let items = []; // Right now, items only have a name - nothing else
             for (let x = 0; x <= source.length - 1; x++) {
                 if (typeof source[x].amount !== "undefined") {
                     let count = source[x].amount;
@@ -84,6 +84,11 @@ export const game = {
                     items.push(source[x]);
                 }
             }
+            // Make sure all items have an inTask property
+            items = items.map(i=>{
+                if(typeof(i.inTask)==='undefined') i.inTask = 0;
+                return i;
+            });
             return { ...t, items: items, modified: false };
         });
 

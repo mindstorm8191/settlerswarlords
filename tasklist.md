@@ -2,7 +2,7 @@
 
 1.  Use Gimp to create a paper texture for showing the Blog on the front page. We can use new textures and effects as the game's tech progresses.
 2.  Do the fix for the Carousel, and see if that corrects the issue - which is, the setTimeout calls stop matching up with the normal running time variables when the user is looking at other webpages for a while. The fix for this is to switch to using the running time variables exclusively.
-3.  Save the existing structures (only the lean-to) and ensure it can be loaded again
+3.  Get the existing structures to be loaded back onto the map
 4.  Save the existing tasks and ensure they can be loaded again. This may require preventing workers from gaining tasks, momentarily
 5.  Save existing workers, even when they have tasks assigned to them.
 6.  Get workers to complete work when they reach their destination

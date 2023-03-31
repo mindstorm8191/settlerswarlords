@@ -92,6 +92,24 @@ export const game = {
             return { ...t, items: items, modified: false };
         });
 
+        let lastStructureId = 0;
+        if(content.structures!==null) {
+            game.structures = content.structures.map(st=>{
+                // Setting up structures will take quite a bit more to do correctly. First, find the tile the structure should be
+                // placed on
+                let tile = game.tiles.find(t=>st.x===t.x && st.y===t.y);
+                let build = game.structureTypes.find(structureType=>structureType.name===st.name).create(tile);
+                tile.image = build.image;
+                build.id = st.id;
+                build.activeTasks = st.activeTasks;
+                build.onLoad(st);
+
+                if(st.id>lastStructureId) lastStructureId = st.id;
+                return build;
+            });
+            game.lastStructureId = lastStructureId;
+        }
+
         game.workers = content.workers; // the server already creates a tasks list for workers
         game.updateWorkers = funcUpdateWorkers;
         game.updateWorkers(game.workers);

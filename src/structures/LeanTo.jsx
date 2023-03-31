@@ -64,6 +64,10 @@ export function LeanTo() {
                         mode: b.mode,
                         progress: 0
                     };
+                },
+                onLoad: (pack) =>{
+                    b.mode = pack.mode;
+                    b.progress = pack.progress;
                 }
             };
             return b;

@@ -12,6 +12,11 @@ import { game } from "./game.jsx";
 
 let errorTimeout = null;
 
+let itemStats = [
+    {name:'Maple Tree', img:'mapletree.png', desc:'A maple tree, still growing'},
+    {name:'Fallen Log', img:'fallenlog.png', desc:'A rotten log, decaying on the ground'}
+];
+
 export function LocalMap(props) {
     // Displays the local map
     // Prop fields - data
@@ -199,13 +204,18 @@ function LocalMapRightPanel(props) {
 
     if(parseInt(props.selected.structureid)===0) {
         // Nothing is built here. Show basic data about it
-        //<div id="localmaprightpanel">
         let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
         let tileData = minimapTiles.find(e=>e.id===landType);
         if(typeof(tileData)==='undefined') {
             return <div className="localmaprightpanel" style={{width:300}}>Oops, there's no description for land type where id={landType}</div>;
         }
-        return <div className="localmaprightpanel" style={{width:300}}><p>{tileData.desc}</p></div>;
+        return (
+            <div className="localmaprightpanel" style={{width:300}}>
+                <p>{tileData.desc}</p>
+                <p className="singleline" style={{fontWeight:'bold'}}>Items:</p>
+                <ListItems items={props.selected.items} />
+            </div>
+        );
     }
 
     // The default case; this is a tile with a structure on it
@@ -218,14 +228,45 @@ function LocalMapRightPanel(props) {
     }
 
     const SidePanel = structure.SidePanel;
-
-    //return <div className="localmaprightpanel">There's something here...</div>;
     return (
         <div className="localmaprightpanel" style={{width:300}}>
             <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{structure.name}</div>
             <p>{structure.descr}</p>
             <p>{structure.usage}</p>
             <SidePanel />
+        </div>
+    );
+}
+
+function ListItems(props) {
+    // Displays a list of items from a provided list, grouping 
+    // prop fields - data
+    //      items - array of items to display. This assumes identical items are not grouped together
+
+    let list = [];
+    for(let i=0; i<props.items.length; i++) {
+        let slot = list.findIndex(l=>l.name===props.items[i].name);
+        if(slot===-1) {
+            // Show a picture with this item too, if we have one
+            let stats = itemStats.find(stat=>stat.name===props.items[i].name);
+            if(typeof(stats)!=='undefined' && stats.img!=='') {
+                list.push({name: props.items[i].name, qty: 1, img:stats.img});
+            }else{
+                list.push({name: props.items[i].name, qty: 1, img:'unknown.png'});
+            }
+        }else{
+            list[slot].qty++;
+        }
+    }
+
+    return (
+        <div>
+            {list.map((item,key)=>(
+                <p className="singleline" key={key}>
+                    <img src={imageURL +"items/"+ item.img} alt={item.name} />
+                    {item.name} x{item.qty}
+                </p>
+            ))}
         </div>
     );
 }

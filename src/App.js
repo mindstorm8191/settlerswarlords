@@ -32,7 +32,7 @@
 //                            src/libs/DanCommon.js                server/libs/jsarray.php              server/libs/DanGlobal.php         tasklist.md
 //                               src/libs/ErrorOverlay.jsx             server/getInput.php                 server/libs/clustermap.php
 //                                  src/game.jsx                          server/finishLogin.php               server/minimap.php
-// 273+46+120+96+48+38+229+65+74+68+216+200+72+76+231+183+33+8+307+230+33+37+282+127+38+35+41+76+76+340+37+141+223+21+49+58+12+8+67+11+30+18
+// 273+46+120+96+48+38+229+65+74+68+226+200+72+76+231+183+33+8+307+230+33+37+282+127+38+35+41+76+76+340+37+141+223+21+49+58+12+8+67+11+30+18
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines

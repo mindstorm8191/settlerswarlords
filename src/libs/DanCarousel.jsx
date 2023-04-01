@@ -56,7 +56,7 @@ export function DanCarousel(props) {
             carouselRootTimeout = null;
         }
     }, []);
-
+    
     function CarouselFlip() {
         setMode((mode) => 1 - mode);
         if (othermode === 0) {

@@ -6,7 +6,7 @@
 import { DanLog } from "./libs/DanLog.js";
 import { DanCommon } from './libs/DanCommon.js';
 
-import { minimapTiles } from './minimapTiles.js';
+import { createWorker } from "./worker.jsx";
 import { LeanTo } from "./structures/LeanTo.jsx";
 
 export const game = {
@@ -110,12 +110,48 @@ export const game = {
             game.lastStructureId = lastStructureId;
         }
 
-        game.workers = content.workers; // the server already creates a tasks list for workers
+        game.workers = [];
+        for(let i=0; i<content.workers.length; i++) {
+            createWorker(content.workers[i]);
+        }
+        
+        // With workers complete, we can create all the tasks
+        if(content.tasks!==null) {
+            game.tasks = content.tasks.map(task => {
+                // We need to tie references to their actual objects, here
+                if(task.building!==0) {
+                    let building = game.structures.find(b=>b.id===task.building);
+                    task.building = building.id;
+                    // We don't need to reference the other way, since buildings only keep task IDs. But we do need to assign the
+                    // root task to this task
+                    task.task = building.tasks.find(t=>t.name===task.name);
+                }else{
+                    console.log('This task does not have a building associated to it');
+                }
+                if(task.worker!==0) {
+                    let worker = game.workers.find(w=>w.id===task.worker);
+                    task.worker = worker;
+                    let taskSlot = worker.tasks.findIndex(t=>t===task.id);
+                    worker.tasks[taskSlot] = task;
+                    //console.log(worker.name +' got assigned task id='+ task.id);
+                }else{
+                    console.log('This task does not have a worker associated to it');
+                }
+                if(task.targetx===-1) task.targetx = null;
+                if(task.targety===-1) task.targety = null;
+                return task;
+            });
+        }
+
         game.updateWorkers = funcUpdateWorkers;
-        game.updateWorkers(game.workers);
+
+        console.log(game.workers);
 
         // Now we're ready to start up the game
         game.start();
+        game.updateWorkers(game.workers);
+
+        window.game = game;  // This allows us to access the Game object from the console log. Very helpful for debugging
     },
 
     start: ()=>{
@@ -134,7 +170,7 @@ export const game = {
         // Manage the workers
         let hasWorkerUpdate = false;
         for(let i=0; i<game.workers.length; i++) {
-            hasWorkerUpdate ||= updateWorker(game.workers[i]);
+            hasWorkerUpdate ||= game.workers[i].tick();   //updateWorker(game.workers[i]);
         }
         if(hasWorkerUpdate) game.updateWorkers([...game.workers]);
 
@@ -157,6 +193,7 @@ export const game = {
         //  task - class details to generate a task instance from
 
         // All tasks start without a worker assigned to it; it will be assigned later
+        console.log(task);
 
         // Task location depends on settings in the task
         let targetx = null;
@@ -188,6 +225,7 @@ export const game = {
     }
 };
 
+/*
 function updateWorker(worker) {
     // Handles updating a worker.
     // Returns true if the worker's location has changed, or false if not. This is used to determine if the map needs to be re-rendered
@@ -365,6 +403,6 @@ function moveWorker(worker, callback) {
     worker.walkPath = worker.walkPath.substring(1);
 
     return true;
-}
+}*/
 
 

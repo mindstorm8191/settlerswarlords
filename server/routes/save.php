@@ -32,7 +32,7 @@
             ['name'=>'x',           'required'=>true, 'format'=>'int'],
             ['name'=>'y',           'required'=>true, 'format'=>'int'],
             ['name'=>'status',      'required'=>true, 'format'=>'stringnotempty'],
-            ['name'=>'moveCounter', 'required'=>true, 'format'=>'int'],
+            ['name'=>'moveCounter', 'required'=>true, 'format'=>'float'],
             ['name'=>'tasks',       'required'=>true, 'format'=>'arrayOfInts'],
             ['name'=>'carrying',    'required'=>true, 'format'=>'array'],
             ['name'=>'walkPath',    'required'=>true, 'format'=>'string']
@@ -57,6 +57,21 @@
         }
     });
 
+    JSEvery($con['tasks'], function($task) {
+        verifyInput($task, [
+            ['name'=>'id',       'required'=>true, 'format'=>'posint'],
+            ['name'=>'building', 'required'=>true, 'format'=>'int'],
+            ['name'=>'name',        'required'=>true, 'format'=>'stringnotempty'],
+            ['name'=>'status',      'required'=>true, 'format'=>'stringnotempty'],
+            ['name'=>'taskType',    'required'=>true, 'format'=>'stringnotempty'],
+            ['name'=>'worker',      'required'=>true, 'format'=>'int'],
+            ['name'=>'targetx',     'required'=>true, 'format'=>'int'],
+            ['name'=>'targety',     'required'=>true, 'format'=>'int'],
+            ['name'=>'itemsTagged', 'required'=>true, 'format'=>'array'],
+            ['name'=>'progress',    'required'=>true, 'format'=>'int']
+        ], 'server/routes/save.php->verify tasks');
+    });
+
     // Now, verify the user
     $res = DanDBList("SELECT * FROM sw_player WHERE id=? AND ajaxcode=?;", 'ii', [$con['userid'], $con['ajaxcode']],
                      'server/routes/save.php->get player record');
@@ -67,8 +82,8 @@
     $player = $res[0];  // This will tell us which worldmap tile to update
 
     // Update everything in the worldmap tile, in one go
-    DanDBList("UPDATE sw_map SET workers=?, structures=? WHERE x=? AND y=?;", 'ssii',
-        [json_encode($con['workers']), json_encode($con['structures']), $player['currentx'], $player['currenty']],
+    DanDBList("UPDATE sw_map SET workers=?, structures=?, tasks=? WHERE x=? AND y=?;", 'sssii',
+        [json_encode($con['workers']), json_encode($con['structures']), json_encode($con['tasks']), $player['currentx'], $player['currenty']],
     'routes/save.php->save map content');
 
     // With that done, the server can go back to... wait, what does a server do when it's not doing work???

@@ -21,18 +21,18 @@
 */
 
 // Lines count
-// src/app.js                           src/structures/LeanTo.jsx            server/libs/weightedRandom.php       README.md
-//     src/app.css                         src/LocalMap.jsx                      server/routes/getblog.php           techtree.md
-//        src/libs/DanCarousel.jsx             src/libs/DraggableMap.jsx            server/routes/log.php               automationtree.md
-//            src/libs/ShowBlog.jsx                src/minimapTiles.jsx                server/routes/login.php             wartree.md
-//               src/libs/DanAjax.js                  server/roues/autologin.php          server/routes/save.php             worldgen.md
-//                  src/libs/DanLog.js                   server/config.php                   server/routes/savetiles.php        workercrafting.md
-//                     src/comp_account.jsx                server/libs/common.php               server/routes/signup.php           future processes.md
-//                         src/libs/DanInput.jsx               server/libs/jsarray.php              server/libs/DanGlobal.php         tasklist.md
-//                            src/libs/DanCommon.js                server/getInput.php                 server/libs/clustermap.php
-//                               src/libs/ErrorOverlay.jsx            server/finishLogin.php              server/minimap.php
-//                                  src/game.jsx                         server/globals.php                    resetgame.php
-// 273+46+120+96+48+38+229+65+74+68+350+72+231+183+72+33+8+307+230+33+37+282+127+38+35+41+76+76+340+37+141+223+21+49+58+12+8+67+11+30+18
+// src/app.js                           src/worker.jsx                       server/globals.php                    resetgame.php
+//     src/app.css                          src/minimapTiles.jsx                 server/libs/weightedRandom.php       README.md
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/routes/getblog.php           techtree.md
+//            src/libs/ShowBlog.jsx               src/LocalMap.jsx                      server/routes/log.php               automationtree.md
+//               src/libs/DanAjax.js                  src/libs/DraggableMap.jsx            server/routes/login.php             wartree.md
+//                  src/libs/DanLog.js                    server/routes/autologin.php         server/routes/save.php             worldgen.md
+//                     src/comp_account.jsx                  server/config.php                   server/routes/savetiles.php        workercrafting.md
+//                         src/libs/DanInput.jsx               server/common.php                    server/routes/signup.php           future processes.md
+//                            src/libs/DanCommon.js                server/libs/jsarray.php              server/libs/DanGlobal.php         tasklist.md
+//                               src/libs/ErrorOverlay.jsx             server/getInput.php                 server/libs/clustermap.php
+//                                  src/game.jsx                          server/finishLogin.php               server/minimap.php
+// 273+46+120+96+48+38+229+65+74+68+216+200+72+76+231+183+33+8+307+230+33+37+282+127+38+35+41+76+76+340+37+141+223+21+49+58+12+8+67+11+30+18
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -149,7 +149,11 @@ function App() {
 
         // Now we can send the actual save-game message. This manages everything except the tile content
         let pack = {
-            workers: game.workers,
+            workers: game.workers.map((w) => {
+                // All tasks attached to this worker must be converted to an id
+                // We must also avoid modifying the existing worker, so we will return a new object here
+                return { ...w, tasks: w.tasks.map((t) => t.id) };
+            }),
             structures: game.structures.map((st) => {
                 return {
                     id: st.id,
@@ -160,7 +164,21 @@ function App() {
                     ...st.onSave(),
                 };
             }),
-            tasks: [],
+            tasks: game.tasks.map((task) => {
+                console.log(task);
+                return {
+                    id: task.id,
+                    building: task.building === null ? 0 : task.building.id,
+                    name: task.task === null ? "none" : task.task.name,
+                    status: task.status,
+                    taskType: task.taskType,
+                    worker: task.worker === null ? 0 : task.worker.id,
+                    targetx: task.targetx === null ? -1 : task.targetx,
+                    targety: task.targety === null ? -1 : task.targety,
+                    itemsTagged: [], // this needs to be worked out, but we currently don't have any items for tasks at all
+                    progress: task.progress,
+                };
+            }),
             unlockeditems: [],
         };
         //DanLog.add("src/App.js->onSave()->before first message", "load-save", { note: "ready to send:", ...pack });

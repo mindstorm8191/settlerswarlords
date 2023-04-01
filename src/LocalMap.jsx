@@ -129,7 +129,7 @@ export function LocalMap(props) {
                                     // Look for a Construct task for this building
                                     let buildTask = structure.tasks.find(task=>task.taskType==='construct');
                                     if(typeof(buildTask)!=='undefined') {
-                                        //console.log(game.createTask(structure, buildTask));
+                                        game.createTask(structure, buildTask);
                                     }
 
                                     setDragStructure(null);
@@ -192,7 +192,7 @@ function LocalMapRightPanel(props) {
 
     if(props.selected===null) {
         // Nothing is selected
-        return <div className="localmaprightpanel">Click a tile to view its details</div>;
+        return <div className="localmaprightpanel" style={{width:300}}>Click a tile to view its details</div>;
     }
 
     let worker = game.workers.find(w=>w.x===props.selected.x && w.y===props.selected.y);
@@ -203,9 +203,9 @@ function LocalMapRightPanel(props) {
         let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
         let tileData = minimapTiles.find(e=>e.id===landType);
         if(typeof(tileData)==='undefined') {
-            return <div className="localmaprightpanel">Oops, there's no description for land type where id={landType}</div>;
+            return <div className="localmaprightpanel" style={{width:300}}>Oops, there's no description for land type where id={landType}</div>;
         }
-        return <div className="localmaprightpanel"><p>{tileData.desc}</p></div>;
+        return <div className="localmaprightpanel" style={{width:300}}><p>{tileData.desc}</p></div>;
     }
 
     // The default case; this is a tile with a structure on it

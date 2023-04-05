@@ -28,7 +28,7 @@ export function createWorker(pack) {
         x: pack.x,
         y: pack.y,
         status: pack.status,
-        moveCounter: pack.moveConter,
+        moveCounter: pack.moveCounter,
         tasks: pack.tasks,      // This needs to be converted to the actual task instance, but tasks are loaded after workers; it will be converted then
         carrying: pack.carrying,
         walkPath: pack.walkPath,
@@ -57,7 +57,33 @@ export function createWorker(pack) {
 
             // Now manage worker movement
             return w.move(()=>{
-                console.log('Do task '+ w.tasks[0].task.name);
+                //console.log('Do task '+ w.tasks[0].task.name);
+                switch(w.tasks[0].taskType) {
+                    case 'construct': case 'craft':
+                        // The worker only needs to build something here. Have them make progress until it is complete
+                        w.tasks[0].progress++;
+                        if(w.tasks[0].progress>=w.tasks[0].task.buildTime) {
+                            // This task is now complete. Call the onComplete function
+                            w.tasks[0].task.onComplete();
+
+                            // We might need to craft more than one item. If so, start that process now
+                            if(w.tasks[0].quantity>1) {
+                                w.tasks[0].quantity--;
+                                w.tasks[0].progress = 0;
+                            }else{
+                                game.deleteTask(w.tasks[0]);
+                                console.log('Task is complete!');
+                            }
+                        }else{
+                            if(typeof(w.tasks[0].task.onProgress)==='undefined') {
+                                // This has no onProgress function. Call the building's update command instead
+                                w.tasks[0].building.update(w.tasks[0].progress);
+                            }else{
+                                w.tasks[0].task.onProgress(w.tasks[0].progress);
+                            }
+                        }
+                    break;
+                }
             });
         },
 
@@ -200,3 +226,5 @@ export function createWorker(pack) {
     game.workers.push(w);
     //return w;
 }
+
+

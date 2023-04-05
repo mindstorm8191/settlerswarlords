@@ -8,11 +8,13 @@ import { DanCommon } from './libs/DanCommon.js';
 
 import { createWorker } from "./worker.jsx";
 import { LeanTo } from "./structures/LeanTo.jsx";
+import { RockKnapper } from "./structures/RockKnapper.jsx";
 
 export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
     tiles: [], // all tiles of the local map
     workers: [], // all workers on this map
+    unlockedItems: [], // All items that have become accessible in this location
     updateWorkers: null, // references React's setLocalWorkers function. Gets updated on game setup
     structures: [], // all structures added to this map
     localMapBiome: '',
@@ -32,7 +34,8 @@ export const game = {
     },
 
     structureTypes: [
-        LeanTo()
+        LeanTo(),
+        RockKnapper()
     ],
 
     setup: (content, funcUpdateWorkers) => {
@@ -121,7 +124,7 @@ export const game = {
                 // We need to tie references to their actual objects, here
                 if(task.building!==0) {
                     let building = game.structures.find(b=>b.id===task.building);
-                    task.building = building.id;
+                    task.building = building;
                     // We don't need to reference the other way, since buildings only keep task IDs. But we do need to assign the
                     // root task to this task
                     task.task = building.tasks.find(t=>t.name===task.name);
@@ -187,10 +190,61 @@ export const game = {
         }, 50 - timeDiff);
     },
 
-    createTask: (building, task)=>{
+    createItem: (name, itemGroup, extras) => {
+        // Creates a new item, returning it. New items are added to the unlock list (if not already in it). Other game features may unlock
+        // from new items, as well
+        // name - name of the item
+        // itemGroup - what type of object it is. Pick between: item, tool, food, dust, liquid, gas
+        // itemExtras - extra fields based on what type of item it is
+        //      endurance (as float): for tools, determines how long this item will last, in game ticks
+        //      efficiency (as float): for tools, determines how fast this item completes work
+        //      lifetime (as int): for food, how long (in ticks) this food will last. Ideally, this will only be checked before the food
+        //          is used / found; the food won't be discarded until then
+        //      temperature (as float): for food, liquid & gasses. How hot this item is.
+        //      pressure (as float): for gasses, how much pressure this gas is under, in storage
+        // Returns the completed item
+
+        // First, check if this name is in the unlocked list.
+        game.checkUnlocks(name);
+
+        return {name:name, group:itemGroup, inTask:0, ...extras};
+    },
+
+    checkUnlocks: (itemName) => {
+        // Adds new items to the Unlocks list. Also determines if any existing buildings will become unlocked with a specific item
+
+        // See if the item is already in the list. Don't add it again
+        if(game.unlockedItems.some(i=>i===itemName)) return;
+        game.unlockedItems.push(itemName);
+
+        // Check unlocks of each building type
+        for(let i=0; i<game.structureTypes.length; i++) {
+            if(game.structureTypes[i].locked===0) continue; // already unlocked
+
+            // We use a nested list to determine what items can unlock the building. For the outer list, we must get a match on each
+            // entry of that list. For the inner list, we must get a mach on any single one. For example, [[A,B],[C]], the player can
+            // unlock either A or B, but must unlock C.
+            if(game.structureTypes[i].prereq.every(outer=>(
+                outer.some(inner=>game.unlockedItems.some(i=>i===inner))
+            ))) {
+                game.structureTypes[i].locked = 0;
+                // Also trigger a game update, assuming doing so is safe
+                if(typeof(game.updateWorkers)==='function') game.updateWorkers([...game.workers]);
+            }
+        }
+
+        // For all existing structures, we also want to determie if this new item unlocks new abilities in those structures.
+        // If so, the block display on the left will become green
+        for(let i=0; i<game.structureTypes.length; i++) {
+            if(game.structureTypes[i].newFeatures.includes(itemName)) game.structureTypes[i].featuresUnlocked = true;
+        }
+    },
+
+    createTask: (building, task, quantity=1)=>{
         // Generates a new task, assigning it to the game object and to the respective building.
         //  building - what building this task is associated with
         //  task - class details to generate a task instance from
+        //  quantity - how many of this item to make. Not all tasks use a quantity amount, it will be ignored for those tasks
 
         // All tasks start without a worker assigned to it; it will be assigned later
         console.log(task);
@@ -198,7 +252,7 @@ export const game = {
         // Task location depends on settings in the task
         let targetx = null;
         let targety = null;
-        if(task.workLocation==='structure') {  //if(task.workAtStructure) {
+        if(task.workLocation==='structure') {
             targetx = building.x;
             targety = building.y;
         }
@@ -213,15 +267,53 @@ export const game = {
             targetx: targetx,
             targety: targety,
             //itemsNeeded: [] - this data will be pulled as static information from the root task object. No need to keep it here
+            quantity: quantity, // this value will go down as we complete each unit
             itemsTagged: [],
             progress: 0,
-            //ticksToComplete - this will also be from the root task object
+            //ticksToComplete - this will also be from the root task object (as buildTime). If no root task is associated to this task,
+            // its value will be 1 instead.
         };
         // Work on this task won't begin until all the needed items are in the tile inventory at [targetx,targety]
 
         game.tasks.push(newtask);
         building.activeTasks.push(newtask.id);
         return newtask;
+    },
+
+    deleteTask: (task) => {
+        // Deletes a task, ensuring all references to the task are removed
+        //     task - which task to delete
+        // No return value
+
+        // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
+        // just run through its list.
+        // But first we need tasks that use items... so this will come later
+
+        // Remove the task from the building, if there's a building associated to it
+        let slot;
+        let buildingHold = task.building;
+        if(task.building!==null) {
+            //console.log(task.building);
+            slot = task.building.activeTasks.findIndex(t=>t===task);
+            if(slot!==-1) task.building.activeTasks.splice(slot,1);
+        }
+
+        // Remove the task from the worker it's assigned to
+        if(task.worker!==null) {
+            slot = task.worker.tasks.findIndex(t=>t===task);
+            if(slot!==-1) task.worker.tasks.splice(slot,1);
+        }
+
+        // Remove the task from the game
+        slot = game.tasks.findIndex(t=>t===task);
+        if(slot!==-1) game.tasks.splice(slot,1);
+
+        // If the building for this task is currently selected, we need to make the building update its display 
+        if(buildingHold!=null) {
+            buildingHold.update();
+        }
+
+        // That should take care of it...
     }
 };
 

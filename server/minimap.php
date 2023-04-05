@@ -126,7 +126,7 @@
                     break;
                     case 'oak': // Produces acorns, which are edible... I should include those at some point
                         $wide['items'] = [['name'=>'Oak Tree', 'amount'=>rand(4,16)]];
-                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Falllen Log', 'amount'=>rand(1,7)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,7)]);
                     break;
                     case 'mahogany': // Produces large fruits, and the insides are edible, but the outsides are poisonous
                         $wide['items'] = [['name'=>'Mahogany Tree', 'amount'=>rand(3,8)]];
@@ -181,6 +181,39 @@
                     break;
                     case 'rock': $wide['items'] = [['name'=>'Gravel', 'amount'=>rand(0,10)]]; break;
                     // I don't know what else to fill the rest of the tiles with, so we'll just use blank items lists
+                    case 'carrots':  // Ground vegeatables will come only as plants. Others will come as plants & fruits
+                        $wide['items'] = [['name'=>'Carrot Plant', 'amount'=>rand(3,8)]];
+                    break;
+                    case 'potaotes':
+                        $wide['items'] = [['name'=>'Potato Plant', 'amount'=>rand(5,12)]];
+                    break;
+                    case 'tomatoes':
+                        $wide['items'] = [['name'=>'Tomato Plant', 'amount'=>rand(2,6)], ['name'=>'Tomatoes', 'amount'=>rand(6,12)]];
+                    break;
+                    case 'turnip':
+                        $wide['items'] = [['name'=>'Turnip Plant', 'amount'=>rand(4,8)]];
+                    break;
+                    case 'peanut':  // Peanuts will be treated as a pile, not individually
+                        $wide['items'] = [['name'=>'Peanut Plant', 'amount'=>rand(2,10)], ['name'=>'Raw Peanuts', 'amount'=>rand(4,8)]];
+                    break;
+                    case 'maize':
+                        $wide['items'] = [['name'=>'Maize Plant', 'amount'=>rand(6,14)], ['name'=>'Whole Corn', 'amount'=>rand(4,12)]];
+                    break;
+                    case 'beans':
+                        $wide['items'] = [['name'=>'Bean Plant', 'amount'=>rand(5,10)], ['name'=>'Beans', 'amount'=>rand(4,8)]];
+                    break;
+                    case 'onion':
+                        $wide['items'] = [['name'=>'Onion Plant', 'amount'=>rand(4,10)]];
+                    break;
+                    case 'broccoli':
+                        $wide['items'] = [['name'=>'Broccoli Plant', 'amount'=>rand(5,12)]];
+                    break;
+                    case 'pumpkin':  // Pumpkins are naturally small fruits; they are only made large by leaving a plant with only one pumpkin to invest in
+                        $wide['items'] = [['name'=>'Pumpkin Plant', 'amount'=>rand(4,9)], ['name'=>'Pumpkin', 'amount'=>rand(6,14)]];
+                    break;
+                    case 'mushroom':
+                        $wide['items'] = [['name'=>'Mushroom', 'amount'=>rand(7,16)]];
+                    break;
                     default: $wide['items'] = []; break;
                 }
                 return $wide;

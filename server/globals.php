@@ -6,10 +6,26 @@
 
     require_once("libs/weightedRandom.php");
 
+    /*
     $oreTypes = [
         'Coal', 'Banded Iron', 'Cassiterite', 'Chalcopyrite', 'Aluminum', 'Bauxite', 'Stibnite', 'Limonite', 'Magnetite',
         'Lignite', 'Tin', 'Copper', 'Silicon', 'Lithium', 'Gold', 'Silver', 'Uraninite', 'Cinnabar'
     ];
+    */
+    $oreTypes2 = [  // ... we're not really ready to try & use this list yet. We still need to work on it, though
+        ['name'=>'Coal',        'minDepth'=>8, 'maxDepth'=>25, 'height'=>6, 'heightVariance'=>6, 'minDensity'=>100, 'maxDensity'=>600, 'invFrequency'=>20],
+        ['name'=>'Banded Iron', 'minDepth'=>10, 'maxDepth'=>30, 'height'=>8, 'heightVariance'=>6, 'minDensity'=>80, 'maxDensity'=>800, 'invFrequency'=>16],
+        // Banded iron comes from prehistoric microbes; they filtered out iron from the oceans, depositing it there. Earth forces moved it around
+        ['name'=>'Cassiterite',  'minDepth'=>15, 'maxDepth'=>60, 'height'=>10, 'heightVariance'=>10, 'minDensity'=>120, 'maxDensity'=>500, 'invFrequency'=>30, 'formation'=>'veins'],
+        // Cassiterite is an ore of tin https://www.mindat.org/min-917.html
+        ['name'=>'Chalcopyrite', 'minDepth'=>10, 'maxDepth'=>25, 'height'=>5, 'heightVariance'=>8, 'minDensity'=>100, 'maxDensity'=>400, 'invFrequency'=>12],
+        ['name'=>'Chalcocite',   'minDepth'=>8, 'maxDepth'=>30, 'height'=>6, 'heightVariance'=>7, 'minDensity'=>130, 'maxDensity'=>600, 'invFrequency'=>8]
+
+    ];
+    // invFrequency aka invert frequency is the number of tiles between when we'll see this ore. A high number will be seen less common than a low one
+    // density describes how many ore blocks can be found in a given cluster
+    // height & density variables probably won't be determined until a given map is loaded
+
 
     // This holds specific tile information based on the biome selected
     $biomeData = [

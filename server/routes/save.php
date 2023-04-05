@@ -60,13 +60,14 @@
     JSEvery($con['tasks'], function($task) {
         verifyInput($task, [
             ['name'=>'id',       'required'=>true, 'format'=>'posint'],
-            ['name'=>'building', 'required'=>true, 'format'=>'int'],
+            ['name'=>'building',    'required'=>true, 'format'=>'int'],
             ['name'=>'name',        'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'status',      'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'taskType',    'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'worker',      'required'=>true, 'format'=>'int'],
             ['name'=>'targetx',     'required'=>true, 'format'=>'int'],
             ['name'=>'targety',     'required'=>true, 'format'=>'int'],
+            ['name'=>'quantity',    'required'=>true, 'format'=>'int'],
             ['name'=>'itemsTagged', 'required'=>true, 'format'=>'array'],
             ['name'=>'progress',    'required'=>true, 'format'=>'int']
         ], 'server/routes/save.php->verify tasks');

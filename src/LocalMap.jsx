@@ -5,6 +5,7 @@
 
 import React from "react";
 import { DraggableMap, FixedPositionChild, clearDragFlag } from "./libs/DraggableMap.jsx";
+import { DanInput } from "./libs/DanInput.jsx";
 
 import { imageURL } from "./App.js";
 import { minimapTiles } from "./minimapTiles.js";
@@ -13,8 +14,23 @@ import { game } from "./game.jsx";
 let errorTimeout = null;
 
 let itemStats = [
-    {name:'Maple Tree', img:'mapletree.png', desc:'A maple tree, still growing'},
-    {name:'Fallen Log', img:'fallenlog.png', desc:'A rotten log, decaying on the ground'}
+    {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
+    {name:'Apple Tree',   img:'appletree.png',   desc:'A tree growing apples'},
+    {name:'Barley Grass', img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
+    {name:'Fallen Log',   img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
+    {name:'Flint',        img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
+    {name:'Flint Knife',   img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
+    {name:'Flint Stabber', img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
+    {name:'Gravel',        img:'gravel.png',       desc:'A collection of small rocks of various types'},
+    {name:'Locust Tree',   img:'mapletree.png',    desc:'A locust tree, growing strong'},
+    {name:'Maple Tree',    img:'mapletree.png',   desc:'A maple tree, still growing'},
+    {name:'Millet Grass',  img:'milletgrass.png',  desc:'Field of millet, growing wild'},
+    {name:'Oat Grass',     img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
+    {name:'Pine Tree',     img:'pinetree.png',     desc:'A pine tree, growing strong'},
+    {name:'Rye Grass',     img:'ryegrass.png',    desc:'Field of natural rye grain'},
+    {name:'Turnip Plant',  img:'turnipplant.png',  desc:'Turnips, growing wild'},
+    {name:'Wheat Grass',   img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
+    {name:'Wheat Seed',    img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
 ];
 
 export function LocalMap(props) {
@@ -66,7 +82,7 @@ export function LocalMap(props) {
                                     setDragStructure(null);
                                 }}
                             >
-                                <img src={imageURL + "structures/" + str.image} alt={str.name} draggable="false" />
+                                <img src={imageURL + "structures/" + str.image} alt={str.name} draggable="false" title={str.tooltip} />
                             </div>
                         );
                     })}
@@ -131,12 +147,13 @@ export function LocalMap(props) {
                                     tile.image = structure.image;
                                     tile.modified = true;
                                     
-                                    // Look for a Construct task for this building
+                                    // Look for a Construct task for this building. If one exists, do that task
                                     let buildTask = structure.tasks.find(task=>task.taskType==='construct');
                                     if(typeof(buildTask)!=='undefined') {
                                         game.createTask(structure, buildTask);
                                     }
 
+                                    clearDragFlag();
                                     setDragStructure(null);
                                     setTileSelected(tile); // also select the tile once the structure is placed
                                 }}
@@ -195,6 +212,28 @@ export function LocalMap(props) {
 function LocalMapRightPanel(props) {
     // Manages displaying the right panel of the local map, with whatever is needed to be shown there
 
+    const [blinker,setBlinker] = React.useState(0);
+    // Blinker is used to trigger React to re-render this side panel; the setter function is shared with the structure. Since the game
+    // updates the structure and not the props, and the user has no interaction to cause updates, this is the only reasonable way to
+    // provide updates to the view.
+    const [selectedTask, setSelectedTask] = React.useState(null);
+    const [quantity, setQuantity] = React.useState(1);
+
+    function quantityUpdate(field,value) {
+        // Handles content update from any DanInput objects
+        // field - name of the field to edit. This should only be 'quanity', so we can just ignore it
+        // value - new value of the quantity
+        setQuantity(value);
+    }
+
+    function quantitySubmit() { 
+        // Handles when the user submits the quantity to craft
+        console.log('Task started with '+ quantity +' to make');
+        game.createTask(structure, selectedTask, quantity);
+        setQuantity(1);
+        setSelectedTask(null);
+    }
+
     if(props.selected===null) {
         // Nothing is selected
         return <div className="localmaprightpanel" style={{width:300}}>Click a tile to view its details</div>;
@@ -223,17 +262,75 @@ function LocalMapRightPanel(props) {
     if(typeof(structure)==='undefined') {
         return <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>Error: Did not find building id={props.selected.structureid}</div>;
     }
-    if(typeof(structure.SidePanel)==='undefined') {
-        return <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>Error: Block (type={structure.name}) missing SidePanel function</div>;
-    }
+    
+    // Make a list of assignable tasks. If this is empty, we'll show something else
+    let validTasks = structure.tasks.filter(t=>t.canAssign());
 
+    // Make a list of active tasks. Structures only store the IDs, so we need to locate each from the game object
+    let activeTasks = structure.activeTasks.map(id=>game.tasks.find(t=>t.id===id));
+
+    structure.blinker = setBlinker;
     const SidePanel = structure.SidePanel;
     return (
         <div className="localmaprightpanel" style={{width:300}}>
             <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{structure.name}</div>
             <p>{structure.descr}</p>
             <p>{structure.usage}</p>
-            <SidePanel />
+
+            <p className="singleline" style={{fontWeight:'bold'}}>Items:</p>
+            <ListItems items={props.selected.items} style={{marginBottom:10}} />
+
+            {/* Show the SidePanel content, that shows unique fields for this structure. Not all structure have (or need) a SidePanel function */}
+            {(typeof(SidePanel)==='undefined')?'':(<SidePanel />)}
+            
+
+            {selectedTask===null? (
+                <>
+                    {/*Show available tasks that can be assigned*/}
+                    <p className="singleline" style={{fontWeight:'bold'}}>Tasks:</p>
+                    {validTasks.length>0 ? 
+                        validTasks.map((t,key)=>(
+                            <p className="singleline fakelink" key={key} title={t.desc} onClick={()=>{
+                                if(t.hasQuantity) {
+                                    setSelectedTask(t);
+                                }else{
+                                    // Go ahead and assign this task
+                                    game.createTask(structure, t, 1);
+                                }
+                            }}>
+                                {t.name}
+                            </p>
+                        ))
+                    :('None available')}
+                </>
+            ):(
+                <>
+                    <p className="singleline" style={{fontWeight:'bold'}}>{selectedTask.name}</p>
+                    <p className="singleline">
+                        Quantity: <DanInput placeholder="Amount to craft" onUpdate={quantityUpdate} onEnter={quantitySubmit} default={1} fieldName="quantity" />
+                    </p>
+                    <p className="singleline"><input type="button" value="Start work" onClick={()=>quantitySubmit()} /></p>
+                </>
+            )}
+
+            {/* Now show existing tasks underway*/}
+            <p className="singleline" style={{fontWeight:'bold'}}>Current Tasks:</p>
+            {activeTasks.length>0 ?
+                activeTasks.map((t,key)=>{
+                    if(typeof(t)==='undefined') {
+                        // Sometimes tasks are in the list that aren't actually in the list. This happens whenever a task gets completed
+                        // and removed... I'm not sure why but it trips up React.
+                        return <p className="singleline" key={key}>None</p>;    
+                    }
+                    let worker = (t.worker===null) ? ', not assigned' : ', by '+ t.worker.name;
+                    
+                    return (
+                        <p className="singleline" key={key}>
+                            {t.task.name}{worker}, {Math.floor((t.progress / parseFloat(t.task.buildTime) * 100))}% complete
+                        </p>
+                    );
+                })
+            :('None')}
         </div>
     );
 }
@@ -242,6 +339,7 @@ function ListItems(props) {
     // Displays a list of items from a provided list, grouping 
     // prop fields - data
     //      items - array of items to display. This assumes identical items are not grouped together
+    //      style - style props will be applied to the container div of this block
 
     let list = [];
     for(let i=0; i<props.items.length; i++) {
@@ -250,9 +348,9 @@ function ListItems(props) {
             // Show a picture with this item too, if we have one
             let stats = itemStats.find(stat=>stat.name===props.items[i].name);
             if(typeof(stats)!=='undefined' && stats.img!=='') {
-                list.push({name: props.items[i].name, qty: 1, img:stats.img});
+                list.push({name: props.items[i].name, qty: 1, img:stats.img, desc:stats.desc});
             }else{
-                list.push({name: props.items[i].name, qty: 1, img:'unknown.png'});
+                list.push({name: props.items[i].name, qty: 1, img:'unknown.png', desc:'This item needs a description'});
             }
         }else{
             list[slot].qty++;
@@ -260,9 +358,9 @@ function ListItems(props) {
     }
 
     return (
-        <div>
+        <div style={props.style}>
             {list.map((item,key)=>(
-                <p className="singleline" key={key}>
+                <p className="singleline" key={key} title={item.desc}>
                     <img src={imageURL +"items/"+ item.img} alt={item.name} />
                     {item.name} x{item.qty}
                 </p>
@@ -270,3 +368,5 @@ function ListItems(props) {
         </div>
     );
 }
+
+

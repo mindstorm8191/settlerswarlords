@@ -12,6 +12,10 @@ export function LeanTo() {
     return {
         name: 'Lean-To',
         image:'leanto.png',
+        tooltip: 'Your first shelter',
+        locked: 0, // This is set to 1 if it has prerequisites that must be met before-hand
+        prereqs: [],
+        newFeatures: [], // 
         canBuild: (tile)=>{
             // Returns true if this structure can be built here
             // Any tile with trees in it will do
@@ -37,25 +41,44 @@ export function LeanTo() {
                 mode: 'build',
                 progress: 0,
                 activeTasks: [],  // why do we need whole tasks here? Just store the IDs, we can look them up as needed
+                blinker: null,
+                blinkValue: 0,
+                update: (value)=>{
+                    if(b.blinker!==null) b.blinker(value);
+                    //b.blinkValue++;
+                    //if(b.blinker!==null) b.blinker(b.blinkValue);
+                },
                 tasks: [
                     {
                         name: 'Build',
                         desc: 'Build this lean-to structure',
                         taskType: 'construct',
-                        workLocation: 'structure', //workAtStructure: true,
+                        workLocation: 'structure', // this is either 'structure' or 'onsite'
                         itemsNeeded: [],
                         outputItems: [],
-                        buildTime: (20*90*1.5), // 1.5 minutes
+                        buildTime: (20*60*1.5), // 1.5 minutes
+                        hasQuantity: false, // set to true for this task to request a production quantity when assigning
+                        canAssign: ()=>{
+                            // Returns true if this task can be assigned, or false if not
+                            if(b.activeTasks.length>0) return false;
+                            return b.mode==='build';
+                        },
+                        onProgress: progress =>{
+                            // Handles changes as the task gets completed. Not all tasks will include this function
+                            b.progress = progress;
+                            b.update(progress);
+                        },
                         onComplete: ()=>{
                             // Determines what happens when the task is completed. Not all tasks will include this attribute
                             b.mode = 'inuse';
-                            b.progressBar = (20*60*20); // 20 minutes
+                            b.progress = (20*60*20); // 20 minutes
+                            //b.update(b.progress);
                         }
                     }
                 ],
 
                 SidePanel: ()=>{
-                    return <div>Mode: {b.mode}</div>;
+                    return <div>Mode: {b.mode}, progress: {b.progress}</div>;
                 },
 
                 onSave: ()=>{
@@ -74,3 +97,5 @@ export function LeanTo() {
         }
     };
 }
+
+

@@ -18,21 +18,26 @@
     Electrorefining (purify already-extracted copper)
         Electrolysis; use pure copper on cathode, impure copper on anode. With current, impurities from anode plate onto the cathode
     Bioleaching: bacteria produces acids that dissolve the copper
+
+    Known bugs (with work-arounds)
+    1)  Whenever a task gets completed, if the building with that task is selected, React will still attempt to render that task from
+        the task list, despite the fact that it doesn't exist anymore. I have added a check within the loop to check if the task is
+        defined or not; it will display 'none' as the task, if so.
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/globals.php                    resetgame.php
-//     src/app.css                          src/minimapTiles.jsx                 server/libs/weightedRandom.php       README.md
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/routes/getblog.php           techtree.md
-//            src/libs/ShowBlog.jsx               src/LocalMap.jsx                      server/routes/log.php               automationtree.md
-//               src/libs/DanAjax.js                  src/libs/DraggableMap.jsx            server/routes/login.php             wartree.md
-//                  src/libs/DanLog.js                    server/routes/autologin.php         server/routes/save.php             worldgen.md
-//                     src/comp_account.jsx                  server/config.php                   server/routes/savetiles.php        workercrafting.md
-//                         src/libs/DanInput.jsx               server/common.php                    server/routes/signup.php           future processes.md
-//                            src/libs/DanCommon.js                server/libs/jsarray.php              server/libs/DanGlobal.php         tasklist.md
-//                               src/libs/ErrorOverlay.jsx             server/getInput.php                 server/libs/clustermap.php
-//                                  src/game.jsx                          server/finishLogin.php               server/minimap.php
-// 273+46+120+96+48+38+229+65+74+68+226+200+72+76+231+183+33+8+307+230+33+37+282+127+38+35+41+76+76+340+37+141+223+21+49+58+12+8+67+11+30+18
+// src/app.js                           src/worker.jsx                       server/finishLogin.php               server/minimap.php
+//     src/app.css                          src/minimapTiles.jsx                server/globals.php                    resetgame.php
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx            server/libs/weightedRandom.php       README.md
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx        server/routes/getblog.php           techtree.md
+//               src/libs/DanAjax.js                 src/LocalMap.jsx                      server/routes/log.php               automationtree.md
+//                  src/libs/DanLog.js                   src/libs/DraggableMap.jsx            server/routes/login.php             wartree.md
+//                     src/Account.jsx                       server/routes/autologin.php         server/routes/save.php             worldgen.md
+//                         src/libs/DanInput.jsx                server/config.php                   server/routes/savetiles.php        workercrafting.md
+//                            src/libs/DanCommon.js               server/common.php                    server/routes/signup.php           futureprocesses.md
+//                               src/libs/ErrorOverlay.jsx            server/jsarray.php                   server/libs/DanGlobal.php         tasklist.md
+//                                  src/game.jsx                          server/getInput.php                 server/libs/clustermap.php
+// 298+46+120+96+48+38+229+65+74+68+318+228+72+99+82+370+183+33+8+307+230+33+38+299+127+38+35+41+92+76+340+37+141+256+21+49+58+12+8+67+11+30+18
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -45,7 +50,7 @@ import { ShowBlog } from "./libs/ShowBlog.jsx";
 import { DAX } from "./libs/DanAjax.js";
 import { DanLog } from "./libs/DanLog.js";
 
-import { AccountBox, RegisterForm } from "./comp_account.jsx";
+import { AccountBox, RegisterForm } from "./Account.jsx";
 import { game } from "./game.jsx";
 import { LocalMap } from "./LocalMap.jsx";
 
@@ -175,6 +180,7 @@ function App() {
                     worker: task.worker === null ? 0 : task.worker.id,
                     targetx: task.targetx === null ? -1 : task.targetx,
                     targety: task.targety === null ? -1 : task.targety,
+                    quantity: task.quantity,
                     itemsTagged: [], // this needs to be worked out, but we currently don't have any items for tasks at all
                     progress: task.progress,
                 };

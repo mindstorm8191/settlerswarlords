@@ -26,21 +26,22 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/finishLogin.php               server/minimap.php
-//     src/app.css                          src/minimapTiles.jsx                server/globals.php                    resetgame.php
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx            server/libs/weightedRandom.php       README.md
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx        server/routes/getblog.php           techtree.md
-//               src/libs/DanAjax.js                 src/LocalMap.jsx                      server/routes/log.php               automationtree.md
-//                  src/libs/DanLog.js                   src/libs/DraggableMap.jsx            server/routes/login.php             wartree.md
-//                     src/Account.jsx                       server/routes/autologin.php         server/routes/save.php             worldgen.md
-//                         src/libs/DanInput.jsx                server/config.php                   server/routes/savetiles.php        workercrafting.md
-//                            src/libs/DanCommon.js               server/common.php                    server/routes/signup.php           futureprocesses.md
-//                               src/libs/ErrorOverlay.jsx            server/jsarray.php                   server/libs/DanGlobal.php         tasklist.md
-//                                  src/game.jsx                          server/getInput.php                 server/libs/clustermap.php
-// 298+46+120+96+48+38+229+65+74+68+318+228+72+99+82+370+183+33+8+307+230+33+38+299+127+38+35+41+92+76+340+37+141+256+21+49+58+12+8+67+11+30+18
+// src/app.js                           src/worker.jsx                       server/getInput.php                  server/libs/clustermap.php        tasklist.md
+//     src/app.css                          src/minimapTiles.jsx                server/finishLogin.php                server/minimap.php
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx           server/globals.php                     resetgame.php
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/libs/weightedRandom.php        README.md
+//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/routes.getblog.php            techtree.md
+//                  src/libs/DanLog.js                  src/LocalMap.jsx                      server/routes/log.php                automationtree.md
+//                     src/Account.jsx                      src/libs/DraggableMap.jsx            server/routes/login.php              wartree.md
+//                         src/libs/DanInput.jsx                server/routes/autologin.php         server/routes/save.php              worldgen.md
+//                            src/libs/DanCommon.js                server/config.php                    server/routes/savetiles.php        undergroundbiomes.md
+//                               src/libs/ErrorOverlay.jsx           server/libs/common.php                server/routes/signup.php           workercrafting.md
+//                                  src/game.jsx                         server/libs/jsarray.php               server/libs/DanGloba.php          futureprocesses.md
+// 299+46+120+96+48+38+229+65+83+68+446+565+72+99+82+74+374+183+33+8+307+230+33+38+299+127+38+35+41+104+76+340+37+141+256+21+50+58+12+8+67+18+11+30+22
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
+// 4/24/23: 5427 lines
 
 import "./App.css";
 import React from "react";
@@ -166,7 +167,8 @@ function App() {
                     x: st.x,
                     y: st.y,
                     activeTasks: st.activeTasks,
-                    ...st.onSave(),
+                    //...st.onSave(),
+                    ...(typeof st.onSave !== "undefined" && st.onSave()),
                 };
             }),
             tasks: game.tasks.map((task) => {

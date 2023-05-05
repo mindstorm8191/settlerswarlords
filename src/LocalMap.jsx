@@ -17,7 +17,8 @@ let itemStats = [
     {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
     {name:'Apple Tree',   img:'appletree.png',   desc:'A tree growing apples'},
     {name:'Barley Grass', img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
-    {name:'Fallen Log',   img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
+    {name:'Debarked Fallen Log', img:'debarkedfallenlog', desc:'A rotten log, without bark'},
+    {name:'Fallen Log',          img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
     {name:'Flint',        img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
     {name:'Flint Knife',   img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
     {name:'Flint Stabber', img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
@@ -28,7 +29,8 @@ let itemStats = [
     {name:'Oat Grass',     img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
     {name:'Pine Tree',     img:'pinetree.png',     desc:'A pine tree, growing strong'},
     {name:'Rye Grass',     img:'ryegrass.png',    desc:'Field of natural rye grain'},
-    {name:'Turnip Plant',  img:'turnipplant.png',  desc:'Turnips, growing wild'},
+    {name:'Turnip Plant',        img:'turnipplant.png',  desc:'Turnips, growing wild'},
+    {name:'Twine Strips',        img:'twinestrips.png',   desc:'Pieces of bark fiber'},
     {name:'Wheat Grass',   img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
     {name:'Wheat Seed',    img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
 ];
@@ -70,7 +72,7 @@ export function LocalMap(props) {
                             Save
                         </span>
                     </div>
-                    {game.structureTypes.map((str, key) => {
+                    {game.structureTypes.filter(str=>str.locked===0).map((str, key) => {
                         return (
                             <div
                                 key={key}
@@ -326,7 +328,11 @@ function LocalMapRightPanel(props) {
                     
                     return (
                         <p className="singleline" key={key}>
-                            {t.task.name}{worker}, {Math.floor((t.progress / parseFloat(t.task.buildTime) * 100))}% complete
+                            {t.task.name}{worker}, {Math.floor((t.progress / parseFloat(t.task.buildTime) * 100))}% complete 
+                            <input type="button" style={{marginLeft:8}} value="Cancel" onClick={()=>{
+                                game.deleteTask(t);
+                                setBlinker(100);
+                            }}/>
                         </p>
                     );
                 })

@@ -43,6 +43,7 @@ There is a lot planned for this game, and a lot to get done. Ultimately, I want 
 And additional information
 
 -   [World Gen](/worldgen.md)
+-   [Underground Biomes](/undergroundbiomes.md)
 -   [Worker Crafting](/workercrafting.md)
 -   [Future Processes Planned](/futureprocesses.md)
 

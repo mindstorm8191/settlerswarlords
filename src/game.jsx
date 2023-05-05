@@ -3,12 +3,11 @@
     For the game Settlers & Warlords
 */
 
-import { DanLog } from "./libs/DanLog.js";
-import { DanCommon } from './libs/DanCommon.js';
-
 import { createWorker } from "./worker.jsx";
+import { minimapTiles } from "./minimapTiles.js";
 import { LeanTo } from "./structures/LeanTo.jsx";
 import { RockKnapper } from "./structures/RockKnapper.jsx";
+import { LoggersPost } from "./structures/LoggersPost.jsx";
 
 export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
@@ -16,15 +15,19 @@ export const game = {
     workers: [], // all workers on this map
     unlockedItems: [], // All items that have become accessible in this location
     updateWorkers: null, // references React's setLocalWorkers function. Gets updated on game setup
-    structures: [], // all structures added to this map
-    localMapBiome: '',
+    localMapBiome: '', // This is filled out from server data
 
-        // Each structure needs a unique ID
-    lastStructureId: 0,
+    structures: [], // all structures added to this map
+    lastStructureId: 0,  // Each structure needs a unique ID
     getNextStructureId: ()=>{
         game.lastStructureId++;
         return game.lastStructureId;
     },
+    structureTypes: [
+        LeanTo(),
+        RockKnapper(),
+        LoggersPost()
+    ],
 
     tasks: [],
     lastTaskId: 0, // All tasks also need IDs
@@ -32,11 +35,6 @@ export const game = {
         game.lastTaskId++;
         return game.lastTaskId;
     },
-
-    structureTypes: [
-        LeanTo(),
-        RockKnapper()
-    ],
 
     setup: (content, funcUpdateWorkers) => {
         // Sets up the game, using content received from the server
@@ -240,6 +238,108 @@ export const game = {
         }
     },
 
+    pathTo: (startX, startY, callback)=>{
+        // Creates a new path to a target location
+        // startX & Y - where the search process begins at. This can be a worker's location, or a building
+        // callback - a function called on every tile location. This will receive a tile instance, and should return true if the
+        //      location is/has what is being searched for
+        // Returns an object:
+        //      result - if successful, returns 'success'. If not, returns 'fail', and the other parameters will not be included
+        //      tile - the tile instance where the path stopped
+        //      path - path for the worker to reach this item
+        //      distance - total distance points needed to reach this location
+        
+
+        let filledTiles = [{
+            x:startX,
+            y:startY,
+            travelled:0,
+            path:'',
+            completed: false
+        }];
+
+        let runState = true;
+        while(runState) {
+
+            // Determine if we have exhausted our search
+            if(filledTiles.every(t=>t.completed)) {
+                return {result:'fail'};
+            }
+
+            // Start with sorting the existing tiles
+            filledTiles.sort((a,b)=> {
+                // First, completed tiles need to be sorted after new tiles
+                if(a.completed) return 1;
+                if(b.completed) return -1;
+                if(a.travelled > b.travelled) return 1;
+                if(a.travelled < b.travelled) return 0;
+                return 0;
+            });
+
+            // Determine if this tile is the one we need
+            let tile = game.tiles.find(t=>t.x===filledTiles[0].x && t.y===filledTiles[0].y)
+            if(callback(tile)) {
+                // We have a hit!
+                return {
+                    result: 'success',
+                    tile:tile,
+                    path: filledTiles[0].path,
+                    distance: filledTiles[0].travelled
+                };
+            }
+
+            // Alas, no luck. Determine the costs to travel over this tile
+            let land = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
+            let lag = minimapTiles.find(tile=>tile.id===land).walkLag;
+
+            // Generate more filled tiles from each possible direction from here
+            for(let dx=-1; dx<=1; dx++) {
+                for(let dy=-1; dy<=1; dy++) {
+                    if(dx===0 && dy===0) continue; // skip the tile we're already on
+                    // Make sure this tile isn't outside the map
+                    if(filledTiles[0].x +dx < 0) continue;
+                    if(filledTiles[0].x +dx > 40) continue;
+                    if(filledTiles[0].y +dy < 0) continue;
+                    if(filledTiles[0].y +dy > 40) continue;
+
+                    // Diagonals will take longer to travel through
+                    let diagonals = (dx===0 || dy===0) ? 1 : 1.4;
+
+                    // Make sure this location hasn't been filled yet
+                    let locationMatch = filledTiles.findIndex(tile=>tile.x===filledTiles[0].x + dx && tile.y===filledTiles[0].y +dy);
+                    if(locationMatch!==-1) {
+                        if(filledTiles[locationMatch].completed===true) continue; // Don't worry about already-completed tiles
+
+                        if(filledTiles[0].travelld + (lag * diagonals) < filledTiles[locationMatch].travelled) {
+                            // Our current path is shorter than the existing one
+                            filledTiles.splice(locationMatch, 1);
+                            filledTiles.push({
+                                x: filledTiles[0].x +dx,
+                                y: filledTiles[0].y +dy,
+                                travelled: filledTiles[0].travelled + (lag * diagonals),
+                                path: filledTiles[0].path + ( (dy+1)*3 + (dx+1) ),
+                                completed: false,
+                            });
+                        }
+                        continue;
+                    }
+
+                    // Add this location
+                    filledTiles.push({
+                        x: filledTiles[0].x +dx,
+                        y: filledTiles[0].y +dy,
+                        travelled: filledTiles[0].travelled + (lag * diagonals),
+                        path: filledTiles[0].path + ( (dy+1)*3 + (dx+1) ),
+                        completed: false
+                    });
+                }
+            }
+
+            // Tag this tile as completed
+            filledTiles[0].completed = true;
+        }
+    },
+
     createTask: (building, task, quantity=1)=>{
         // Generates a new task, assigning it to the game object and to the respective building.
         //  building - what building this task is associated with
@@ -267,8 +367,11 @@ export const game = {
             targetx: targetx,
             targety: targety,
             //itemsNeeded: [] - this data will be pulled as static information from the root task object. No need to keep it here
+            recipeChoices: [],  // This determines which option of each portion of the recipe is to be used. This is set shortly after
+                                // a task is assigned
             quantity: quantity, // this value will go down as we complete each unit
             itemsTagged: [],
+            hasAllItems: false, // this gets set to true when all items have been found for this task
             progress: 0,
             //ticksToComplete - this will also be from the root task object (as buildTime). If no root task is associated to this task,
             // its value will be 1 instead.
@@ -277,6 +380,32 @@ export const game = {
 
         game.tasks.push(newtask);
         building.activeTasks.push(newtask.id);
+        return newtask;
+    },
+
+    createItemMoveTask: (item, sourcex, sourcey, destx, desty) => {
+        // Creates a task to move an item to a new location. This task isn't associated to any building, but has a specific item to locate
+        // on a specific tile.
+        // Returns the newly made task so that it can be assigned to the right worker
+        
+        let newtask = {
+            id: game.getNextTaskId(),
+            building: null,
+            task: null,
+            status: 'unassigned',
+            taskType: 'pickupItem', // This will be set to putdownItem once an item has been picked up
+            targetx: sourcex,
+            targety: sourcey,
+            targetItem: item,
+            recipeChoices: [],
+            quantity: 1,
+            itemsTagged: [],
+            hasAllItems: false,
+            progress: 0,
+            nextx: destx,
+            nexty: desty
+        };
+        game.tasks.push(newtask);
         return newtask;
     },
 
@@ -293,8 +422,8 @@ export const game = {
         let slot;
         let buildingHold = task.building;
         if(task.building!==null) {
-            //console.log(task.building);
-            slot = task.building.activeTasks.findIndex(t=>t===task);
+            // Remember, buildings only hold the ID of a task, not the task itself
+            slot = task.building.activeTasks.findIndex(t=>t===task.id);
             if(slot!==-1) task.building.activeTasks.splice(slot,1);
         }
 

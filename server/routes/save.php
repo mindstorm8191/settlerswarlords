@@ -42,18 +42,30 @@
 
     JSEvery($con['structures'], function($st) {
         // Each building type will have a different set of unique variables to check for
+
+        $baseObject = [
+            ['name'=>'id',          'required'=>true, 'format'=>'posint'],
+            ['name'=>'name',        'required'=>true, 'format'=>'stringnotempty'],
+            ['name'=>'x',           'required'=>true, 'format'=>'int'],
+            ['name'=>'y',           'required'=>true, 'format'=>'int'],
+            ['name'=>'activeTasks', 'required'=>true, 'format'=>'arrayOfInts']
+        ];
+
         switch($st['name']) {
             case 'Lean-To':
-                verifyInput($st, [
-                    ['name'=>'id',          'required'=>true, 'format'=>'posint'],
-                    ['name'=>'name',        'required'=>true, 'format'=>'stringnotempty'],
-                    ['name'=>'x',           'required'=>true, 'format'=>'int'],
-                    ['name'=>'y',           'required'=>true, 'format'=>'int'],
-                    ['name'=>'activeTasks', 'required'=>true, 'format'=>'arrayOfInts'],
+                verifyInput($st, array_merge($baseObject, [
                     ['name'=>'mode',        'required'=>true, 'format'=>'stringnotempty'],
                     ['name'=>'progress',    'required'=>true, 'format'=>'int']
-                ], 'server/routes/save.php->verify structures->LeanTo');
+                ]), 'server/routes/save.php->verify structures->LeanTo');
             break;
+
+            case 'Rock Knapper':
+                verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->Rock Knapper');
+            break;
+
+            default: // Erm, there shouldn't be any structures that aren't included in the group above. So this is an error
+                reporterror('server/routes/save.php->verify structures', 'Structure type of '. danescape($st['name']) .' not handled. Save aborted');
+                ajaxreject('badinput', 'Structure type of '. $st['name'] .' is not handled. Save aborted');
         }
     });
 

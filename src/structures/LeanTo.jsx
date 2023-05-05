@@ -78,7 +78,7 @@ export function LeanTo() {
                 ],
 
                 SidePanel: ()=>{
-                    return <div>Mode: {b.mode}, progress: {b.progress}</div>;
+                    return <div>Mode: {b.mode}</div>;
                 },
 
                 onSave: ()=>{

@@ -71,4 +71,13 @@ export const DanCommon = {
         }
         return outputs;
     },
+
+    doubleIncludes(longList, shortList) {
+        // Returns true if any item from one list matches any item in the other list.
+
+        for (let i = 0; i < longList.length; i++) {
+            if (shortList.includes(longList[i])) return true;
+        }
+        return false;
+    },
 };

@@ -6,12 +6,12 @@
 
     require_once("libs/weightedRandom.php");
 
-    /*
+    
     $oreTypes = [
         'Coal', 'Banded Iron', 'Cassiterite', 'Chalcopyrite', 'Aluminum', 'Bauxite', 'Stibnite', 'Limonite', 'Magnetite',
         'Lignite', 'Tin', 'Copper', 'Silicon', 'Lithium', 'Gold', 'Silver', 'Uraninite', 'Cinnabar'
     ];
-    */
+    
     $oreTypes2 = [  // ... we're not really ready to try & use this list yet. We still need to work on it, though
         ['name'=>'Coal',        'minDepth'=>8, 'maxDepth'=>25, 'height'=>6, 'heightVariance'=>6, 'minDensity'=>100, 'maxDensity'=>600, 'invFrequency'=>20],
         ['name'=>'Banded Iron', 'minDepth'=>10, 'maxDepth'=>30, 'height'=>8, 'heightVariance'=>6, 'minDensity'=>80, 'maxDensity'=>800, 'invFrequency'=>16],

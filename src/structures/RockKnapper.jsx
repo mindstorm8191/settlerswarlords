@@ -3,7 +3,6 @@
     For the game Settlers & Warlords
 */
 
-import React from "react";
 import { game } from "../game.jsx";
 
 export function RockKnapper() {
@@ -50,7 +49,7 @@ export function RockKnapper() {
                         workLocation: 'structure',
                         itemsNeeded: [],
                         outputItems: ['Flint Knife'],  // This is more for automating task assignments than anything
-                        buildTime: 20 * 20, // aka 20 seconds
+                        buildTime: 20*5, // we're gonna cheat here, to save time in debugging //20 * 20, // aka 20 seconds
                         hasQuantity: true,
                         canAssign: ()=>true, // this can always be assigned
                         onComplete: ()=>{
@@ -75,6 +74,7 @@ export function RockKnapper() {
                 ]
 
                 // Ya know, we really don't need all structures to have a customized display. It doesn't add anything here
+                // We shouldn't need a load or save function either, since there's nothing extra to include
             };
             return b;
         }

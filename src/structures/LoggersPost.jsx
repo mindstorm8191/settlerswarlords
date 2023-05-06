@@ -42,7 +42,7 @@ export function LoggersPost() {
                 },
                 tasks: [
                     {
-                        name: 'Get Twine from Aged Wood',
+                        name: 'Get Fibers from Aged Wood',
                         desc: 'Collect Twine for tools',
                         taskType: 'craft',
                         workLocation: 'atItem',
@@ -52,8 +52,8 @@ export function LoggersPost() {
                         ],
                         // Recipes here would be nice. But it doesn't really solve the issue of managed options either. We would still want
                         // to have choices in the way something is built. So we still want to have options for 
-                        outputItems: ['Twine Strips', 'Debarked Fallen Log'],
-                        buildTime: 20 * 60, // 1 minute
+                        outputItems: ['Bark Fibers', 'Debarked Fallen Log'],
+                        buildTime: 20 * 10, // 1 minute; again, we are shortening times so we can test the game faster
                         hasQuantity: true,
                         canAssign: ()=>true, // this can always be assigned
                         onComplete: worker=>{
@@ -62,8 +62,9 @@ export function LoggersPost() {
                             tile.items.splice(slot,1);
                             tile.items.push(
                                 game.createItem('Debarked Fallen Log', 'item'),
-                                game.createItem('Twine Strips', 'item')
+                                game.createItem('Bark Fibers', 'item')
                             );
+                            tile.modified = true;
                         }
                     }
                 ]

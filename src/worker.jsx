@@ -57,7 +57,6 @@ export function createWorker(pack) {
             // a fixed-position item is located
             let itemNameToUse = '';
             if(w.tasks[0].targetx===null) {
-                console.log(w.tasks[0].task.name +' needs a target!');
                 // Find the item with a flag of workSite, and that such a value is set to true
                 let targetSet = w.tasks[0].task.itemsNeeded.find(list=>{
                     if(typeof(list.workSite)==='undefined') return false;
@@ -79,6 +78,7 @@ export function createWorker(pack) {
                             if(i.inTask!==0) return false;
                             return targetSet.options[r].name === i.name;
                         }).length;
+                        console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
                         if(total >= targetSet.options[r].qty) {
                             itemNameToUse = targetSet.options[r].name;
                             return true;
@@ -122,8 +122,7 @@ export function createWorker(pack) {
                 // If there are no possible recipes at this time, we will still choose the one that requires the least amount of work, based
                 // on the existing stocks and what each one requires
 
-                // ToDo: Ensure worker.pathToItem factors out items that are already tagged
-                //      We will also need to set & clear the task tag with each item found during initial searches
+                // ToDo: make sure to set & clear the task tag with each item found during initial searches
 
                 if(w.tasks[0].recipeChoices.length===0) {
                     // To handle this, we will generate a new structure as we go
@@ -150,10 +149,8 @@ export function createWorker(pack) {
                             // Note that this doesn't account for having items in multiple places... we'll have to correct that later. That
                             // being said, this 'ask' is due to target items being stuck where they are, and not being able to move them
                             let tile = game.tiles.find(t=>t.x===w.tasks[0].targetx && t.y===w.tasks[0].targety);
-
                             let grabCount = 0;
                             for(let i=0; i<tile.items.length; i++) {
-                                //console.log('Check '+ tile.items[i].name +' vs '+ itemNameToUse);
                                 if(tile.items[i].name===itemNameToUse) {
                                     if(grabCount<w.tasks[0].task.itemsNeeded[group].options[build.optionId].qty) {
                                         build.items.push({item:tile.items[i], distance:0, x:tile.x, y:tile.y});
@@ -180,15 +177,26 @@ export function createWorker(pack) {
                                 let targetItemName = w.tasks[0].task.itemsNeeded[group].options[choice].name;
                                 while(working) {
                                     let foundItem = null;
-                                    let outcome = game.pathTo(w.tasks[0].targetx, w.tasks[0].targety, tile=>{
-                                        let match = tile.items.findIndex(i=>i.inTask===0 && i.name===targetItemName);
-                                        if(match===-1) return false;
-                                        foundItem = tile.items[match];
+                                    let outcome = game.pathTo(w.tasks[0].targetx, w.tasks[0].targety, mild=>{
+                                        let match = mild.items.findIndex(i=>i.inTask===0 && i.name===targetItemName);
+                                        if(match===-1) {
+                                            if(mild.x===w.tasks[0].targetx && mild.y===w.tasks[0].targety) {
+                                                //console.log('At origin, no match for '+ targetItemName +' among '+ tile.items.map(u=>u.name).join(', '));
+                                                console.log('No match. ['+ mild.x +','+ mild.y +'] has '+ mild.items.map(u=>u.name).join(', '));
+                                                let sourceTile = game.tiles.find(y=>y.x===w.tasks[0].targetx && y.y===w.tasks[0].targety);
+                                                console.log('Compare to '+ sourceTile.items.map(u=>u.name).join(', '));
+                                            }
+                                            return false;
+                                        }
+                                        foundItem = mild.items[match];
                                         return true;
                                     });
-                                    if(!outcome.result==='fail') {
+                                    if(outcome.result==='fail') {
+                                        // There aren't any more items that can possibly be found
                                         working = false;
+                                        console.log('Could not find any more of item '+ targetItemName);
                                     }else{
+                                        console.log(outcome);
                                         build.items.push({item:foundItem, distance:outcome.path.length, x:outcome.tile.x, y:outcome.tile.y });
                                         foundItem.inTask = w.tasks[0].id;
                                         // We are setting the item's inTask value, but not filling out the tasks's itemsTagged list
@@ -224,7 +232,7 @@ export function createWorker(pack) {
                         for(let i=0; i<choices.length; i++) {
                             for(let j=0; j<choices[i].items.length; j++) {
                                 if(i !== valid.group && j !== valid.choice) {
-                                    choices[i].items[j].inTask = 0;
+                                    choices[i].items[j].item.inTask = 0;
                                 }
                             }
                         }
@@ -379,6 +387,7 @@ export function createWorker(pack) {
                         }
                         w.carrying.push(tile.items[slot]);
                         tile.items.splice(slot,1);
+                        tile.modified = true;
 
                         // Now that we have the item, update this task
                         w.tasks[0].targetx = w.tasks[0].nextx;
@@ -395,6 +404,7 @@ export function createWorker(pack) {
                         }
                         ptile.items.push(w.carrying[pslot]);
                         w.carrying.splice(pslot,1);
+                        ptile.modified = true;
                         game.deleteTask(w.tasks[0]);
                         console.log('Item move done!');
                     break;

@@ -16,7 +16,8 @@ let errorTimeout = null;
 let itemStats = [
     {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
     {name:'Apple Tree',   img:'appletree.png',   desc:'A tree growing apples'},
-    {name:'Barley Grass', img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
+    {name:'Bark Fibers',         img:'twinestrips.png',   desc:'Pieces of bark fiber'},
+    {name:'Barley Grass',        img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
     {name:'Debarked Fallen Log', img:'debarkedfallenlog', desc:'A rotten log, without bark'},
     {name:'Fallen Log',          img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
     {name:'Flint',        img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
@@ -30,7 +31,6 @@ let itemStats = [
     {name:'Pine Tree',     img:'pinetree.png',     desc:'A pine tree, growing strong'},
     {name:'Rye Grass',     img:'ryegrass.png',    desc:'Field of natural rye grain'},
     {name:'Turnip Plant',        img:'turnipplant.png',  desc:'Turnips, growing wild'},
-    {name:'Twine Strips',        img:'twinestrips.png',   desc:'Pieces of bark fiber'},
     {name:'Wheat Grass',   img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
     {name:'Wheat Seed',    img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
 ];
@@ -253,6 +253,8 @@ function LocalMapRightPanel(props) {
         return (
             <div className="localmaprightpanel" style={{width:300}}>
                 <p>{tileData.desc}</p>
+                {/* I'm adding map coordinates here only to help in the debugging process */}
+                <p>[{props.selected.x},{props.selected.y}]</p>
                 <p className="singleline" style={{fontWeight:'bold'}}>Items:</p>
                 <ListItems items={props.selected.items} />
             </div>

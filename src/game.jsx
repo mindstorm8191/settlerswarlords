@@ -103,7 +103,7 @@ export const game = {
                 tile.image = build.image;
                 build.id = st.id;
                 build.activeTasks = st.activeTasks;
-                build.onLoad(st);
+                if(typeof(build.onLoad)!=='undefined') build.onLoad(st);
 
                 if(st.id>lastStructureId) lastStructureId = st.id;
                 return build;
@@ -278,8 +278,10 @@ export const game = {
 
             // Determine if this tile is the one we need
             let tile = game.tiles.find(t=>t.x===filledTiles[0].x && t.y===filledTiles[0].y)
+            if(tile.x===startX && tile.y===startY) console.log('Checking origin tile...');
             if(callback(tile)) {
                 // We have a hit!
+                console.log('Size of search: '+ filledTiles.length);
                 return {
                     result: 'success',
                     tile:tile,
@@ -416,7 +418,12 @@ export const game = {
 
         // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
         // just run through its list.
-        // But first we need tasks that use items... so this will come later
+        for(let i=0; i<task.itemsTagged.length; i++) {
+            if(task.itemsTagged[i] !== null) {
+                task.itemsTagged.inTask = 0;
+                console.log('Clear item tag:', task.itemsTagged[i]);
+            } 
+        }
 
         // Remove the task from the building, if there's a building associated to it
         let slot;

@@ -126,8 +126,10 @@ export const game = {
                     // We don't need to reference the other way, since buildings only keep task IDs. But we do need to assign the
                     // root task to this task
                     task.task = building.tasks.find(t=>t.name===task.name);
+                    if(typeof(task.task)==='undefined') task.task = null;
                 }else{
                     console.log('This task does not have a building associated to it');
+                    task.task = null;
                 }
                 if(task.worker!==0) {
                     let worker = game.workers.find(w=>w.id===task.worker);
@@ -138,8 +140,30 @@ export const game = {
                 }else{
                     console.log('This task does not have a worker associated to it');
                 }
+                task.itemsTagged = task.itemsTagged.map(tag=>{
+                    if(tag.place==='worker') {
+                        let worker = game.workers.find(w=>w.id===tag.id);
+                        if(worker.carrying.length < tag.slot) {
+                            console.log('Could not use slot of '+ tag.slot +' because worker carrying has only '+ worker.carrying.length +' items');
+                        }else{
+                            return worker.carrying[tag.slot];
+                        }
+                    }
+                    if(tag.place==='tile') {
+                        let tile = game.tiles.find(t=>t.x===tag.x && t.y===tag.y);
+                        if(tile.items.length < tag.slot) {
+                            console.log('Could not use slot of '+ tag.slot +' because tile has only '+ tile.items.length +' items');
+                        }else{
+                            return tile.items[tag.slot];
+                        }
+                    }
+                    console.log('Could not locate item; place type of '+ tag.place +' not supported');
+                    return null;
+                });
+                console.log(task.taskType +' with itemsTagged:', task.itemsTagged);
                 if(task.targetx===-1) task.targetx = null;
                 if(task.targety===-1) task.targety = null;
+
                 return task;
             });
         }
@@ -272,7 +296,7 @@ export const game = {
                 if(a.completed) return 1;
                 if(b.completed) return -1;
                 if(a.travelled > b.travelled) return 1;
-                if(a.travelled < b.travelled) return 0;
+                if(a.travelled < b.travelled) return -1;
                 return 0;
             });
 
@@ -368,6 +392,7 @@ export const game = {
             worker: null,
             targetx: targetx,
             targety: targety,
+            targetItem: '',     // this is really only used in itemMove tasks, but is here so that it doesn't get missed
             //itemsNeeded: [] - this data will be pulled as static information from the root task object. No need to keep it here
             recipeChoices: [],  // This determines which option of each portion of the recipe is to be used. This is set shortly after
                                 // a task is assigned

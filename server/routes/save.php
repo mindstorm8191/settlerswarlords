@@ -60,6 +60,7 @@
             break;
 
             case 'Rock Knapper':
+                // The Rock Knapper doesn't have any additional fields
                 verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->Rock Knapper');
             break;
 
@@ -77,12 +78,32 @@
             ['name'=>'status',      'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'taskType',    'required'=>true, 'format'=>'stringnotempty'],
             ['name'=>'worker',      'required'=>true, 'format'=>'int'],
-            ['name'=>'targetx',     'required'=>true, 'format'=>'int'],
-            ['name'=>'targety',     'required'=>true, 'format'=>'int'],
+            ['name'=>'targetx',       'required'=>true, 'format'=>'int'],
+            ['name'=>'targety',       'required'=>true, 'format'=>'int'],
+            ['name'=>'targetItem',    'required'=>true, 'format'=>'string'],
+            ['name'=>'recipeChoices', 'required'=>true, 'format'=>'arrayOfInts'],
             ['name'=>'quantity',    'required'=>true, 'format'=>'int'],
             ['name'=>'itemsTagged', 'required'=>true, 'format'=>'array'],
             ['name'=>'progress',    'required'=>true, 'format'=>'int']
         ], 'server/routes/save.php->verify tasks');
+        // Now verify individual itemsTagged entries
+        JSEvery($task['itemsTagged'], function($tag) {
+            if($tag['place']=='worker') {
+                verifyInput($tag, [
+                    ['name'=>'place', 'required'=>true, 'format'=>'stringnotempty'],
+                    ['name'=>'id',    'required'=>true, 'format'=>'posint'],
+                    ['name'=>'slot',  'required'=>true, 'format'=>'int']
+                ], 'server/routes/save.php->verify itemsTagged of tasks->case worker');
+            }
+            if($tag['place']=='tile') {
+                verifyInput($tag, [
+                    ['name'=>'place', 'required'=>true, 'format'=>'stringnotempty'],
+                    ['name'=>'x',     'required'=>true, 'format'=>'int'],
+                    ['name'=>'y',     'required'=>true, 'format'=>'int'],
+                    ['name'=>'slot',  'required'=>true, 'format'=>'int']
+                ], 'server/routes/save.php->verify itemsTagged of tasks->case tile');
+            }
+        });
     });
 
     // Now, verify the user

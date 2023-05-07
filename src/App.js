@@ -30,18 +30,19 @@
 //     src/app.css                          src/minimapTiles.jsx                server/finishLogin.php                server/minimap.php
 //        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx           server/globals.php                     resetgame.php
 //            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/libs/weightedRandom.php        README.md
-//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/routes.getblog.php            techtree.md
+//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/routes/getblog.php            techtree.md
 //                  src/libs/DanLog.js                  src/LocalMap.jsx                      server/routes/log.php                automationtree.md
 //                     src/Account.jsx                      src/libs/DraggableMap.jsx            server/routes/login.php              wartree.md
 //                         src/libs/DanInput.jsx                server/routes/autologin.php         server/routes/save.php              worldgen.md
 //                            src/libs/DanCommon.js                server/config.php                    server/routes/savetiles.php        undergroundbiomes.md
 //                               src/libs/ErrorOverlay.jsx           server/libs/common.php                server/routes/signup.php           workercrafting.md
-//                                  src/game.jsx                         server/libs/jsarray.php               server/libs/DanGloba.php          futureprocesses.md
-// 299+46+120+96+48+38+229+65+83+68+446+565+72+99+82+74+374+183+33+8+307+230+33+38+299+127+38+35+41+104+76+340+37+141+256+21+50+58+12+8+67+18+11+30+22
+//                                  src/game.jsx                         server/libs/jsarray.php               server/libs/DanGlobal.php         futureprocesses.md
+// 328+46+120+96+48+38+229+65+83+68+479+691+72+99+84+75+378+183+33+8+307+230+33+38+299+127+38+35+41+125+76+340+37+141+256+21+50+58+12+8+67+18+11+30+23
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
 // 4/24/23: 5427 lines
+// 5/07/23: 5644 lines
 
 import "./App.css";
 import React from "react";
@@ -182,8 +183,35 @@ function App() {
                     worker: task.worker === null ? 0 : task.worker.id,
                     targetx: task.targetx === null ? -1 : task.targetx,
                     targety: task.targety === null ? -1 : task.targety,
+                    targetItem: task.targetItem, // used only in itemMove tasks
+                    recipeChoices: task.recipeChoices,
                     quantity: task.quantity,
-                    itemsTagged: [], // this needs to be worked out, but we currently don't have any items for tasks at all
+                    itemsTagged: task.itemsTagged.map((item) => {
+                        // How do we find the same item from the same location?
+                        // The only valid solution is to store the item's location along with its name & other factors
+                        // That means we must first determine the location of this item; it could be with a worker, or on a tile
+                        // Start by searching the workers; that part will be faster
+                        let slot;
+                        let worker = game.workers.find((w) => {
+                            slot = w.carrying.findIndex((i) => i === item);
+                            return slot !== -1;
+                        });
+                        if (typeof worker !== "undefined") {
+                            // Got a hit on a worker
+                            return { place: "worker", id: worker.id, slot: slot };
+                        }
+                        // Now try the tiles
+                        let tile = game.tiles.find((t) => {
+                            slot = t.items.findIndex((i) => i === item);
+                            return slot !== -1;
+                        });
+                        if (typeof tile !== "undefined") {
+                            return { place: "tile", x: tile.x, y: tile.y, slot: slot };
+                        }
+                        // Didn't find it in workers, or tiles? Something is wrong
+                        console.log("Error in save(): could not locate item " + item.name + " anywhere");
+                        return { place: "lost" };
+                    }),
                     progress: task.progress,
                 };
             }),

@@ -2,8 +2,8 @@
 
 1.  Use Gimp to create a paper texture for showing the Blog on the front page. We can use new textures and effects as the game's tech progresses.
 2.  Do the fix for the Carousel, and see if that corrects the issue - which is, the setTimeout calls stop matching up with the normal running time variables when the user is looking at other webpages for a while. The fix for this is to switch to using the running time variables exclusively.
-3.  Keep creating artwork for items as they become accessible
-4.  Start building the Loggers Post. Get tools to be used to collect twine from surrounding trees. This should get the rest of the new task system ideas tested.
+3.  Do more to verify that the saving code is functioning correctly with the task changes
+4.  Create the artwork for any remaining items that occur on game startup. From here we'll add new items as they become available
 5.  Add the tutorial section, and get it displaying correctly
 6.  Figure out how to create a non-linear tutorial section. We might be better of having a full-page display for selecting different tasks to
     consider.

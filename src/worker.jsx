@@ -22,6 +22,8 @@ export function createWorker(pack) {
     //      walkPath - A string of numbers representing this worker's path to their next destination
     // No return value. This worker will be added to the Game object
 
+    console.log(pack.carrying);
+
     let w = {
         name: pack.name,
         id: pack.id,
@@ -328,7 +330,7 @@ export function createWorker(pack) {
                                 // While we have this path data, go ahead and create a task to move this to our location, so we don't have to
                                 // search for it again later
                                 let newTask = game.createItemMoveTask(w.tasks[0].itemsTagged[i], outcome.x, outcome.y, w.tasks[0].targetx, w.tasks[0].targety);
-                                w.tasks[0].unshift(newTask);
+                                w.tasks.unshift(newTask);
                                 return;
                             }
                         }else{

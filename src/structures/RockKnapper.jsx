@@ -56,6 +56,7 @@ export function RockKnapper() {
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             tile.items.push(game.createItem('Flint Knife', 'tool', {efficiency:1, endurance:20*60})); // This lasts only a minute
                             tile.modified = true;  // Dont' forget to update this flag when a new item is placed here
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                         }
                     },{
                         name: 'Craft Flint Stabber',
@@ -71,6 +72,7 @@ export function RockKnapper() {
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60}));
                             tile.modified = true;
+                            if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
                         }
                     }
                 ]

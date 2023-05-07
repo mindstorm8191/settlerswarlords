@@ -48,6 +48,10 @@ export function LocalMap(props) {
     const [dragStructure, setDragStructure] = React.useState(null); // This will hold the structure (as 'selected') and the x&y coordinate of the mouse's last location
     const [errorText, setErrorText] = React.useState('');
     const [tileSelected, setTileSelected] = React.useState(null);
+    const [tutorialDisplay, setTutorialDisplay] = React.useState(true);
+
+    // Set the game's tutorialDisplay function while we're here
+    game.tutorialDisplay = setTutorialDisplay;
 
     return (
         <div
@@ -61,9 +65,11 @@ export function LocalMap(props) {
                 }
             }}
         >
+            {/* Show a header bar over-top the map */}
             <div style={{ display: "flex", width: "100%" }}>
                 <span>Biome: {game.localMapBiome}</span>
                 <span style={{ marginLeft: 20 }}>Population: 4</span>
+                <span className="fakelink" style={{ marginLeft: 20 }} onClick={()=>props.setPage('WorldMap')}>World Map</span>
             </div>
             <div style={{ display: "flex", width: "100%" }}>
                 <div style={{ display: "block", width: 150 }}>
@@ -162,6 +168,7 @@ export function LocalMap(props) {
                                 onClick={()=>{
                                     // Start by checking the drag flag state. If it returns true, we just finished dragging the map
                                     if(clearDragFlag()) return;
+                                    if(game.tutorialModes[game.tutorialState].name==='Welcome') game.advanceTutorial();
 
                                     setTileSelected(tile);
                                 }}
@@ -199,6 +206,26 @@ export function LocalMap(props) {
                             </div>
                         </FixedPositionChild>
                     )}
+                    {/* Also display the tutorial block. This will always show at least something, but not always the tutorial text */}
+                    <FixedPositionChild>
+                        <div style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:2, padding:3, margin:3, top:0, left:0, whiteSpace:'normal'}}>
+                            {tutorialDisplay===true?(
+                                <>
+                                    <img src={imageURL +'exit.png'} style={{display:'inline-block', marginRight:5, cursor:'pointer'}}
+                                        onClick={()=>{
+                                            game.tutorialDisplay = null;
+                                            setTutorialDisplay(false);
+                                        }} />
+                                    {game.tutorialModes[game.tutorialState].display}
+                                </>
+                            ):(
+                                <img src={imageURL +"TutorialButton.png"} style={{cursor:'pointer'}} onClick={()=>{
+                                    game.tutorialDisplay=!game.tutorialDisplay;
+                                    setTutorialDisplay(!tutorialDisplay);
+                                }} />
+                            )}
+                        </div>
+                    </FixedPositionChild>
                 </DraggableMap>
                 <LocalMapRightPanel selected={tileSelected} />
             </div>

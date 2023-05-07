@@ -36,6 +36,21 @@ export const game = {
         return game.lastTaskId;
     },
 
+    tutorialState:0,
+    tutorialModes: [
+        {name:'Welcome', display:'Welcome to your space! Drag the map around to view your area. Click on a tile to view info about it'},
+        {name:'shelter', display:'You need shelter! Drag a lean-to from the left onto a tile that has trees. One of your workers will build it'},
+        // We need to add food collection here, but don't have the Forage Post built yet
+        {name:'tools1', display:`Tools are vital for progress. Place a Rock Knapper, then use it to craft a Flint Knife or Stabber (you'll need both)`},
+        {name:'tools2', display:`New buildings unlocked! As you craft more materials, more abilities (buildings & tasks) become available to you.`}
+    ],
+    tutorialDisplay: null, // This is set to the tutorial display flag-function upon game startup
+    advanceTutorial: ()=>{
+        // Handles advancing the tutorial when called
+        game.tutorialState++;
+        if(typeof(game.tutorialDisplay)==='function') game.tutorialDisplay(true);
+    },
+
     setup: (content, funcUpdateWorkers) => {
         // Sets up the game, using content received from the server
         // content - all content received from the server, as it was provided. It should contain the following

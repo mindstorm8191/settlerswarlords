@@ -73,6 +73,13 @@
     // Generate the localMap content for this worldMap tile
     ensureMinimap($playerx, $playery, true);
 
+    // Also update the minimap, based on the player being at this location. Before we can complete the data, we need to get the
+    // biome of the tile they'r eat
+    $biomeid = DanDBList("SELECT biome FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
+                         'server/routes/signup.php->get tile biome')[0]['biome'];
+    DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome) VALUES (?,?,?,NOW(),?,'',4,?);",
+              'iiiii', [$playerid, $playerx, $playery, $playerid,$biomeid], 'server/routes/signup.php->add to knownmap');
+
     // We're ready to send a response to the user. This will be the same response as when a user signs back in, so we have combined
     // that into one script
     include("../finishLogin.php");

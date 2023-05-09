@@ -61,11 +61,18 @@ export function DraggableMap(props) {
     // props - data
     //   styles - This gets apended to the styles of the map container
     //   threshhold - How much mouse movement is considered movement of the map. This will be set to 2 if not provided.
+    //   defaultx, defaulty - default map coords that the display starts with. Defaults to [0,0]
     // No other props are needed at this time
 
     // Note that, for all child components, any <img> tags must have `draggable="false"` included in its HTML parameters (not CSS)
 
-    const [scrollPos, setScrollPos] = React.useState({ moveState: false, x: 0, y: 0, touchStartX: 0, touchStartY:0 });
+    const [scrollPos, setScrollPos] = React.useState({
+        moveState: false,
+        x: typeof(props.defaultx)==='undefined'?0:props.defaultx,
+        y: typeof(props.defaulty)==='undefined'?0:props.defaulty,
+        touchStartX: 0,
+        touchStartY:0
+    });
     let threshhold = (typeof(props.threshhold)==='undefined')?2:(props.threshhold<0)?0:props.threshhold;
 
     function startPan(e) {

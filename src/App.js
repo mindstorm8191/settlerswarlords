@@ -19,6 +19,8 @@
         Electrolysis; use pure copper on cathode, impure copper on anode. With current, impurities from anode plate onto the cathode
     Bioleaching: bacteria produces acids that dissolve the copper
 
+    Zinc Sulfide: The secret to glow in the dark toys https://www.acs.org/molecule-of-the-week/archive/z/zinc-sulfide.html
+
     Known bugs (with work-arounds)
     1)  Whenever a task gets completed, if the building with that task is selected, React will still attempt to render that task from
         the task list, despite the fact that it doesn't exist anymore. I have added a check within the loop to check if the task is
@@ -26,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/getInput.php                  server/libs/clustermap.php        tasklist.md
-//     src/app.css                          src/minimapTiles.jsx                server/finishLogin.php                server/minimap.php
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx           server/globals.php                     resetgame.php
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/libs/weightedRandom.php        README.md
-//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/routes/getblog.php            techtree.md
-//                  src/libs/DanLog.js                  src/LocalMap.jsx                      server/routes/log.php                automationtree.md
-//                     src/Account.jsx                      src/libs/DraggableMap.jsx            server/routes/login.php              wartree.md
-//                         src/libs/DanInput.jsx                server/routes/autologin.php         server/routes/save.php              worldgen.md
-//                            src/libs/DanCommon.js                server/config.php                    server/routes/savetiles.php        undergroundbiomes.md
-//                               src/libs/ErrorOverlay.jsx           server/libs/common.php                server/routes/signup.php           workercrafting.md
-//                                  src/game.jsx                         server/libs/jsarray.php               server/libs/DanGlobal.php         futureprocesses.md
-// 328+46+120+96+48+38+229+65+83+68+479+691+72+99+84+75+378+183+33+8+307+230+33+38+299+127+38+35+41+125+76+340+37+141+256+21+50+58+12+8+67+18+11+30+23
+// src/app.js                           src/worker.jsx                       server/libs/jsarray.php               server/libs/DanGlobal.php         workercrafting.md
+//     src/app.css                          src/minimapTiles.jsx                 server/getInput.php                  server/libs/clustermap.php        futureprocesses.md
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx            server/finishLogin.php                server/minimap.php               tasklist.md
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/globals.php                     server/routes/worldmap.php
+//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/libs/weightedRandom.php        resetgame.php
+//                  src/libs/DanLog.js                  src/LocalMap.jsx                       server/getblog.php                   README.md
+//                     src/Account.jsx                      src/libs/DraggableMap.jsx             server/routes/log.php                techtree.md
+//                         src/libs/DanInput.jsx                src/WorldMap.jsx                     server/routes/login.php              automationtree.md
+//                            src/libs/DanCommon.js                 server/routes.autologin.php         server/routes/save.php               wartree.md
+//                               src/libs/ErrorOverlay.jsx             server/config.php                    server/routes/savetiles.php        worldgen.md
+//                                  src/game.jsx                         server/libs/common.php                server/routes/signup.php           undergroundbiomes.md
+// 328+54+120+96+48+38+229+65+83+68+479+691+72+99+84+75+378+183+119+33+8+307+230+33+38+299+127+38+35+41+125+76+340+37+141+256+39+21+50+58+12+8+67+18+11+30+23
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -55,6 +57,7 @@ import { DanLog } from "./libs/DanLog.js";
 import { AccountBox, RegisterForm } from "./Account.jsx";
 import { game } from "./game.jsx";
 import { LocalMap } from "./LocalMap.jsx";
+import { WorldMap } from "./WorldMap.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
@@ -63,6 +66,9 @@ function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
+    const [worldMap, setWorldMap] = React.useState([]); // holds data about the world map
+    const [worldCoords, setWorldCoords] = React.useState({}); // Where on the world map the player is. This isn't shown directly to the player, but
+    // is needed to mark where the player is on the world map
 
     const [localWorkers, setLocalWorkers] = React.useState([]);
 
@@ -240,7 +246,9 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap workers={localWorkers} onSave={onSave} />;
+                return <LocalMap workers={localWorkers} onSave={onSave} setPage={setPage} />;
+            case "WorldMap":
+                return <WorldMap worldMap={worldMap} worldCoords={worldCoords} setWorldMap={setWorldMap} setWorldCoords={setWorldCoords} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }

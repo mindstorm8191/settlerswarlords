@@ -28,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/libs/jsarray.php               server/libs/DanGlobal.php         workercrafting.md
-//     src/app.css                          src/minimapTiles.jsx                 server/getInput.php                  server/libs/clustermap.php        futureprocesses.md
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx            server/finishLogin.php                server/minimap.php               tasklist.md
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/globals.php                     server/routes/worldmap.php
+// src/app.js                           src/worker.jsx                       server/libs/jsarray.php               server/libs/DanGlobal.php         notes/undergroundbiomes.md
+//     src/app.css                          src/minimapTiles.jsx                 server/getInput.php                  server/libs/clustermap.php        notes/workercrafting.md
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx            server/finishLogin.php                server/minimap.php               notes/futureprocesses.md
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx       server/globals.php                     server/routes/worldmap.php      notes/tasklist.md
 //               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/libs/weightedRandom.php        resetgame.php
 //                  src/libs/DanLog.js                  src/LocalMap.jsx                       server/getblog.php                   README.md
-//                     src/Account.jsx                      src/libs/DraggableMap.jsx             server/routes/log.php                techtree.md
-//                         src/libs/DanInput.jsx                src/WorldMap.jsx                     server/routes/login.php              automationtree.md
-//                            src/libs/DanCommon.js                 server/routes.autologin.php         server/routes/save.php               wartree.md
-//                               src/libs/ErrorOverlay.jsx             server/config.php                    server/routes/savetiles.php        worldgen.md
-//                                  src/game.jsx                         server/libs/common.php                server/routes/signup.php           undergroundbiomes.md
-// 328+54+120+96+48+38+229+65+83+68+479+691+72+99+84+75+378+183+119+33+8+307+230+33+38+299+127+38+35+41+125+76+340+37+141+256+39+21+50+58+12+8+67+18+11+30+23
+//                     src/Account.jsx                      src/libs/DraggableMap.jsx             server/routes/log.php                notes/techtree.md
+//                         src/libs/DanInput.jsx                src/WorldMap.jsx                     server/routes/login.php              notes/automationtree.md
+//                            src/libs/DanCommon.js                 server/routes.autologin.php         server/routes/save.php               notes/wartree.md
+//                               src/libs/ErrorOverlay.jsx             server/config.php                    server/routes/savetiles.php        notes/worldgen.md
+//                                  src/game.jsx                         server/libs/common.php                server/routes/signup.php           notes/worldhistory.md
+// 328+54+120+96+48+38+229+65+83+68+479+691+72+99+84+75+378+183+119+33+8+307+230+33+38+299+127+38+35+41+125+76+340+37+141+256+39+21+50+58+12+8+67+13+18+11+30+23
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines

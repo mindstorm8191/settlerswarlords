@@ -13,15 +13,16 @@ import { serverURL, imageURL } from "./App.js";
 
 const worldTileData = [
     {id:0, biome:'Grassland', desc:'Large fields of grasses', img:'grass.png'},
-    {id:1, biome:'Forest', desc:'Heavy forest growths', img:'forest.png'},
-    {id:2, biome:'Desert', desc:'Endless sands with little vegetation', img:'water.png'},
-    {id:3, biome:'Swamp', desc:'Wet lands, with water everywhere', img:'swamp.png'},
-    {id:4, biome:'Water', desc:'Deep waters', img:'water.png'},
-    {id:5, biome:'Jungle', desc:'Rich Jungle, full of life', img:'jungle.png'},
+    {id:1, biome:'Forest',    desc:'Heavy forests with shady floors', img:'forest.png'},
+    {id:2, biome:'Desert',    desc:'Endless sands with scarce vegetation', img:'water.png'},
+    {id:3, biome:'Swamp',            desc:'Wet lands, with water everywhere', img:'swamp.png'},
+    {id:4, biome:'Water',            desc:'Deep waters with few islands', img:'water.png'},
+    {id:5, biome:'Jungle',           desc:'Rich Jungle, full of life', img:'jungle.png'},
     {id:6, biome:'Frozen Wasteland', desc:'Lands covered in ice and snow', img:'frozen.png'},
     {id:7, biome:'Lavascape',        desc:'Barren rocks with lava puddles everywhere', img:'lava.png'},
-    {id:8, biome:'Unexplored',       desc:'Nobody has been here yet', img:'unknown.png'}
-]
+    {id:8, biome:'Unexplored',       desc:'Nobody has been here yet', img:'unknown.png'},
+    // We should handle actively exploring tiles as events that can be shown here
+];
 
 export function WorldMap(props) {
     // Handles displaying the world map to the player. Note that they can only view the world map as they know it. Information will be
@@ -34,6 +35,10 @@ export function WorldMap(props) {
     // prop fields - functions
     //      setWorldMap - changes the world map to new content
     //      setWorldCoords - changes the location on the map that the player is at
+    //      setPage - changes the current page displayed to the user
+
+    const [selectedTile, setSelectedTile] = React.useState(null);
+    const [command, setCommand] = React.useState('');
 
     // If there is no world map data, we will need to load some content. While it loads, provide a loading screen
     if (props.worldMap.length === 0) {
@@ -85,7 +90,7 @@ export function WorldMap(props) {
             </div>
         );
     }
-    console.log(window);
+
     return (
         <>
             {/* Show a header bar over-top the map */}
@@ -95,22 +100,82 @@ export function WorldMap(props) {
                 </span>
             </div>
             <DraggableMap
-                style={{ width: "100vh", height: "calc(100vh - 185px)", backgroundColor: "pink" }}
+                style={{ width: "100vh", height: "calc(100vh - 185px)" }}
                 threshhold={5}
                 defaultx={-props.worldCoords.x*56 +(window.innerWidth-200)/2}
                 defaulty={-props.worldCoords.y*56 +(window.innerHeight-185)/2}
             >
                 {props.worldMap.map((tile,key)=>{
                     return (
-                        <div key={key} className="worldmaptile" style={{top:tile.y*56, left:tile.x*56,
-                        backgroundImage:`url(${imageURL}worldtiles/${worldTileData[tile.biome].img})`, border:'1px solid black'}}>
+                        <div
+                            key={key}
+                            className="worldmaptile"
+                            style={{
+                                top:tile.y*56,
+                                left:tile.x*56,
+                                backgroundImage:`url(${imageURL}worldtiles/${worldTileData[tile.biome].img})`,
+                                border:'1px solid black'
+                            }}
+                            onClick={()=>{
+                                if(clearDragFlag()) return;
+                                setSelectedTile(tile);
+                                setCommand('');
+                            }}
+                        >
                             {tile.x===props.worldCoords.x && tile.y===props.worldCoords.y?(
                                 <img src={imageURL +"worldtiles/youarehere.png"} alt="You are Here" style={{pointerEvents:'none', border:0}} draggable="false" />
                             ):('')}
                         </div>
                     )
                 })}
+                {/* If a tile is selected, show a details box next to that tile. This won't need the FixedPositionChild tool */}
+                {(selectedTile!==null)?(
+                    <WorldTileDetail tile={selectedTile} command={command} setCommand={setCommand} exit={()=>setSelectedTile(null)} />
+                ):('')}
             </DraggableMap>
         </>
     );
+}
+
+function WorldTileDetail(props) {
+    // Shows details about a selected world tile
+    // Prop fields - data
+    //      tile - which tile to show the details for
+    //      command - what command content to display for this tile
+    // Prop fields - functions
+    //      setCommand - Set which command to show on-screen
+    //      exit - call this to close the details window
+
+    
+    const [units, setUnits] = React.useState(1);
+
+    function countUpdate(f, v) {
+        // Updates a specific field from user input. There is only one field to consider, so we won't worry about the fieldname
+
+    }
+    
+    return (
+        <div style={{display:'block', position:'absolute', top:props.tile.y*56, left:props.tile.x*56+57, width:250, zIndex:1, backgroundColor:'white', border:'1px solid black'}} >
+            {/* Show an exit button at top right, to close the window */}
+            <div style={{display:'block', position:'absolute', top:2, right:2, cursor:'pointer'}} onClick={()=>props.exit()}>
+                <img src={imageURL+"exit.png"} />
+            </div>
+            <p style={{fontWeight:'bold', textAlign:'center'}}>{worldTileData[props.tile.biome].biome}</p>
+            <p style={{textAlign:'center'}}>{worldTileData[props.tile.biome].desc}</p>
+            {props.command===''?(
+                <span className="fakelink" onClick={()=>props.setCommand('send')}>Send Units</span>
+            ):(
+                <>
+                    <p className="singleline" style={{fontWeight:'bold'}}>Send Units</p>
+                    <p className="singleline">Number to send:</p>
+                    <DanInput onUpdate={countUpdate} fieldname={'unitcount'} default={units} />
+                    <p className="singleline">Travel time (1 way): 5:00</p>
+                    <p className="singleline">Time at target: 5:00</p>
+                    <p className="singleline" style={{fontWeight:'bold'}}>Expected return: 15:00</p>
+                    <input type="button" value="Send" />
+                </>
+            )}
+            
+        </div>
+    )
 }

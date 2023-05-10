@@ -36,15 +36,16 @@ Once done, you can run 'npm start' to start the client code. If WAMP is running 
 
 There is a lot planned for this game, and a lot to get done. Ultimately, I want players to have to work toward unlocking new technologies, relying on automating common tasks to make the process easier. Here are a few progression trees:
 
--   [Tech Tree](/techtree.md)
--   [Automation Path](/automationtree.md)
--   [Means of War](/wartree.md)
+-   [Tech Tree](/notes/techtree.md)
+-   [Automation Path](/notes/automationtree.md)
+-   [Means of War](/notes/wartree.md)
 
 And additional information
 
--   [World Gen](/worldgen.md)
--   [Underground Biomes](/undergroundbiomes.md)
--   [Worker Crafting](/workercrafting.md)
--   [Future Processes Planned](/futureprocesses.md)
+-   [World Gen](/notes/worldgen.md)
+-   [World History](/notes/worldhistory.md)
+-   [Underground Biomes](/notes/undergroundbiomes.md)
+-   [Worker Crafting](/notes/workercrafting.md)
+-   [Future Processes Planned](/notes/futureprocesses.md)
 
 Currently, players can start playing the game, but there's only two structures available: the lean-to and forage post. I am still working on getting workers to accept tasks properly.

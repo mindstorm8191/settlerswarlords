@@ -17,5 +17,6 @@
     DanDBList("DELETE FROM sw_map;", '', [], 'resetgame.php->clear all map tiles');
     DanDBList("DELETE FROM sw_minimap;", '', [], 'resetgame.php->clear all mini-map tiles');
     DanDBList("DELETE FROM sw_player;", '', [], 'resetgame.php->clear all players');
+    DanDBList("DELETE FROM sw_traveler;", '', [], 'resetgame.php->clear all travelers');
     echo('All is done');
 ?>

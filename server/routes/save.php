@@ -7,11 +7,13 @@
     require_once("../config.php");
     require_once("../libs/common.php");
     require_once("../libs/jsarray.php");
+    require_once('../events.php');
 
     // Get the input content
     require_once("../getInput.php");
 
-    //reporterror('server/routes/save.php->before verify', 'Content received: '. $content);
+    // Go ahead and process events
+    processEvents();
 
     // Verify the base fields
     $con = verifyInput($msg, [

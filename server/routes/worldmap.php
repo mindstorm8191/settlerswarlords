@@ -7,9 +7,12 @@
     require_once("../config.php");
     require_once("../libs/common.php");
     require_once("../libs/jsarray.php");
+    require_once("../events.php");
 
     // Collect the message
     require_once("../getInput.php");
+
+    processEvents();
 
     // Verify the input. We should only have the username and ajax code
     $con = verifyInput($msg, [

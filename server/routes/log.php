@@ -6,6 +6,7 @@
 
     require_once("../config.php");
     require_once("../libs/common.php");
+    // ehhh, let's not worry about processing events with this one. It's only for error recording anyway
 
     // Collect the message
     require_once("../getInput.php");

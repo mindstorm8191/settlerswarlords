@@ -9,6 +9,7 @@
     require_once("../config.php");
     require_once("../libs/common.php");
     require_once("../libs/jsarray.php");
+    // Hmm, we just saved general data, I don't think we need to process events again here
 
     // Collect the message
     require_once("../getInput.php");

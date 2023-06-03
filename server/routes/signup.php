@@ -11,9 +11,12 @@
 
     require_once("../globals.php");
     require_once("../minimap.php");
+    require_once("../events.php");
 
     // Start by collecting the data
     require_once("../getInput.php");
+
+    processEvents();
 
     // Validate the input
     $con = verifyInput($msg, [
@@ -225,7 +228,7 @@
         // Place down some civilizations. Choices are determined by land types, so we need to determine which biome we're at before
         // deciding a civilization there
         $civCount = floor(($mapsize * $mapsize) / $civDensity);
-        reporterror('server/routes/signup.php->worldmap_generate()', 'We have '. $civCount .' civs to add');
+        //reporterror('server/routes/signup.php->worldmap_generate()', 'We have '. $civCount .' civs to add');
         $time = microtime(true);
         for($i=0; $i<$civCount; $i++) {
             $xpos = rand($mapminx, $mapmaxx);
@@ -269,7 +272,7 @@
             //            'i'. $i .', @'. $xpos .'x'. $ypos .' now has '. $fullMap[$xpos][$ypos]['civ'] .' at strength '. $fullMap[$xpos][$ypos]['civstrength']);
         }
         $time = (microtime(true) - $time) * 1000;
-        reporterror('server/routes/signup.php->worldmap_generate()->after civs', 'civ adds took time='. $time);
+        //reporterror('server/routes/signup.php->worldmap_generate()->after civs', 'civ adds took time='. $time);
 
         // We need to convert biome names to an ID, so it matches the indexing of other areas, including the database
         $fullMap = array_map(function($long) {

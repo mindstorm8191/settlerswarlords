@@ -7,9 +7,13 @@
 
     require_once("../config.php");
     require_once("../libs/common.php");
+    require_once("../events.php");
 
     // Collect the actual message
     require_once("../getInput.php");
+
+    // Since events don't involve the player, go ahead and process them now
+    processEvents();
 
     $con = verifyInput($msg, [
         ['name'=>'userid', 'required'=>true, 'format'=>'int'],

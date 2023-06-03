@@ -219,7 +219,7 @@
                 return $wide;
             }, $long);
         }, $localTiles);
-        reporterror('server/minimap.php->ensureMinimap()->after items populate', 'LocalMap generated: '. json_encode($localTiles));
+        //reporterror('server/minimap.php->ensureMinimap()->after items populate', 'LocalMap generated: '. json_encode($localTiles));
 
         // With all the data decided now, we still have the land types in text form. The database stores these as IDs, not names.
         // Convert them all to ID values

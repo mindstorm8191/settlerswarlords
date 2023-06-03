@@ -151,7 +151,7 @@ function WorldTileDetail(props) {
 
     function countUpdate(f, v) {
         // Updates a specific field from user input. There is only one field to consider, so we won't worry about the fieldname
-
+        setUnits(v);
     }
     
     return (
@@ -172,10 +172,28 @@ function WorldTileDetail(props) {
                     <p className="singleline">Travel time (1 way): 5:00</p>
                     <p className="singleline">Time at target: 5:00</p>
                     <p className="singleline" style={{fontWeight:'bold'}}>Expected return: 15:00</p>
-                    <input type="button" value="Send" />
+                    <input type="button" value="Send" onClick={()=>{
+                        // Send a message to the server to send a unit 
+                        fetch(
+                            serverURL +'routes/sendunits.php',
+                            DAX.serverMessage({people:units, targetx:props.tile.x, targety:props.tile.y, action:'scout'}, true)
+                        )  
+                            .then(res=>DAX.manageResponseConversion(res))
+                            .catch(err => console.log(err))
+                            .then(data => {
+                                // The server should simply create an event. If successful, it will send info about that event back to the client
+                                if(data.result!=='success') {
+                                    console.log('Server responded in error:', data);
+                                    return;
+                                }
+
+                                // We should have received data for an event that was just created
+                                data.event.detail = JSON.parse(data.event.detail);
+                                console.log(data.event);
+                            })
+                    }}/>
                 </>
             )}
-            
         </div>
     )
 }

@@ -6,9 +6,12 @@
 
     require_once("../config.php");
     require_once("../libs/common.php");
+    require_once("../events.php");
 
     // Start with converting the message from the client
     require_once("../getInput.php"); // all content is now in $msg
+
+    processEvents();
 
     // Verify the input
     $con = verifyInput($msg, [

@@ -8,6 +8,8 @@
     require_once("../config.php");
     require_once("../libs/common.php");
     require_once("../libs/jsarray.php");
+    // I was going to process events with this request too. However, when players auto-login, it seems that two scrips are ran at the same time,
+    // thus running one event twice. I'm not sure what to do about that if this scales up even more
 
     // Collect the message
     require_once("../getInput.php");

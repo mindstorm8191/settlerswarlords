@@ -3,6 +3,9 @@
     For the game Settlers & Warlords
 */
 
+// c = sqrt(a^2 + b^2);
+// c = sqrt(25+25) = sqrt(50) = 7.07
+
 import React from "react";
 import { DraggableMap, FixedPositionChild, clearDragFlag } from "./libs/DraggableMap.jsx";
 import { DanInput } from "./libs/DanInput.jsx";
@@ -40,6 +43,62 @@ export function WorldMap(props) {
     const [selectedTile, setSelectedTile] = React.useState(null);
     const [command, setCommand] = React.useState('');
 
+    function updateMap(newTileList) {
+        // Manages updating tiles on the map that have changed, for whatever reason
+        // newTileList - list of tile data that has changed
+        // No return value. This will trigger updates up the React chain
+
+        console.log('We have '+ newTileList.length +' tiles to update');
+        let worldMap = props.worldMap.map(tile=>{
+            // See if this tile is marked in the new tiles list
+            let slot = newTileList.findIndex(t=>t.x===tile.x && t.y===tile.y);
+            if(slot===-1) return tile;
+            console.log('Got hit with slot='+ slot);
+            return newTileList[slot];
+        });
+        
+        // With everything updated, now feed it up the line
+        fillMapBorders(worldMap);
+    }
+
+    function fillMapBorders(content) {
+        // Manages filling in the borders of all tiles with an unexplored tile, giving users the opportunity to expand their knowledge of
+        // the world
+        // content - list of all tiles this user has received from the server. This can already contain unexplored tiles, they will be
+        //      skipped over anyway
+        // No return value. The updated world map content will be fed up the line
+
+        for (let i = 0; i < content.length; i++) {
+            // If any tiles are listed as unexplored, they can be skipped over. We were assuming that unexplored tiles signaled the
+            // end of the original list, but that's not the case anymore
+            if (content[i].biome === 8) continue;
+            // From this tile, check the surrounding tiles for existing hits
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    let match = content.find((r) => r.x === content[i].x + dx && r.y === content[i].y + dy);
+                    if (typeof match === "undefined") {
+                        // There is no tile here at all. Let's create one now
+                        // Each tile contains the following data: x,y,lastcheck,owner,civ,population,biome
+                        content.push({
+                            x: content[i].x + dx,
+                            y: content[i].y + dy,
+                            biome: 8,
+                            lastcheck: "",
+                            owner: 0,
+                            civ: 0,
+                            population: 0,
+                            isexploring: 0
+                        });
+                    }
+                }
+            }
+        }
+        // Now update the world map for all React components
+        console.log('Map now has '+ content.length +' tiles');
+        props.setWorldMap(content);
+    }
+
     // If there is no world map data, we will need to load some content. While it loads, provide a loading screen
     if (props.worldMap.length === 0) {
         // Start with fetching the map content
@@ -54,31 +113,8 @@ export function WorldMap(props) {
                 console.log(data);
                 // The data the server sends does not include future-explorable tiles. We need to generate that here
                 // Our method will involve running through all existing tiles, and checking the same list to see if there's a neighbor
-                for (let i = 0; i < data.worldtiles.length; i++) {
-                    // The biome of any unexplored tiles will be X. Once we find an unexplored tile in our list, we can exit
-                    if (data.worldtiles[i].biome === 8) break;
-                    // From this tile, check the surrounding tiles for existing hits
-                    for (let dy = -1; dy <= 1; dy++) {
-                        for (let dx = -1; dx <= 1; dx++) {
-                            if (dx === 0 && dy === 0) continue;
-                            let match = data.worldtiles.find((r) => r.x === data.worldtiles[i].x + dx && r.y === data.worldtiles[i].y + dy);
-                            if (typeof match === "undefined") {
-                                // There is no tile here at all. Let's create one now
-                                // Each tile contains the following data: x,y,lastcheck,owner,civ,population,biome
-                                data.worldtiles.push({
-                                    x: data.worldtiles[i].x + dx,
-                                    y: data.worldtiles[i].y + dy,
-                                    biome: 8,
-                                    lastcheck: "",
-                                    owner: 0,
-                                    civ: 0,
-                                    population: 0,
-                                });
-                            }
-                        }
-                    }
-                }
-                props.setWorldMap(data.worldtiles);
+                // Fortunately, we now have a function for that
+                fillMapBorders(data.worldtiles);
                 props.setWorldCoords({ x: data.playerx, y: data.playery });
             });
 
@@ -124,13 +160,16 @@ export function WorldMap(props) {
                         >
                             {tile.x===props.worldCoords.x && tile.y===props.worldCoords.y?(
                                 <img src={imageURL +"worldtiles/youarehere.png"} alt="You are Here" style={{pointerEvents:'none', border:0}} draggable="false" />
+                            ):tile.isexploring===1?(
+                                <img src={imageURL +"worldtiles/exploring.png"} alt="Exploring..." style={{pointerEvents:'none', border:0}} draggable="false" />
                             ):('')}
                         </div>
                     )
                 })}
                 {/* If a tile is selected, show a details box next to that tile. This won't need the FixedPositionChild tool */}
                 {(selectedTile!==null)?(
-                    <WorldTileDetail tile={selectedTile} command={command} setCommand={setCommand} exit={()=>setSelectedTile(null)} />
+                    <WorldTileDetail tile={selectedTile} command={command} setCommand={setCommand} exit={()=>setSelectedTile(null)}
+                        playerx={props.worldCoords.x} playery={props.worldCoords.y} updateTiles={updateMap} />
                 ):('')}
             </DraggableMap>
         </>
@@ -142,9 +181,11 @@ function WorldTileDetail(props) {
     // Prop fields - data
     //      tile - which tile to show the details for
     //      command - what command content to display for this tile
+    //      playerx & playery - world coordinates of the player
     // Prop fields - functions
     //      setCommand - Set which command to show on-screen
     //      exit - call this to close the details window
+    //      updateTiles - use this to send tile updates
 
     
     const [units, setUnits] = React.useState(1);
@@ -152,6 +193,18 @@ function WorldTileDetail(props) {
     function countUpdate(f, v) {
         // Updates a specific field from user input. There is only one field to consider, so we won't worry about the fieldname
         setUnits(v);
+    }
+
+    function calculateTravelTime(sx, sy, tx, ty) {
+        // Determines the total travel time between two tiles
+        let distx = Math.abs(sx-tx);
+        let disty = Math.abs(sy-ty);
+        let diag = Math.max(distx, disty) - Math.abs(distx-disty);
+        return (Math.max(distx,disty) - diag) + (diag*1.4);
+        // hmm, maybe diag is really not-diagonal?
+        // [5,5] to [5,6]; distx=0, disty=1; diag=1; newdiag=0;
+        // [5,5] to [6,6]; distx=1, disty=1, diag=0
+        // [0,0] to [3,4]; distx=3, disty=4, diag=1
     }
     
     return (
@@ -169,9 +222,9 @@ function WorldTileDetail(props) {
                     <p className="singleline" style={{fontWeight:'bold'}}>Send Units</p>
                     <p className="singleline">Number to send:</p>
                     <DanInput onUpdate={countUpdate} fieldname={'unitcount'} default={units} />
-                    <p className="singleline">Travel time (1 way): 5:00</p>
+                    <p className="singleline">Travel time (1 way): {calculateTravelTime(props.playerx, props.playery, props.tile.x, props.tile.y)*5}:00</p>
                     <p className="singleline">Time at target: 5:00</p>
-                    <p className="singleline" style={{fontWeight:'bold'}}>Expected return: 15:00</p>
+                    <p className="singleline" style={{fontWeight:'bold'}}>Expected return: {calculateTravelTime(props.playerx, props.playery, props.tile.x, props.tile.y)*10+5}:00</p>
                     <input type="button" value="Send" onClick={()=>{
                         // Send a message to the server to send a unit 
                         fetch(
@@ -187,9 +240,9 @@ function WorldTileDetail(props) {
                                     return;
                                 }
 
-                                // We should have received data for an event that was just created
-                                data.event.detail = JSON.parse(data.event.detail);
-                                console.log(data.event);
+                                // We should have received data for a new knownmap tile. Let's update our known map with that now
+                                // This... will require feeding all the way back up the chain
+                                props.updateTiles([data.tileupdate]);
                             })
                     }}/>
                 </>

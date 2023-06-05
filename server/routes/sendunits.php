@@ -78,11 +78,18 @@
               ])],
               'server/routes/sendunits.php->create event');
     $eventid = mysqli_insert_id($db);
+
+    // While we are waiting for these units to reach their destination & return, we can tag the target tile as being explored
+    updateKnownMap($player['id'], $con['targetx'], $con['targety'], "NOW()", "auto", "auto", "auto", "auto", 1);
     
-    // Well, that's all we can do for now. We need to end a completed event to the user
+    // Well, that's all we can do for now. We need to end an update to the known map to the user now
     die(json_encode([
         'result'=>'success',
-        'event'=> DanDBList("SELECT * FROM sw_event WHERE id=?;", 'i', [$eventid], 'server/routes/sendunits.php->send reply->event')[0],
-        'traveler'=> DanDBList("SELECT * FROM sw_traveler WHERE id=?;", 'i', [$travelerid], 'server/routes/sendunits.php->send reply->traveler')[0]
+        'tileupdate'=>[
+            'x'=>$con['targetx'], 'y'=>$con['targety'],
+            'lastcheck'=>'none',
+            'owner'=>0, 'civ'=>-1, 'population'=>0, 'biome'=>8,
+            'isexploring'=>1
+        ]
     ]));
 ?>

@@ -62,6 +62,9 @@ import { WorldMap } from "./WorldMap.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
+// These variables are important for the transition from dev mode to production mode. During development mode, the React front end behaves
+// on it's own server. Therefore the back end functions as an API. In production mode, the React front end is on the same server as the
+// back end, so file paths are relative to the React application
 
 function App() {
     const [page, setPage] = React.useState("HomePage");

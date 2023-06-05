@@ -80,7 +80,7 @@
     // biome of the tile they'r eat
     $biomeid = DanDBList("SELECT biome FROM sw_map WHERE x=? AND y=?;", 'ii', [$playerx, $playery],
                          'server/routes/signup.php->get tile biome')[0]['biome'];
-    DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome) VALUES (?,?,?,NOW(),?,'',4,?);",
+    DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome) VALUES (?,?,?,NOW(),?,-1,4,?);",
               'iiiii', [$playerid, $playerx, $playery, $playerid,$biomeid], 'server/routes/signup.php->add to knownmap');
 
     // We're ready to send a response to the user. This will be the same response as when a user signs back in, so we have combined

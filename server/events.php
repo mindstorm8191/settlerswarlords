@@ -41,11 +41,14 @@
                             switch($traveler['detail'][$i]['name']) {
                                 case 'knownmapentry':
                                     // Create a known map entry for this player
-                                    DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome) VALUES (?,?,?,?,?,?,?,?);",
-                                              'iiisiiii', [$traveler['player'], $traveler['detail'][$i]['x'], $traveler['detail'][$i]['y'],
-                                                           $traveler['detail'][$i]['lastseen'], 0, $traveler['detail'][$i]['civ'], 0,
-                                                           $traveler['detail'][$i]['biome']],
-                                              'server/events.php->processEvents()->case unittravel->save to known map');
+                                    //DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome) VALUES (?,?,?,?,?,?,?,?);",
+                                    //          'iiisiiii', [$traveler['player'], $traveler['detail'][$i]['x'], $traveler['detail'][$i]['y'],
+                                    //                       $traveler['detail'][$i]['lastseen'], 0, $traveler['detail'][$i]['civ'], 0,
+                                    //                       $traveler['detail'][$i]['biome']],
+                                    //          'server/events.php->processEvents()->case unittravel->save to known map');
+                                    updateKnownMap($traveler['player'], $traveler['detail'][$i]['x'], $traveler['detail'][$i]['y'],
+                                                   $traveler['detail'][$i]['lastseen'], 0, $traveler['detail'][$i]['civ'], 0,
+                                                   $traveler['detail'][$i]['biome'], false);
                                 break;
                             }
                         }
@@ -127,6 +130,8 @@
         // No return value. If the calculated time point is before NOW(), a new entry will be added to $eventsList. If the calculated
         // time point is after NOW(), it will be saved to the database.
 
+        global $eventsList;
+
         if($timereference=="NOW()") {
             // We already know this has to be saved to the database. Let's do that now... (wait... nvm)
             DanDBList("INSERT INTO sw_event (task,detail,timepoint) VALUES (?,?,DATE_ADD(NOW(), INTERVAL ? SECOND));", 'ssi',
@@ -152,7 +157,7 @@
         // Note that we don't have an event ID to provide, but that's ok
         array_push($eventsList, [
             'id'=>0,
-            'action'=>$action,
+            'task'=>$action,
             'detail'=>$details,
             'timepoint'=>$comp['tfuture']
         ]);
@@ -161,5 +166,68 @@
             $datetime2 = strtotime($b['timepoint']);
             return $datetime1 - $datetime2;
         });
+    }
+
+    function updateKnownMap($playerid, $x, $y, $lastcheck, $owner, $civ, $population, $biome, $isExploring) {
+        // Updates a known map tile for a player, or creates one if it doesn't exist
+        // $playerid - which player has this information
+        // $x, $y - world map coordinates
+        // $lastcheck - time point of last known information from this tile. If using current time, pass "NOW()"
+        // $owner - which player owns this land. Pass 'auto' to use a default value
+        // $civ - what type of NPC civilization exists here. Pass 'auto' to use a default value
+        // $population - population here. Pass 'auto' to use a default value
+        // $biome - biome of this tile. Pass 'auto' to use a default value
+        // $isExploring - pass 1 if this tile is being actively explored, or 0 if not
+
+        if($owner=='auto' || $civ=='auto' || $population=='auto' || $biome=='auto') {
+            // Determine if we have existing data on this tile
+            $existing = DanDBList("SELECT * FROM sw_knownmap WHERE playerid=? AND x=? AND y=?;", 'iii', 
+                                  [$playerid, $x, $y], 'server/events.php->updateKnownMap()->get existing record');
+            if(sizeof($existing)>0) {
+                // we have a hit! Fill out the input with existing data
+                $existing = $existing[0];
+                if($owner==='auto') $owner = $existing['owner'];
+                if($civ==='auto') $civ = $existing['civ'];
+                if($population=='auto') $population = $existing['population'];
+                if($biome=='auto') $biome = $existing['biome'];
+            }else{
+                // There was no data found. Go with generic defaults
+                if($owner=='auto') $owner = 0;
+                if($civ=='auto') $civ = -1;
+                if($population=='auto') $pouplation = 0;
+                if($biome=='auto') $biome = 8;
+            }
+        }
+
+        // Now we're ready for this query
+        if($lastcheck=='NOW()') {
+            DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome, isexploring) VALUES (?,?,?,NOW(),?,?,?,?,?) ".
+                    "ON DUPLICATE KEY UPDATE lastcheck=NOW(), owner=?, civ=?, population=?, biome=?, isexploring=?;",
+                    'iiiiiiiiiiiii', [
+                        $playerid, $x, $y, $owner, $civ, $population, $biome, $isExploring,
+                                           $owner, $civ, $population, $biome, $isExploring
+                    ], 'server/events.php->updateKnownMap()->save knownmap with current time');
+        }else{
+            DanDBList("INSERT INTO sw_knownmap (playerid, x, y, lastcheck, owner, civ, population, biome, isexploring) VALUES (?,?,?,?,?,?,?,?,?) ".
+                    "ON DUPLICATE KEY UPDATE lastcheck=?, owner=?, civ=?, population=?, biome=?, isexploring=?;",
+                    'iiisiiiiisiiiii', [
+                        $playerid, $x, $y, $lastcheck, $owner, $civ, $population, $biome, $isExploring,
+                                           $lastcheck, $owner, $civ, $population, $biome, $isExploring
+                    ], 'server/events.php->updateKnownMap()->save knownmap with non-current time');
+        }
+    }
+
+    function travellerPath($startx, $starty, $destx, $desty) {
+        // Plots a path across the world map, for travellers to use to get places
+
+        // Start by pulling data from the database. We want our first pull to be a little larger than the route's straight-line area
+        $minx = min($startx, $destx);
+        $maxx = max($startx, $destx);
+        $miny = min($starty, $desty);
+        $maxy = max($starty, $desty);
+        $tiles = DanDBList("SELECT * FROM sw_map WHERE x BETWEEN ? AND ? AND y BETWEEN ? AND ?;", 'iiii',
+                           [$minx, $maxx, $miny, $maxy], 'server/events.php->travellerPath()->get initial search area');
+
+        // We also need to get the player's known map for the same region. Travellers can't 
     }
 ?>

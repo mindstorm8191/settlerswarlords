@@ -30,7 +30,7 @@
     $player = $res[0];  // This will tell us which worldmap tile to update
 
     // All we really need to do is to send the known map content for this user to the client
-    $group = DanDBList("SELECT x,y,lastcheck,owner,civ,population,biome FROM sw_knownmap WHERE playerid=?;", 'i', [$player['id']],
+    $group = DanDBList("SELECT x,y,lastcheck,owner,civ,population,biome,isexploring FROM sw_knownmap WHERE playerid=?;", 'i', [$player['id']],
                        'server/routes/worldmap.php->collect data');                       
     // That should be all we need... for now
     die(json_encode([

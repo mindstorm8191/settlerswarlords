@@ -18,20 +18,26 @@ let itemStats = [
     {name:'Apple Tree',   img:'appletree.png',   desc:'A tree growing apples'},
     {name:'Bark Fibers',         img:'twinestrips.png',   desc:'Pieces of bark fiber'},
     {name:'Barley Grass',        img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
-    {name:'Debarked Fallen Log', img:'debarkedfallenlog', desc:'A rotten log, without bark'},
+    {name:'Debarked Fallen Log', img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
     {name:'Fallen Log',          img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
     {name:'Flint',        img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
-    {name:'Flint Knife',   img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
+    {name:'Flint Hatchet',       img:'flinthatchet.png',      desc:'Flint blade for cutting wood. Better than a Flint Stabber!'},
+    {name:'Flint Knife',         img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
     {name:'Flint Stabber', img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
     {name:'Gravel',        img:'gravel.png',       desc:'A collection of small rocks of various types'},
-    {name:'Locust Tree',   img:'mapletree.png',    desc:'A locust tree, growing strong'},
+    {name:'Locust Tree',         img:'mapletree.png',    desc:'A locust tree, growing strong'},
+    {name:'Long Stick',          img:'longstick.png',         desc:'A long piece of wood. Good for tools'},
     {name:'Maple Tree',    img:'mapletree.png',   desc:'A maple tree, still growing'},
     {name:'Millet Grass',  img:'milletgrass.png',  desc:'Field of millet, growing wild'},
-    {name:'Oat Grass',     img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
-    {name:'Pine Tree',     img:'pinetree.png',     desc:'A pine tree, growing strong'},
-    {name:'Rye Grass',     img:'ryegrass.png',    desc:'Field of natural rye grain'},
+    {name:'Oat Grass',           img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
+    {name:'Pine Cone',           img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
+    {name:'Pine Tree',           img:'pinetree.png',     desc:'A pine tree, growing strong'},
+    {name:'Removed Stick',       img:'removedstick.png',      desc:'Not real! Represents a stick missing from the trees'},
+    {name:'Rye Grass',           img:'ryegrass.png',    desc:'Field of natural rye grain'},
+    {name:'Short Stick',         img:'shortstick.png',        desc:'A short piece of wood. Good for tools'},
+    {name:'Small Rope',          img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
     {name:'Turnip Plant',        img:'turnipplant.png',  desc:'Turnips, growing wild'},
-    {name:'Wheat Grass',   img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
+    {name:'Wheat Grass',         img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
     {name:'Wheat Seed',    img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
 ];
 
@@ -257,7 +263,7 @@ function LocalMapRightPanel(props) {
 
     function quantitySubmit() { 
         // Handles when the user submits the quantity to craft
-        console.log('Task started with '+ quantity +' to make');
+        //console.log('Task started with '+ quantity +' to make');
         game.createTask(structure, selectedTask, quantity);
         setQuantity(1);
         setSelectedTask(null);
@@ -383,12 +389,13 @@ function ListItems(props) {
             // Show a picture with this item too, if we have one
             let stats = itemStats.find(stat=>stat.name===props.items[i].name);
             if(typeof(stats)!=='undefined' && stats.img!=='') {
-                list.push({name: props.items[i].name, qty: 1, img:stats.img, desc:stats.desc});
+                list.push({name: props.items[i].name, qty: 1, img:stats.img, desc:stats.desc, inTask:props.items[i].inTask});
             }else{
-                list.push({name: props.items[i].name, qty: 1, img:'unknown.png', desc:'This item needs a description'});
+                list.push({name: props.items[i].name, qty: 1, img:'unknown.png', desc:'This item needs a description', inTask:props.items[i].inTask});
             }
         }else{
             list[slot].qty++;
+            list[slot].inTask += props.items[i].inTask;
         }
     }
 
@@ -397,7 +404,7 @@ function ListItems(props) {
             {list.map((item,key)=>(
                 <p className="singleline" key={key} title={item.desc}>
                     <img src={imageURL +"items/"+ item.img} alt={item.name} />
-                    {item.name} x{item.qty}
+                    {item.name} x{item.qty}, {item.inTask}
                 </p>
             ))}
         </div>

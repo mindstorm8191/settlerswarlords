@@ -52,7 +52,8 @@ export function createWorker(pack) {
                 foundTask.worker = w;
                 w.tasks.push(foundTask);
                 w.walkPath = '';
-                console.log(w.name +' assigned task '+ foundTask.task.name);
+                //console.log(w.name +' assigned task '+ foundTask.task.name);
+                //console.log(w);
             }
 
             // First thing we should do is to determine where this task should be performed at. Some task locations are based on where
@@ -80,7 +81,7 @@ export function createWorker(pack) {
                             if(i.inTask!==0) return false;
                             return targetSet.options[r].name === i.name;
                         }).length;
-                        console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
+                        //console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
                         if(total >= targetSet.options[r].qty) {
                             itemNameToUse = targetSet.options[r].name;
                             return true;
@@ -115,7 +116,10 @@ export function createWorker(pack) {
                 console.log('Found target for '+ w.tasks[0].task.name +' at '+ outcome.tile.x +','+ outcome.tile.y);
             }
 
-            
+            /////////////////////////////////////////////////////////////////
+
+            // Next, we need to determine the exact recipe we will use. My intention is to allow multiple ways to produce each item, and the
+            // workers wil select the best recipe to use
             if(w.tasks[0].task !== null && w.tasks[0].task.itemsNeeded.length>0) {
                 // The first thing we should do is determine what materials we will use for this. Once decided, we will use that recipe to
                 // complete the task.
@@ -157,6 +161,7 @@ export function createWorker(pack) {
                                     if(grabCount<w.tasks[0].task.itemsNeeded[group].options[build.optionId].qty) {
                                         build.items.push({item:tile.items[i], distance:0, x:tile.x, y:tile.y});
                                         tile.items[i].inTask = w.tasks[0].id;
+                                        console.log('Set '+ tile.items[i].name +' to task '+ tile.items[i].inTask);
                                         grabCount++;
                                     }
                                 }
@@ -180,16 +185,17 @@ export function createWorker(pack) {
                                 while(working) {
                                     let foundItem = null;
                                     let outcome = game.pathTo(w.tasks[0].targetx, w.tasks[0].targety, mild=>{
-                                        let match = mild.items.findIndex(i=>i.inTask===0 && i.name===targetItemName);
+                                        let match = mild.items.findIndex(p=>p.inTask===0 && p.name===targetItemName);
                                         if(match===-1) {
-                                            if(mild.x===w.tasks[0].targetx && mild.y===w.tasks[0].targety) {
+                                            //if(mild.x===w.tasks[0].targetx && mild.y===w.tasks[0].targety) {
                                                 //console.log('At origin, no match for '+ targetItemName +' among '+ tile.items.map(u=>u.name).join(', '));
-                                                console.log('No match. ['+ mild.x +','+ mild.y +'] has '+ mild.items.map(u=>u.name).join(', '));
-                                                let sourceTile = game.tiles.find(y=>y.x===w.tasks[0].targetx && y.y===w.tasks[0].targety);
-                                                console.log('Compare to '+ sourceTile.items.map(u=>u.name).join(', '));
-                                            }
+                                                //console.log('No match to '+ targetItemName +'. ['+ mild.x +','+ mild.y +'] has '+ mild.items.map(u=>u.name).join(', '));
+                                                //let sourceTile = game.tiles.find(y=>y.x===w.tasks[0].targetx && y.y===w.tasks[0].targety);
+                                                //console.log('Compare to '+ sourceTile.items.map(u=>u.name).join(', '));
+                                            //}
                                             return false;
                                         }
+                                        console.log('Found match of '+ mild.items[match].name +' with task='+ mild.items[match].inTask);
                                         foundItem = mild.items[match];
                                         return true;
                                     });
@@ -251,6 +257,7 @@ export function createWorker(pack) {
                     for(let a=0; a<optionChoices.length; a++) {
                         for(let b=0; b<optionChoices[a].items.length; b++) {
                             w.tasks[0].itemsTagged.push(optionChoices[a].items[b].item);
+                            optionChoices[a].items[b].item.inTask = w.tasks[0].id;
                         }
                     }
                     // All that above seems like a lot of work, but we have reduced the problem: We have determined which recipes to use
@@ -270,15 +277,15 @@ export function createWorker(pack) {
                         // This will count as this worker's 'turn' / tick
                         let slot = -1;
                         let outcome = game.pathTo(w.x, w.y, tile=>{
-                            let s = tile.items.findIndex(i=>i.name===choice.name);
+                            let s = tile.items.findIndex(i=>i.inTask===0 && i.name===choice.name);
                             if(s===-1) return false;
                             slot = s;
                             return true;
                         });
                         if(outcome.result==='success') {
                             // Wait - we found a hit! Tag this item. This will still result in the end of our 'turn'
-                            w.task.itemsTagged.push(outcome.tile.items[slot]);
-                            outcome.tile.items[slot].inTask = w.task.id;
+                            w.tasks[0].itemsTagged.push(outcome.tile.items[slot]);
+                            outcome.tile.items[slot].inTask = w.tasks[0].id;
                             return;
                         }
                         // Otherwise, we will need to craft this item now
@@ -291,6 +298,7 @@ export function createWorker(pack) {
                         }
                         let newTask = game.createTask(outcome.structure, outcome.structure.tasks[outcome.taskSlot]);
                         w.tasks.unshift(newTask);
+                        newTask.worker = w;
                         return;
                     }
                 }
@@ -318,6 +326,7 @@ export function createWorker(pack) {
                                     if(i.inTask!==0) return false;
                                     if(i.name!==itemName) return false;
                                     item = i;
+                                    i.inTask = w.tasks[0].id;
                                     return true;
                                 });
                             });
@@ -335,6 +344,7 @@ export function createWorker(pack) {
                             }
                         }else{
                             console.log('Found '+ w.tasks[0].itemsTagged[i].name +' at '+ outcome.tile.x +','+ outcome.tile.y);
+                            w.tasks[0].itemsTagged[i].inTask = w.tasks[0].id;
                             // We found a valid task to this current item.
                             let newTask = game.createItemMoveTask(w.tasks[0].itemsTagged[i], outcome.tile.x, outcome.tile.y, w.tasks[0].targetx, w.tasks[0].targety);
                             newTaskList.push(newTask);
@@ -368,7 +378,7 @@ export function createWorker(pack) {
                                 w.tasks[0].progress = 0;
                             }else{
                                 game.deleteTask(w.tasks[0]);
-                                console.log('Task is complete!');
+                                //console.log('Task is complete! Now has '+ w.tasks.length +' tasks remaining');
                             }
                         }else{
                             if(typeof(w.tasks[0].task.onProgress)==='undefined') {

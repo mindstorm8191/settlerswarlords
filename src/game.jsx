@@ -8,6 +8,7 @@ import { minimapTiles } from "./minimapTiles.js";
 import { LeanTo } from "./structures/LeanTo.jsx";
 import { RockKnapper } from "./structures/RockKnapper.jsx";
 import { LoggersPost } from "./structures/LoggersPost.jsx";
+import { RopeMaker } from "./structures/RopeMaker.jsx";
 
 export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
@@ -26,7 +27,8 @@ export const game = {
     structureTypes: [
         LeanTo(),
         RockKnapper(),
-        LoggersPost()
+        LoggersPost(),
+        RopeMaker()
     ],
 
     tasks: [],
@@ -315,12 +317,12 @@ export const game = {
                 return 0;
             });
 
-            // Determine if this tile is the one we need
+            // Get the next working tile. We can also determine if this tile is the one we need, right now
             let tile = game.tiles.find(t=>t.x===filledTiles[0].x && t.y===filledTiles[0].y)
-            if(tile.x===startX && tile.y===startY) console.log('Checking origin tile...');
+            //if(tile.x===startX && tile.y===startY) console.log('Checking origin tile...');
             if(callback(tile)) {
                 // We have a hit!
-                console.log('Size of search: '+ filledTiles.length);
+                //console.log('Final size of search: '+ filledTiles.length);
                 return {
                     result: 'success',
                     tile:tile,
@@ -458,11 +460,12 @@ export const game = {
 
         // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
         // just run through its list.
+        console.log('This task has '+ task.itemsTagged.length +' items to de-tag');
         for(let i=0; i<task.itemsTagged.length; i++) {
             if(task.itemsTagged[i] !== null) {
-                task.itemsTagged.inTask = 0;
+                task.itemsTagged[i].inTask = 0;
                 console.log('Clear item tag:', task.itemsTagged[i]);
-            } 
+            }
         }
 
         // Remove the task from the building, if there's a building associated to it
@@ -476,8 +479,14 @@ export const game = {
 
         // Remove the task from the worker it's assigned to
         if(task.worker!==null) {
-            slot = task.worker.tasks.findIndex(t=>t===task);
-            if(slot!==-1) task.worker.tasks.splice(slot,1);
+            slot = task.worker.tasks.findIndex(t=>t.id===task.id);
+            if(slot!==-1) {
+                task.worker.tasks.splice(slot,1);
+            }else{
+                console.log('Did not find task with id='+ task.id +' with a worker. Worker has tasks '+ task.worker.tasks.map(t=>t.id).join());
+            }
+        }else{
+            console.log('Task id='+ task.id +' has no worker assigned');
         }
 
         // Remove the task from the game

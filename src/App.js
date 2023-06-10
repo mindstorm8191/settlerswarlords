@@ -28,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
-//     src/app.css                          src/minimapTiles.jsx                 server/events.php                    server/routes/signup.php           notes/worldhistory.md
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/getInput.php                  server/libs/DanGlobal.php         notes/undergroundbiomes.md
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx        server/finishLogin.php               server/libs/clustermap.php        notes/workercrafting.md
-//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx        server/globals.php                    server/minimap.php               notes/futureprocesses.md
-//                  src/libs/DanLog.js                  src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/tasklist.md
-//                     src/Account.jsx                      src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php
-//                         src/libs/DanInput.jsx                src/WorldMap.jsx                      server/routes/log.php                README.md
-//                            src/libs/DanCommon.js                 server/routes/autologin.php          server/routes/login.php              notes/techtree.md
-//                               src/libs/ErrorOverlay.jsx             server/config.php                    server/routes/save.php               notes/automationtree.md
-//                                  src/game.jsx                         server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
-// 337+54+120+96+48+38+229+65+83+68+494+691+72+99+86+75+405+190+199+37+8+307+230+106+33+38+299+127+42+36+44+127+77+87+350+37+141+256+42+22+51+58+14+8+67+13+18+11+30+15
+// src/app.js                           src/worker.jsx                       server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
+//     src/app.css                          src/minimapTiles.jsx                 server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/events.php                    server/routes/signup.php           notes/worldhistory.md
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx         server/getInput.php                  server/libs/DanGlobal.php         notes/undergroundbiomes.md
+//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx         server/finishLogin.php               server/libs/clustermap.php        notes/workercrafting.md
+//                  src/libs/DanLog.js                   src/structures/RopeMaker.jsx          server/globals.php                    server/minimap.php               notes/futureprocesses.md
+//                     src/Account.jsx                      src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/tasklist.md
+//                         src/libs/DanInput.jsx                src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php
+//                            src/libs/DanCommon.js                 src/WorldMap.jsx                      server/routes/log.php                README.md
+//                               src/libs/ErrorOverlay.jsx              server/routes/autologin.php          server/routes/login.php              notes/techtree.md
+//                                  src/game.jsx                           server/config.php                    server/routes/save.php               notes/automationtree.md
+// 337+54+120+96+48+38+229+65+83+68+494+691+72+99+86+134+66+405+190+199+37+8+307+230+106+33+38+299+127+42+36+44+127+77+87+350+37+141+256+42+22+51+58+14+8+67+13+18+11+30+15
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -252,7 +252,15 @@ function App() {
             case "LocalMap":
                 return <LocalMap workers={localWorkers} onSave={onSave} setPage={setPage} />;
             case "WorldMap":
-                return <WorldMap worldMap={worldMap} worldCoords={worldCoords} setWorldMap={setWorldMap} setWorldCoords={setWorldCoords} />;
+                return (
+                    <WorldMap
+                        worldMap={worldMap}
+                        worldCoords={worldCoords}
+                        setWorldMap={setWorldMap}
+                        setWorldCoords={setWorldCoords}
+                        setPage={setPage}
+                    />
+                );
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }

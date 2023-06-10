@@ -13,7 +13,7 @@ export function RockKnapper() {
         tooltip: 'Produce tools from rocks',
         locked: 0,
         prereqs: [],
-        newFeatures: [],
+        newFeatures: ['Small Rope'],
         canBuild: (tile) => {
             if(tile.newlandtype===-1) {
                 if(tile.landtype===21) return '';
@@ -49,7 +49,7 @@ export function RockKnapper() {
                         workLocation: 'structure',
                         itemsNeeded: [],
                         outputItems: ['Flint Knife'],  // This is more for automating task assignments than anything
-                        buildTime: 20*5, // we're gonna cheat here, to save time in debugging //20 * 20, // aka 20 seconds
+                        buildTime: 20*20, // 20 seconds
                         hasQuantity: true,
                         canAssign: ()=>true, // this can always be assigned
                         onComplete: ()=>{
@@ -73,6 +73,36 @@ export function RockKnapper() {
                             tile.items.push(game.createItem('Flint Stabber', 'tool', {efficiency:1, endurance:20*60}));
                             tile.modified = true;
                             if(game.tutorialModes[game.tutorialState].name==='tools1') game.advanceTutorial();
+                        }
+                    },{
+                        name: 'Craft Flint Hatchet',
+                        desc: 'Make a Flint Hatchet. Much better than a Stabber',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name: 'Short Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Small Rope', qty:1}], role:'item', workSite:false}
+                        ],
+                        outputItems: ['Flint Hatchet'],
+                        buildTime: 20 * 30, // 30 seconds... after getting a suitable piece of flint, wrapping it with rope goes pretty quick
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            // Find the small rope and delete it
+                            let slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot===-1) {
+                                console.log('Error: could not find Small Rope at building');
+                                return;
+                            }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            if(slot===-1) {
+                                console.log('Error: could not find Short Stick at building. Small Rope has already been deleted');
+                                return;
+                            }
+                            tile.items.splice(slot,1);
+                            tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:1, endurance:20*60*5}));
                         }
                     }
                 ]

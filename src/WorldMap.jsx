@@ -131,8 +131,8 @@ export function WorldMap(props) {
         <>
             {/* Show a header bar over-top the map */}
             <div style={{ display: "flex", width: "100%" }}>
-                <span className="fakelink" style={{ marginLeft: 20 }} onClick={() => props.setPage("WorldMap")}>
-                    World Map
+                <span className="fakelink" style={{ marginLeft: 20 }} onClick={() => props.setPage("LocalMap")}>
+                    Local Map
                 </span>
             </div>
             <DraggableMap
@@ -206,6 +206,8 @@ function WorldTileDetail(props) {
         // [5,5] to [6,6]; distx=1, disty=1, diag=0
         // [0,0] to [3,4]; distx=3, disty=4, diag=1
     }
+
+    //function calculatePath()
     
     return (
         <div style={{display:'block', position:'absolute', top:props.tile.y*56, left:props.tile.x*56+57, width:250, zIndex:1, backgroundColor:'white', border:'1px solid black'}} >

@@ -15,19 +15,26 @@ let errorTimeout = null;
 
 let itemStats = [
     {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
-    {name:'Apple Tree',   img:'appletree.png',   desc:'A tree growing apples'},
+    {name:'Apple Tree',          img:'appletree.png',   desc:'A tree growing apples'},
     {name:'Bark Fibers',         img:'twinestrips.png',   desc:'Pieces of bark fiber'},
     {name:'Barley Grass',        img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
+    {name:'Clay Ball',                 img:'clayball.png',          desc:'A ball of clay, ready to be molded'},
+    {name:'Connected Log',             img:'connectedlog.png',      desc:'Log pieces, all connected. Too heavy to move by hand!'},
     {name:'Debarked Fallen Log', img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
+    {name:'Dirt Ball',           img:'dirtball.png',          desc:'A ball of dirt'},
     {name:'Fallen Log',          img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
-    {name:'Flint',        img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
+    {name:'Flint',               img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
     {name:'Flint Hatchet',       img:'flinthatchet.png',      desc:'Flint blade for cutting wood. Better than a Flint Stabber!'},
     {name:'Flint Knife',         img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
-    {name:'Flint Stabber', img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
-    {name:'Gravel',        img:'gravel.png',       desc:'A collection of small rocks of various types'},
+    {name:'Flint Scythe',        img:'flintscythe.png',       desc:'Flint blade for cutting grasses'},
+    {name:'Flint Shovel',        img:'flintshovel.png',       desc:'Flint shaped into a shovel blade. Good for moving dirt'},
+    {name:'Flint Spear',         img:'flintspear.png',        desc:'Flint point on a long stick. Good for hunting or... defense'},
+    {name:'Flint Stabber',       img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
+    {name:'Gravel',              img:'gravel.png',       desc:'A collection of small rocks of various types'},
     {name:'Locust Tree',         img:'mapletree.png',    desc:'A locust tree, growing strong'},
+    {name:'Log Chunk',           img:'logchunk.png',          desc:'A chunk of a tree. Has a lot of good uses'},
     {name:'Long Stick',          img:'longstick.png',         desc:'A long piece of wood. Good for tools'},
-    {name:'Maple Tree',    img:'mapletree.png',   desc:'A maple tree, still growing'},
+    {name:'Maple Tree',          img:'mapletree.png',   desc:'A maple tree, still growing'},
     {name:'Millet Grass',  img:'milletgrass.png',  desc:'Field of millet, growing wild'},
     {name:'Oat Grass',           img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
     {name:'Pine Cone',           img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
@@ -38,7 +45,10 @@ let itemStats = [
     {name:'Small Rope',          img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
     {name:'Turnip Plant',        img:'turnipplant.png',  desc:'Turnips, growing wild'},
     {name:'Wheat Grass',         img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
-    {name:'Wheat Seed',    img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
+    {name:'Wheat Seed',          img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
+    {name:'Wooden Bucket',             img:'woodenbucket.png',       desc:'A bucket, made of wood. Good for non-food liquids'},
+    {name:'Wooden Creek Water Bucket', img:'woodenwaterbucket.png', desc:'A bucket, made of wood, filled with creek water'},
+    {name:'Wooden Pond Water Bucket', img:'woodenwaterbucket.png',  desc:'A bucket, made of wood, filled with pond water'}
 ];
 
 export function LocalMap(props) {

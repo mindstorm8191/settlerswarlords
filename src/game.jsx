@@ -9,6 +9,8 @@ import { LeanTo } from "./structures/LeanTo.jsx";
 import { RockKnapper } from "./structures/RockKnapper.jsx";
 import { LoggersPost } from "./structures/LoggersPost.jsx";
 import { RopeMaker } from "./structures/RopeMaker.jsx";
+import { DirtSource } from "./structures/DirtSource.jsx";
+import { WaterSource } from "./structures/WaterSource.jsx";
 
 export const game = {
     timerLoop: null, // Contains a timer handle when the game starts
@@ -28,7 +30,9 @@ export const game = {
         LeanTo(),
         RockKnapper(),
         LoggersPost(),
-        RopeMaker()
+        RopeMaker(),
+        DirtSource(),
+        WaterSource()
     ],
 
     tasks: [],
@@ -83,7 +87,21 @@ export const game = {
         // Manage unlocked items here
 
         game.localMapBiome = content.localContent.biome;
-        //let reports = 0;
+
+        game.unlockedItems = content.unlockedItems;
+        // As we add the unlocked items, we also need to determine which structures can be unlocked
+        if(game.unlockedItems==null) {
+            game.unlockedItems = [];
+        }else{
+            for(let i=0; i<game.structureTypes.length; i++) {
+                if(game.structureTypes[i].locked===0) continue;
+                if(game.structureTypes[i].prereq.every(outer => (
+                    outer.some(inner=>game.unlockedItems.some(i=>i===inner))
+                ))) {
+                    game.structureTypes[i].locked = 0;
+                }
+            }
+        }
 
         // All tiles have their items sent as JSON, we'll have to convert that to objects. We'll also need to separate items from groupings,
         // as they are originally  We also have to include a modified field, to
@@ -136,6 +154,9 @@ export const game = {
         // With workers complete, we can create all the tasks
         if(content.tasks!==null) {
             game.tasks = content.tasks.map(task => {
+                // While we go through this, set the last task ID, to prevent multiple events with the same ID
+                if(task.id>game.lastTaskId) game.lastTaskId = task.id;
+
                 // We need to tie references to their actual objects, here
                 if(task.building!==0) {
                     let building = game.structures.find(b=>b.id===task.building);
@@ -460,11 +481,11 @@ export const game = {
 
         // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
         // just run through its list.
-        console.log('This task has '+ task.itemsTagged.length +' items to de-tag');
+        //console.log('This task has '+ task.itemsTagged.length +' items to de-tag');
         for(let i=0; i<task.itemsTagged.length; i++) {
             if(task.itemsTagged[i] !== null) {
                 task.itemsTagged[i].inTask = 0;
-                console.log('Clear item tag:', task.itemsTagged[i]);
+                //console.log('Clear item tag:', task.itemsTagged[i]);
             }
         }
 
@@ -483,7 +504,19 @@ export const game = {
             if(slot!==-1) {
                 task.worker.tasks.splice(slot,1);
             }else{
-                console.log('Did not find task with id='+ task.id +' with a worker. Worker has tasks '+ task.worker.tasks.map(t=>t.id).join());
+                console.log('Did not find task with id='+ task.id +' with a worker. Trying all workers...');
+                let tslot = 0;
+                let newworker = game.workers.find(w=>{
+                    let slot = w.tasks.findIndex(ta=>ta.id===task.id);
+                    if(slot===-1) return false;
+                    tslot = slot;
+                    return true;
+                });
+                if(typeof(newworker)==='undefined') {
+                    console.log('Could not find any worker with this task. Moving on...');
+                }else{
+                    newworker.tasks.splice(tslot,1);
+                }
             }
         }else{
             console.log('Task id='+ task.id +' has no worker assigned');

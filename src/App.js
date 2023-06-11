@@ -28,24 +28,25 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                       server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
-//     src/app.css                          src/minimapTiles.jsx                 server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/events.php                    server/routes/signup.php           notes/worldhistory.md
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx         server/getInput.php                  server/libs/DanGlobal.php         notes/undergroundbiomes.md
-//               src/libs/DanAjax.js                 src/structures/LoggersPost.jsx         server/finishLogin.php               server/libs/clustermap.php        notes/workercrafting.md
-//                  src/libs/DanLog.js                   src/structures/RopeMaker.jsx          server/globals.php                    server/minimap.php               notes/futureprocesses.md
-//                     src/Account.jsx                      src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/tasklist.md
-//                         src/libs/DanInput.jsx                src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php
-//                            src/libs/DanCommon.js                 src/WorldMap.jsx                      server/routes/log.php                README.md
-//                               src/libs/ErrorOverlay.jsx              server/routes/autologin.php          server/routes/login.php              notes/techtree.md
-//                                  src/game.jsx                           server/config.php                    server/routes/save.php               notes/automationtree.md
-// 337+54+120+96+48+38+229+65+83+68+494+691+72+99+86+134+66+405+190+199+37+8+307+230+106+33+38+299+127+42+36+44+127+77+87+350+37+141+256+42+22+51+58+14+8+67+13+18+11+30+15
+// src/app.js                           src/worker.jsx                          server/routes/autologin.php          server/routes/login.php              notes/techtree.md
+//     src/app.css                          src/minimapTiles.jsx                   server/config.php                    server/routes/save.php               notes/automationtree.md
+//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
+//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx         server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
+//               src/libs/DanAjax.js                  src/structures/LoggersPost.jsx         server/events.php                    server/routes/signup.php           notes/worldhistory.md
+//                  src/libs/DanLog.js                    src/structures/RopeMaker.jsx           server/getInput.php                  server/libs/DanGlobal.php         notes/undergroundbiomes.md
+//                     src/Account.jsx                       src/structures/DirtSource.jsx          server/finishLogin.php               server/libs/clustermap.php        notes/workercrafting.md
+//                         src/libs/DanInput.jsx                src/structures/WaterSource.jsx         server/globals.php                    server/minimap.php               notes/futureprocesses.md
+//                            src/libs/DanCommon.js                 src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/tasklist.md
+//                               src/libs/ErrorOverlay.jsx              src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php
+//                                  src/game.jsx                            src/WorldMap.jsx                      server/routes/log.php                README.md
+// 349+54+120+96+48+38+229+65+83+68+503+701+72+99+165+184+66+95+124+415+190+254+37+8+307+230+233+33+38+299+127+40+36+44+127+77+95+350+37+141+256+42+22+51+58+14+8+67+13+18+11+30+19
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
 // 4/24/23: 5427 lines
 // 5/07/23: 5644 lines
 // 6/01/23: 6180 lines
+// 6/10/23: 6667 lines
 
 import "./App.css";
 import React from "react";
@@ -138,9 +139,9 @@ function App() {
                 // items in tasks needs their task links converted to a task ID
                 u.items = u.items.map((i) => {
                     if (i.inTask === 0) {
-                        return i;
+                        return { ...i };
                     }
-                    return { ...i, inTask: i.inTask.id };
+                    return { ...i, inTask: i.inTask };
                 });
                 return u;
             });
@@ -225,7 +226,7 @@ function App() {
                     progress: task.progress,
                 };
             }),
-            unlockeditems: [],
+            unlockeditems: game.unlockedItems,
         };
         //DanLog.add("src/App.js->onSave()->before first message", "load-save", { note: "ready to send:", ...pack });
         fetch(serverURL + "/routes/save.php", DAX.serverMessage(pack, true))

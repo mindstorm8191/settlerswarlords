@@ -68,7 +68,12 @@ export function createWorker(pack) {
                 if(typeof(targetSet)==='undefined') {  // Making sure I coded the tasks correctly
                     console.log('Error in worker.jsx->tick(): No required item marked as workSite. Task cannot be completed');
                     // For this, we should show a proper user-error message: That task is broken (it has no job site). Try something else
+                    let taskCount = w.tasks.length;
                     game.deleteTask(w.tasks[0]);
+                    if(w.tasks.length===taskCount) {
+                        console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                        w.tasks.splice(0,1);
+                    }
                     return;
                 }
 
@@ -95,7 +100,12 @@ export function createWorker(pack) {
                     if(sR.result==='fail') {
                         // We searched everything, nothing can craft any of these items. Show a proper error message... for now show a console log entry
                         console.log('Error: there are no buildings that can craft any of '+ targetSet.options.map(o=>o.name).join(', ') +'. Task cancelled');
+                        let taskCount = w.tasks.length;
                         game.deleteTask(w.tasks[0]);
+                        if(w.tasks.length===taskCount) {
+                            console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                            w.tasks.splice(0,1);
+                        }
                         return;
                     }
                     // Generate this task, and then assign it (as first) to this worker
@@ -293,7 +303,12 @@ export function createWorker(pack) {
                         if(outcome.result==='fail') {
                             // We couldn't find a suitable structure. We will have to abandon this task
                             console.log('Error: there are no buildings that can craft '+ choice.name +'. Task cancelled');
+                            let taskCount = w.tasks.length;
                             game.deleteTask(w.tasks[0]);
+                            if(w.tasks.length===taskCount) {
+                                console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                                w.tasks.splice(0,1);
+                            }
                             return;
                         }
                         let newTask = game.createTask(outcome.structure, outcome.structure.tasks[outcome.taskSlot]);
@@ -333,7 +348,12 @@ export function createWorker(pack) {
                             if(outcome.result==='fail') {
                                 // We still couldn't find any matching items. This task is no longer completable as it is
                                 console.log('Error: Could not find any item to replace '+ itemName +'. Task needs to be cancelled');
+                                let taskCount = w.tasks.length;
                                 game.deleteTask(w.tasks[0]);
+                                if(w.tasks.length===taskCount) {
+                                    console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                                    w.tasks.splice(0,1);
+                                }
                                 return;
                             }else{
                                 // While we have this path data, go ahead and create a task to move this to our location, so we don't have to
@@ -377,8 +397,12 @@ export function createWorker(pack) {
                                 w.tasks[0].quantity--;
                                 w.tasks[0].progress = 0;
                             }else{
+                                let taskCount = w.tasks.length;
                                 game.deleteTask(w.tasks[0]);
-                                //console.log('Task is complete! Now has '+ w.tasks.length +' tasks remaining');
+                                if(w.tasks.length===taskCount) {
+                                    console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                                    w.tasks.splice(0,1);
+                                }
                             }
                         }else{
                             if(typeof(w.tasks[0].task.onProgress)==='undefined') {
@@ -417,7 +441,12 @@ export function createWorker(pack) {
                         ptile.items.push(w.carrying[pslot]);
                         w.carrying.splice(pslot,1);
                         ptile.modified = true;
+                        let taskCount = w.tasks.length;
                         game.deleteTask(w.tasks[0]);
+                        if(w.tasks.length===taskCount) {
+                            console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                            w.tasks.splice(0,1);
+                        }
                         console.log('Item move done!');
                     break;
                     default:
@@ -476,7 +505,12 @@ export function createWorker(pack) {
                 let outcome = game.pathTo(w.x, w.y, tile=>tile.x===w.tasks[0].targetx && tile.y===w.tasks[0].targety);
                 if(outcome.result==='fail') { 
                     console.log(`Something is wrong with this task. Could not find path from ${w.x},${w.y} to ${w.tasks[0].targetx},${w.tasks[0].targety}`);
+                    let taskCount = w.tasks.length;
                     game.deleteTask(w.tasks[0]);
+                    if(w.tasks.length===taskCount) {
+                        console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                        w.tasks.splice(0,1);
+                    }
                     return;
                 }
                 // If successful, we're only really concerned about collecting the path to the target location

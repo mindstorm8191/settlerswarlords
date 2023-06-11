@@ -184,7 +184,7 @@
                     case 'carrots':  // Ground vegeatables will come only as plants. Others will come as plants & fruits
                         $wide['items'] = [['name'=>'Carrot Plant', 'amount'=>rand(3,8)]];
                     break;
-                    case 'potaotes':
+                    case 'potatoes':
                         $wide['items'] = [['name'=>'Potato Plant', 'amount'=>rand(5,12)]];
                     break;
                     case 'tomatoes':

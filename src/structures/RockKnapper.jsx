@@ -103,6 +103,86 @@ export function RockKnapper() {
                             }
                             tile.items.splice(slot,1);
                             tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:1, endurance:20*60*5}));
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Craft Flint Shovel',
+                        desc: 'Make a Flint Shovel. Good for moving dirt',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name:'Long Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name:'Small Rope', qty:1}], role:'item', workSite:false}
+                        ],
+                        outputItems: ['Flint Shovel'],
+                        buildTime: 20 * 30, // 30 seconds
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot===-1) { console.log('Error: Could not find Small Rope at building'); return; }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            if(slot===-1) { console.log('Error: Could not find Long Stick at building. Small Rope has already been deleted'); }
+                            tile.items.splice(slot, 1);
+                            tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*5}));
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Craft Flint Spear',
+                        desc: 'Make a Flint Spear, for hunting and... defense',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name: 'Long Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Small Rope', qty:1}], role:'item', workSite:false}
+                        ],
+                        outputItems: ['Flint Spear'],
+                        buildTime: 20 * 30, // 30 seconds
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot===-1) { console.log('Error: Could not find Small Rope at building'); return; }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            if(slot===-1) { console.log('Error: Could not find Long Stick at building. Small Rope has already been deleted'); }
+                            tile.items.splice(slot, 1);
+                            tile.items.push(game.createItem('Flint Spear', 'tool', {efficiency:1, endurance:20*60*5}));
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Craft Flint Scythe',
+                        desc: 'Make a Scythe, a tool to cut grasses',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name: 'Long Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Short Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Small Rope', qty:2}], role:'item', workSite:false}
+                        ],
+                        outputItems: ['Flint Scythe'],
+                        buildTime: 20 * 55, // 55 seconds, because it takes longer to attach 2 ropes instead of 1
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Small Rope'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            if(slot===-1) { console.log('Error: Could not find Long Stick at structure'); return; }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            if(slot===-1) { console.log('Error: Could not find Short Stick at structure'); return; }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
+                            tile.items.splice(slot,1);
+                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
+                            tile.items.splice(slot,1);
+                            tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*8})); // 8 minutes
+                            tile.modified = true;
                         }
                     }
                 ]

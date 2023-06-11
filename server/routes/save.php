@@ -61,9 +61,18 @@
                 ]), 'server/routes/save.php->verify structures->LeanTo');
             break;
 
+            case 'Dirt Source':
+                verifyInput($st, array_merge($baseObject, [
+                    ['name'=>'areaCleared', 'required'=>true, 'format'=>'int']
+                ]), 'server/routes/save.php->verify structures->dirt source');
+            break;
+
             case 'Rock Knapper':
-                // The Rock Knapper doesn't have any additional fields
-                verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->Rock Knapper');
+            case 'Loggers Post':
+            case 'Rope Maker':
+            case 'Water Source':
+                // There are multiple buildings that have only the basic properties
+                verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->all basic structures');
             break;
 
             default: // Erm, there shouldn't be any structures that aren't included in the group above. So this is an error
@@ -118,9 +127,10 @@
     $player = $res[0];  // This will tell us which worldmap tile to update
 
     // Update everything in the worldmap tile, in one go
-    DanDBList("UPDATE sw_map SET workers=?, structures=?, tasks=? WHERE x=? AND y=?;", 'sssii',
-        [json_encode($con['workers']), json_encode($con['structures']), json_encode($con['tasks']), $player['currentx'], $player['currenty']],
-    'routes/save.php->save map content');
+    DanDBList("UPDATE sw_map SET workers=?, structures=?, tasks=?, unlockeditems=? WHERE x=? AND y=?;", 'ssssii',
+              [json_encode($con['workers']), json_encode($con['structures']), json_encode($con['tasks']),
+              json_encode($con['unlockeditems']), $player['currentx'], $player['currenty']],
+              'routes/save.php->save map content');
 
     // With that done, the server can go back to... wait, what does a server do when it's not doing work???
     die(json_encode(['result'=>'success']));

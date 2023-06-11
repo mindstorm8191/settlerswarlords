@@ -35,7 +35,7 @@ export function RopeMaker() {
                 tasks: [
                     {
                         name: 'Craft Rope from Bark Fibers',
-                        desc: 'Create rope from raw materials',
+                        desc: 'Create rope from available materials',
                         taskType: 'craft',
                         workLocation: 'structure',
                         itemsNeeded: [

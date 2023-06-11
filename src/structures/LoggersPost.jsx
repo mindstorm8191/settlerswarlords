@@ -14,8 +14,22 @@ For now, all trees will generate a fixed number of long sticks: 6. Workers will 
 */
 
 let treetypes = [
-    'Maple Tree', 'Birch Tree', 'Oak Tree', 'Mahogany Tree', 'Pine Tree', 'Cedar Tree', 'Fir Tree', 'Hemlock Tree',
-    'Cherry Tree', 'Apple Tree', 'Pear Tree', 'Orange Tree', 'Hawthorne Tree', 'Dogwood Tree', 'Locust Tree', 'Juniper Tree'
+    {tileId: 5, name: 'Maple Tree', logs: 15, sticks: 20},
+    {tileId: 6, name: 'Birch Tree', logs: 1, sticks: 6},
+    {tileId: 7, name: 'Oak Tree', logs: 12, sticks: 16},
+    {tileId: 8, name: 'Mahogany Tree', logs: 8, sticks: 20},
+    {tileId: 9, name: 'Pine Tree', logs: 8, sticks: 6},
+    {tileId: 10, name: 'Cedar Tree', logs: 6, sticks: 6},
+    {tileId: 11, name: 'Fir Tree', logs: 4, sticks: 4},
+    {tileId: 12, name: 'Hemlock Tree', logs: 7, sticks: 15},
+    {tileId: 13, name: 'Cherry Tree', logs: 0, sticks: 8},
+    {tileId: 14, name: 'Apple Tree', logs: 1, sticks: 12},
+    {tileId: 15, name: 'Pear Tree', logs: 0, sticks: 6},
+    {tileId: 16, name: 'Orange Tree', logs: 1, sticks: 10},
+    {tileId: 17, name: 'Hawthorn Tree', logs: 4, sticks: 12},
+    {tileId: 18, name: 'Dogwood Tree', logs: 0, sticks: 6},
+    {tileId: 19, name: 'Locust Tree', logs: 10, sticks: 24},
+    {tileId: 20, name: 'Juniper Tree', logs: 3, sticks: 6}
 ];
 
 export function LoggersPost() {
@@ -77,16 +91,16 @@ export function LoggersPost() {
                         taskType: 'craft',
                         workLocation: 'atItem',
                         itemsNeeded: [
-                            {options: treetypes.map(t=>({name: t, qty:1})), role:'item', workSite:true},
+                            {options: treetypes.map(t=>({name: t.name, qty:1})), role:'item', workSite:true},
                             {options: [{name: 'Flint Stabber', qty:1}], role:'tool', workSite: false}
                         ],
                         outputItems: ['Long Stick', 'Removed Stick'],
-                        buildTime: 20 * 90, // 1.5 minutes
+                        buildTime: 20 * 60, // 1 minute
                         hasQuantity: true,
                         canAssign: ()=>true,
                         onComplete: worker => {
                             let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
-                            let slot = tile.items.findIndex(i=>treetypes.includes(i.name));
+                            let slot = tile.items.findIndex(i=>treetypes.some(u=>u.name===i.name));
                             if(slot===-1) {
                                 console.log('Error in LoggersPost: there are no trees here');
                                 return;
@@ -107,7 +121,7 @@ export function LoggersPost() {
                             {options: [{name: 'Flint Stabber', qty:1}], role:'tool', workSite:false}
                         ],
                         outputItems: ['Short Stick'],
-                        buildTime: 20 * 90,
+                        buildTime: 20 * 60, // 1 minute
                         hasQuantity: true,
                         canAssign: ()=>true,
                         onComplete: x => {
@@ -123,6 +137,93 @@ export function LoggersPost() {
                                 game.createItem('Short Stick', 'item'),
                                 game.createItem('Short Stick', 'item')
                             );
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Cut Down Tree',
+                        desc: 'Turn standing trees into useful wood products',
+                        taskType: 'craft',
+                        workLocation: 'atItem',
+                        itemsNeeded: [
+                            {options: treetypes.map(u=>({name:u.name, qty:1})), role:'item', workSite:true},
+                            {options: [{name: 'Flint Hatchet', qty:1}], role:'tool', workSite:false}
+                        ],
+                        outputItems: ['Connected Log', 'Log Chunk'],
+                        buildTime: 20 * 60 * 2, // 2 minutes
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Flint Hatchet'),
+                        onComplete: worker => {
+                            let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                            // Determining trees will be a little harder than other tasks, as we will also produce a lot of freed sticks
+                            // Start by selecting (to remove) the first tree type available
+                            let slot = tile.items.findIndex(i=>treetypes.some(u=>u.name===i.name));
+                            let treestats = treetypes.find(u=>u.name===tile.items[slot].name);
+
+                            // get a count of the removed sticks here
+                            let removedsticks = tile.items.filter(i=>i.name==='Removed Stick').length;
+                            let stickcount = treestats.sticks - removedsticks;
+
+                            // Remove all the Removed Sticks items
+                            tile.items = tile.items.filter(i=>i.name!=='Removed Stick');
+
+                            // Now add the correct number of logs...
+                            if(treestats.logs===1) {
+                                tile.items.push(game.createItem('Log Chunk'));
+                            }else{
+                                for(let i=0; i<treestats.logs; i++) tile.items.push(game.createItem('Connected Log', 'item'));
+                            }
+                            for(let i=0; i<stickcount; i++) tile.items.push(game.createItem('Long Stick', 'item'));
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Cut Log Chunk',
+                        desc: 'Cut connected logs into manageable pieces for moving',
+                        taskType: 'craft',
+                        workLocation: 'atItem',
+                        itemsNeeded: [
+                            {options: [{name: 'Connected Log', qty:1}], role:'item', workSite:true },
+                            {options: [{name: 'Flint Hatchet', qty:1}], role:'tool', workSite:false}
+                        ],
+                        outputItems: ['Log Chunk'],
+                        buildTime: 20 * 60 * 2, // 2 minutes, just like cutting down a tree
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Flint Hatchet'),
+                        onComplete: worker => {
+                            let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                            let slot = 0;
+                            // This time, it will work one of two ways: if there are two connected logs remaining, they will both be
+                            // converted into log chunks. Otherwise, you will get one log chunk for one connected log
+                            if(tile.items.filter(i=>i.name==='Connected Log').length>2) {
+                                // Convert 1 connected log to 1 log chunk; the rest stays
+                                slot = tile.items.findIndex(i=>i.name==='Connected Log');
+                                tile.items.splice(slot,1);
+                                tile.items.push(game.createItem('Log Chunk', 'item'));
+                            }else{
+                                tile.items.splice(tile.items.findIndex(i=>i.name==='Connected Log'), 1);
+                                tile.items.splice(tile.items.findIndex(i=>i.name==='Connected Log'), 1);
+                                tile.items.push(game.createItem('Log Chunk', 'item'), game.createItem('Log Chunk', 'item'));
+                            }
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Cut Wooden Bucket',
+                        desc: 'Craft a bucket from a log chunk',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name: 'Log Chunk', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Flint Hatchet', qty:1}], role:'tool', workSite:false}
+                        ],
+                        outputItems: ['Wooden Bucket'],
+                        buildTime: 20 * 90, // 1.5 minutes
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Log Chunk'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            let slot = tile.items.findIndex(i=>i.name==='Log Chunk');
+                            if(slot===-1) { console.log('Error: could not find Connected Log at structure'); return; }
+                            tile.items.splice(slot,1);
+                            tile.items.push(game.createItem('Wooden Bucket'));
                             tile.modified = true;
                         }
                     }

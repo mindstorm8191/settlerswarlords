@@ -14,7 +14,7 @@
     require_once("globals.php");
 
     // We were including UG resource info here, but I think that shouldn't be shared with the client side until workers are able to begin mining
-    $worldTile = DanDBList("SELECT id,biome,population,name,structures,workers,unlockeditems,tasks,foodCounter FROM sw_map WHERE x=? AND y=?;",
+    $worldTile = DanDBList("SELECT id,biome,population,name,structures,workers,unlockeditems,tasks,foodCounter,localmaptick FROM sw_map WHERE x=? AND y=?;",
                            'ii', [$playerx, $playery], 'server/finishLogin.php->get world map data')[0];
     $localTiles = DanDBList("SELECT x,y,landtype,newlandtype,items,structureid FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
                             [$worldTile['id']], 'server/finishLogin.php->get local map tiles');
@@ -32,7 +32,8 @@
         'structures'=> json_decode($worldTile['structures'], true),
         'workers'=> json_decode($worldTile['workers'], true),
         'tasks'=> json_decode($worldTile['tasks'], true),
-        'unlockedItems'=> json_decode($worldTile['unlockeditems'], true)
+        'unlockedItems'=> json_decode($worldTile['unlockeditems'], true),
+        'localmaptick'=>$worldTile['localmaptick']
     ]));
     // I think there are more variables to pass to the client, but they haven't been created yet!
 ?>

@@ -6,7 +6,8 @@
 import { DanCommon } from './libs/DanCommon.js';
 
 import { game } from "./game.jsx";
-import { minimapTiles } from './minimapTiles.js'
+import { minimapTiles } from './minimapTiles.js';
+import { foodOptions } from './foodOptions.js';
 
 export function createWorker(pack) {
     // Creates a new worker, based on data recevied from the server
@@ -80,6 +81,8 @@ export function createWorker(pack) {
                 // Next; find the (pathwise) closest route to a suitable object. While we select a valid tile, also pick up the target item(s)
                 //let itemNameToUse = '';
                 let outcome = game.pathTo(w.x, w.y, tile=>{
+                    if(w.tasks[0].taskType==='gatherfood' && tile.x===w.tasks[0].building.x && tile.y===w.tasks[0].building.y) return false;
+
                     // This would be much simpler if we didn't need to hold onto the item we locate
                     for(let r=0; r<targetSet.options.length; r++) {
                         let total = tile.items.filter(i=>{
@@ -449,6 +452,68 @@ export function createWorker(pack) {
                         }
                         console.log('Item move done!');
                     break;
+                    case 'gatherfood':
+                        // This is a task type unique to the Forage Post
+                        w.tasks[0].progress++;
+                        
+                        let mile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                        // The progress limit is based on which food item the worker is working on
+                        let foodName = w.tasks[0].task.itemsNeeded[0].options[w.tasks[0].recipeChoices[0]].name;
+                        let option = foodOptions.find(f=>f.name===foodName);
+                        if(w.tasks[0].progress<option.harvestTime) return;
+
+                        // If this food item has a resultOutput, apply it to this tile while we're here
+                        if(typeof(option.resultOutput)!=='undefined') {
+                            // Start by finding & removing the item we're looking at
+                            let slot = mile.items.findIndex(i=>i.name===foodName);
+                            if(slot===-1) {
+                                console.log('Error: could not find '+ foodName +' in tile. No other changes have been made');
+                                return;
+                            }
+                            mile.items.splice(slot,1);
+                            // With the rest of the items, we need to dump these items onto the tile
+                            for(let y=0; y<option.resultOutput.length; y++) {
+                                for(let x=0; x<option.resultOutput[y].qty; x++) {
+                                    mile.items.push(game.createItem(option.resultOutput[y].name, 'item'));
+                                }
+                            }
+                            // Since we are changing items here, we need to convert this into another target item
+                            foodName = option.conversion;
+                        }else{
+                            if(typeof(option.conversion)!=='undefined') {
+                                // We still need to convert one of the crops to a food item
+                                mile.items.splice(mile.items.findIndex(i=>i.name===foodName), 1);
+                                mile.items.push(game.createItem(option.conversion, 'item'));
+                                foodName = option.conversion;
+                            }
+                        }
+                        
+                        // Some tiles have a reload tile-event that can be created
+                        if(typeof(option.minReload)!=='undefined') {
+                            let pickedTime = Math.floor(Math.random()*(option.maxReload-option.minReload) + option.minReload);
+                            console.log('Tile update in '+ pickedTime +' ticks');
+                            if(typeof(mile.events)==='undefined') mile.events = [];
+                            mile.events.push({
+                                action: 'regrow crops',
+                                adding: foodName,
+                                timepoint: game.maptick + pickedTime
+                                // That's about all we can really handle here
+                            });
+                        }
+
+                        // With our updates completed, we still need to take our food item to the Forage Post. Create a new itemMove task,
+                        // and delete this existing task
+                        console.log(foodName);
+                        let target = mile.items.find(i=>{
+                            console.log(i.name);
+                            return i.name===foodName;
+                        });
+                        console.log(target);
+                        let newTask = game.createItemMoveTask(target, w.x,w.y, w.tasks[0].building.x, w.tasks[0].building.y);
+                        game.deleteTask(w.tasks[0]);
+                        w.tasks.unshift(newTask);
+                        w.tasks[0].worker = w;
+                    break;
                     default:
                         console.log('Have task type of '+ w.tasks[0].taskType +' but have no case for it');
                 }
@@ -549,186 +614,8 @@ export function createWorker(pack) {
             w.y += dy;
             w.walkPath = w.walkPath.substring(1);
             return true;
-        },
-
-        createPath: ()=>{
-            // Creates a path for the worker to reach their destination, using an A* Pathfinding method
-            let filledTiles = [];
-            // Fill in the worker's location as a starting point
-            filledTiles.push({
-                x:w.x,
-                y:w.y,
-                travelled:0,
-                dist: DanCommon.manhattanDist(w.x, w.y, w.tasks[0].targetx, w.tasks[0].targety),
-                path: ''
-            });
-
-            let runState = true;
-            while(runState) {
-                // Start with sorting all the filled tiles. We will only sort so travelled distance is the lowest
-                // For two tiles with matching distance, the one with a lower distance-to-target will be first
-                filledTiles.sort((a,b)=>{
-                    if(a.travelled > b.travelled) return 1;
-                    if(a.travelled < b.travelled) return -1;
-                    if(a.dist > b.dist) return 1;
-                    return -1;
-                });
-
-                // Get tile data for the current tile
-                let tile = game.tiles.find(t=>t.x===filledTiles[0].x && t.y===filledTiles[0].y);
-                let land = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
-                let lag = minimapTiles.find(tile=>tile.id===land).walkLag;
-
-                // Generate more tiles for each possible direction from here
-                for(let dx=-1; dx<=1; dx++) {
-                    for(let dy=-1; dy<=1; dy++) {
-                        if(dx===0 && dy===0) continue; // skip the tile we're already on
-                        // Make sure this tile isn't outside the map boundaries
-                        if(filledTiles[0].x + dx < 0) continue;
-                        if(filledTiles[0].x + dx > 40) continue;
-                        if(filledTiles[0].y + dy < 0) continue;
-                        if(filledTiles[0].y + dy > 40) continue;
-
-                        // Diagonals take a bit longer to travel, factor that in here
-                        let diagonals = (dx===0 || dy===0) ? 1 : 1.4;
-
-                        // Make sure this location hasn't been filled yet
-                        let locationMatch = filledTiles.findIndex(tile=>tile.x===filledTiles[0].x + dx && tile.y===filledTiles[0].y+dy);
-                        if(locationMatch!==-1) {
-                            // There's already a tile here. Now see if it's a shorter walk than our current path
-                            if(filledTiles[0].travelled + (lag * diagonals) < filledTiles[locationMatch].travelled) {
-                                // Replace the tile with this new route. Order isn't important, as we'll sort later
-                                filledTiles.splice(locationMatch, 1);
-                                filledTiles.push({
-                                    x: filledTiles[0].x +dx,
-                                    y: filledTiles[0].y +dy,
-                                    travelled: filledTiles[0].travelled + (lag * diagonals),
-                                    dist: DanCommon.manhattanDist(filledTiles[0].x+dx, filledTiles[0].y+dy, w.tasks[0].targetx, w.tasks[0].targety),
-                                    path: filledTiles[0].path + ( (dy+1)*3 + (dx+1))
-                                });
-                            }
-                            // If the tile isn't further away, we don't need to do anything with this location
-                            continue;
-                        }
-
-                        // Before adding the next tile, see if it will be our target
-                        if(filledTiles[0].x +dx === w.tasks[0].targetx && filledTiles[0].y+dy === w.tasks[0].targety) {
-                            // We made it! Now update the worker, and don't forget this last step
-                            w.walkPath = filledTiles[0].path + ((dy+1)*3 + (dx+1));
-                            return;
-                        }
-
-                        // Add this location to the list
-                        filledTiles.push({
-                            x: filledTiles[0].x +dx,
-                            y: filledTiles[0].y +dy,
-                            travelled: filledTiles[0].travelled + (lag * diagonals),
-                            dist: DanCommon.manhattanDist(filledTiles[0].x+dx, filledTiles[0].y+dy, w.tasks[0].targetx, w.tasks[0].targety),
-                            path: filledTiles[0].path + ((dy+1)*3 + (dx+1))
-                        });
-                    }
-                }
-
-                // Remove this tile
-                filledTiles.splice(0,1);
-            }
-        },
-
-        pathToItem: optionsList => {
-            // Finds an item on the map, selecting the closest item in the options list, and creates a path to reach the item from the
-            // worker's location
-            //   optionsList - list of item names that will be suitable for collecting
-            // Returns an object:
-            //   result - if successful, returns 'success'. If not, returns 'fail', and the other parameters will not be included
-            //   item - item instance that was found
-            //   path - path for the worker to reach this item
-            //   x & y - coordinates of where this item is
-
-            let filledTiles = [{
-                x:w.x,
-                y:w.y,
-                travelled:0,
-                // This time we're not concerned about distance to target
-                path: '',
-                completed: false
-            }];
-
-            let runState = true;
-            while(runState) {
-                // Determine if there are any tiles that have not yet been completed
-                if(filledTiles.every(t=>t.completed)) {
-                    // All tiles have been completed
-                    return {result:'fail'};
-                }
-
-                // Start with sorting the existing tiles
-                filledTiles.sort((a,b) => {
-                    // First, completed tiles need to be sorted after new tiles
-                    if(a.completed===true) return 1;
-                    if(b.completed===true) return -1;
-                    if(a.travelled > b.travelled) return 1;
-                    if(a.travelled < b.travelled) return -1;
-                    return 0;
-                });
-
-                // Get tile data for the current tile. Determine if this tile holds the item we're after
-                let tile = game.tiles.find(t=>t.x===filledTiles[0].x && t.y===filledTiles[0].y);
-                let foundItemName = tile.items.map(i=>i.name).findIndex(i=>optionsList.includes(i));
-                if(foundItemName!==-1) {
-                    // We got a hit!
-                    return {result:'success', item: tile.items[foundItemName], path:filledTiles[0].path, x:filledTiles[0].x, y:filledTiles[0].y};
-                }
-
-                let land = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
-                let lag = minimapTiles.find(tile=>tile.id===land).walkLag;
-
-                // Generate more filled tiles from each possible direction from here
-                for(let dx=-1; dx<=1; dx++) {
-                    for(let dy=-1; dy<=1; dy++) {
-                        if(dx===0 && dy===0) continue; // skip the tile we're already on
-                        // Make sure this tile isn't outside the map boundaries
-                        if(filledTiles[0].x +dx < 0) continue;
-                        if(filledTiles[0].x +dx > 40) continue;
-                        if(filledTiles[0].y +dy < 0) continue;
-                        if(filledTiles[0].y +dy > 40) continue;
-
-                        // Diagonals will take a bit longer to travel through
-                        let diagonals = (dx===0 || dy===0) ? 1 : 1.4;
-
-                        // Make sure this location hasn't been filled yet
-                        let locationMatch = filledTiles.findIndex(tile=>tile.x===filledTiles[0].x +dx && tile.y===filledTiles[0].y+dy);
-                        if(locationMatch!==-1) {
-                            if(filledTiles[locationMatch].completed===true) continue;
-
-                            if(filledTiles[0].travelled + (lag * diagonals) < filledTiles[locationMatch].travelled) {
-                                filledTiles.splice(locationMatch, 1);
-                                filledTiles.push({
-                                    x: filledTiles[0].x +dx,
-                                    y: filledTiles[0].y +dy,
-                                    travelled: filledTiles[0].travelled + (lag * diagonals),
-                                    path: filledTiles[0].path + ( (dy+1)*3 + (dx+1)),
-                                    completed: false
-                                });
-                            }
-                            continue;
-                        }
-
-                        // Add this location
-                        filledTiles.push({
-                            x: filledTiles[0].x +dx,
-                            y: filledTiles[0].y +dy,
-                            travelled: filledTiles[0].travelled + (lag * diagonals),
-                            path: filledTiles[0].path + ((dy+1)*3 + (dx+1)),
-                            completed: false
-                        });
-                    }
-                }
-
-                // Tag this tile as completed
-                filledTiles[0].completed = true;
-            }
         }
-    }
+    };
 
     game.workers.push(w);
     //return w;

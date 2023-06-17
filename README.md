@@ -44,6 +44,7 @@ And additional information
 
 -   [World Gen](/notes/worldgen.md)
 -   [World History](/notes/worldhistory.md)
+-   [Magic System](/notes/magicsystem.md)
 -   [Underground Biomes](/notes/undergroundbiomes.md)
 -   [Worker Crafting](/notes/workercrafting.md)
 -   [Future Processes Planned](/notes/futureprocesses.md)

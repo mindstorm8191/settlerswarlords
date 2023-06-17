@@ -28,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/worker.jsx                          server/routes/autologin.php          server/routes/login.php              notes/techtree.md
-//     src/app.css                          src/minimapTiles.jsx                   server/config.php                    server/routes/save.php               notes/automationtree.md
-//        src/libs/DanCarousel.jsx             src/structures/LeanTo.jsx             server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
-//            src/libs/ShowBlog.jsx               src/structures/RockKnapper.jsx         server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
-//               src/libs/DanAjax.js                  src/structures/LoggersPost.jsx         server/events.php                    server/routes/signup.php           notes/worldhistory.md
-//                  src/libs/DanLog.js                    src/structures/RopeMaker.jsx           server/getInput.php                  server/libs/DanGlobal.php         notes/undergroundbiomes.md
-//                     src/Account.jsx                       src/structures/DirtSource.jsx          server/finishLogin.php               server/libs/clustermap.php        notes/workercrafting.md
-//                         src/libs/DanInput.jsx                src/structures/WaterSource.jsx         server/globals.php                    server/minimap.php               notes/futureprocesses.md
-//                            src/libs/DanCommon.js                 src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/tasklist.md
-//                               src/libs/ErrorOverlay.jsx              src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php
-//                                  src/game.jsx                            src/WorldMap.jsx                      server/routes/log.php                README.md
-// 349+54+120+96+48+38+229+65+83+68+503+701+72+99+165+184+66+95+124+415+190+254+37+8+307+230+233+33+38+299+127+40+36+44+127+77+95+350+37+141+256+42+22+51+58+14+8+67+13+18+11+30+19
+// src/app.js                           src/game_tasks.js                     src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/futureprocesses.md
+//     src/app.css                          src/worker.jsx                        src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php                   notes/tasklist.md
+//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/WorldMap.jsx                      server/routes/log.php                README.md
+//            src/libs/ShowBlog.jsx                src/foodOptions.js                     server/routes/autologin.php          server/routes/login.php              notes/techtree.md
+//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx              server/config.php                    server/routes/save.php               notes/automationtree.md
+//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx         server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
+//                     src/Account.jsx                      src/structures/RockKnapper.jsx         server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
+//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx         server/events.php                    server/routes/signup.php           notes/worldhistory.md
+//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx           server/getInput.php                  server/libs/DanGlobal.php         notes/magicsystem.md
+//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx          server/finishLogin.php               server/libs/clustermap.php        notes/undergroundbiomes.md
+//                                  src/game.jsx                          src/structures/WaterSource.jsx         server/globals.php                    server/minimap.php               notes/workercrafting.md
+// 349+54+120+96+48+38+229+65+83+68+413+138+735+72+60+99+56+165+184+66+95+124+415+190+254+37+8+307+230+233+33+38+299+127+40+36+44+127+77+95+350+37+141+256+42+22+51+58+14+8+67+13+11+18+11+30+19
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines

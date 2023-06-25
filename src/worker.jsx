@@ -43,7 +43,7 @@ export function createWorker(pack) {
 
             // See if this worker has any current work
             if(w.tasks.length===0) {
-                let foundTask = game.tasks.find(task=>task.worker===null);
+                let foundTask = game.tasks.find(task=>task.worker===null && task.status==='unassigned');
                 if(typeof(foundTask)==='undefined') {
                     w.status = 'idle';
                     return false;
@@ -53,8 +53,7 @@ export function createWorker(pack) {
                 foundTask.worker = w;
                 w.tasks.push(foundTask);
                 w.walkPath = '';
-                //console.log(w.name +' assigned task '+ foundTask.task.name);
-                //console.log(w);
+                console.log(w.name +' picked up a task');
             }
 
             // First thing we should do is to determine where this task should be performed at. Some task locations are based on where
@@ -208,7 +207,8 @@ export function createWorker(pack) {
                                             //}
                                             return false;
                                         }
-                                        console.log('Found match of '+ mild.items[match].name +' with task='+ mild.items[match].inTask);
+                                        console.log('Found match of '+ mild.items[match].name +' with task='+ mild.items[match].inTask +' at ['+
+                                            mild.x +','+ mild.y +']');
                                         foundItem = mild.items[match];
                                         return true;
                                     });
@@ -377,7 +377,7 @@ export function createWorker(pack) {
                     // If we found all items in the above list, we are ready to actually complete our task!
                 }
                 if(newTaskList.length>0) {
-                    console.log('We created '+ newTaskList.length +' new moveItem tasks');
+                    //console.log('We created '+ newTaskList.length +' new moveItem tasks');
                     w.tasks = [...newTaskList, ...w.tasks];
                     console.log(w.tasks);
                     return;
@@ -410,7 +410,11 @@ export function createWorker(pack) {
                         }else{
                             if(typeof(w.tasks[0].task.onProgress)==='undefined') {
                                 // This has no onProgress function. Call the building's update command instead
-                                w.tasks[0].building.update(w.tasks[0].progress);
+                                if(typeof(w.tasks[0].building.update)==='undefined') {
+                                    console.log('Error: building '+ w.tasks[0].building.name +' missing update function, needed for the blinker');
+                                }else{
+                                    w.tasks[0].building.update(w.tasks[0].progress);
+                                } 
                             }else{
                                 w.tasks[0].task.onProgress(w.tasks[0].progress);
                             }
@@ -450,7 +454,6 @@ export function createWorker(pack) {
                             console.log('Error: above deleted task still assigned to worker. Dropping manually...');
                             w.tasks.splice(0,1);
                         }
-                        console.log('Item move done!');
                     break;
                     case 'gatherfood':
                         // This is a task type unique to the Forage Post
@@ -580,7 +583,7 @@ export function createWorker(pack) {
                 }
                 // If successful, we're only really concerned about collecting the path to the target location
                 w.walkPath = outcome.path;
-                console.log(w.name +' got path '+ w.walkPath);
+                //console.log(w.name +' got path '+ w.walkPath);
             }
 
             // See if we have waited long enough on this current tile
@@ -600,11 +603,10 @@ export function createWorker(pack) {
                 console.log(`Error in worker->move: ${w.name} moved to [${w.x},${w.y}] that doesn't exist.
                              Target:[${w.tasks[0].targetx},${w.tasks[0].targety}]`);
             }
-            let landType = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
-            let tileType = minimapTiles.find(tile=>tile.id===landType);
+            let tileType = minimapTiles.find(rile=>rile.id===tile.landtype);
             if(typeof(tileType)==='undefined') {
                 w.moveCounter = 50;
-                console.log(`Error: ${w.name} is on a tile not in the minimapTiles. Tile type=${landType}`);
+                console.log(`Error: ${w.name} is on a tile not in the minimapTiles. Tile type=${tile.landtype}`);
             }else{
                 w.moveCounter = tileType.walkLag * diagonals;
             }

@@ -13,15 +13,19 @@ import { LoggersPost } from "./structures/LoggersPost.jsx";
 import { RopeMaker } from "./structures/RopeMaker.jsx";
 import { DirtSource } from "./structures/DirtSource.jsx";
 import { WaterSource } from "./structures/WaterSource.jsx";
+import { FarmersPost } from "./structures/FarmersPost.jsx";
+import { HayDryer } from "./structures/HayDryer.jsx";
 
 export const game = {
+    debugging: true, // determines if console log entries will be generated for errors and debugging. This needs to be used more often...
     timerLoop: null, // Contains a timer handle when the game starts
     tiles: [], // all tiles of the local map
     workers: [], // all workers on this map
     unlockedItems: [], // All items that have become accessible in this location
     updateWorkers: null, // references React's setLocalWorkers function. Gets updated on game setup
+    updateTiles: null, // references React's setLocalTiles function, for when tiles get changed
     localMapBiome: '', // This is filled out from server data
-    maptick: 0, // This is used for local wildlife to progress. It normally progresses very slowly
+    mapTick: 0, // This is used for local wildlife to progress. It normally progresses very slowly
 
     structures: [], // all structures added to this map
     lastStructureId: 0,  // Each structure needs a unique ID
@@ -36,15 +40,10 @@ export const game = {
         LoggersPost(),
         RopeMaker(),
         DirtSource(),
-        WaterSource()
+        WaterSource(),
+        FarmersPost(),
+        HayDryer()
     ],
-
-    tasks: [],
-    lastTaskId: 0, // All tasks also need IDs
-    getNextTaskId: ()=>{
-        game.lastTaskId++;
-        return game.lastTaskId;
-    },
 
     tutorialState:0,
     tutorialModes: [
@@ -61,7 +60,7 @@ export const game = {
         if(typeof(game.tutorialDisplay)==='function') game.tutorialDisplay(true);
     },
 
-    setup: (content, funcUpdateWorkers) => {
+    setup: (content, funcUpdateWorkers, funcUpdateTiles) => {
         // Sets up the game, using content received from the server
         // content - all content received from the server, as it was provided. It should contain the following
         //      result - should be 'success'. This flag is checked prior to this function
@@ -85,11 +84,12 @@ export const game = {
         //          walkPath - planned path of this worker as a string of ints
         //      tasks - all existing tasks for this area
         //      unlockedItems - all items unlocked in this area
-        // funcUpdteWorkers - function handle provided by React to update workers
+        // funcUpdateWorkers - function handle provided by React to update workers
+        // funcUpdateTiles - function handle provided by React to update all local map tiles
         // No return value
 
         game.localMapBiome = content.localContent.biome;
-        game.maptick = content.localmaptick;
+        game.mapTick = content.localmaptick;
 
         game.unlockedItems = content.unlockedItems;
         // As we add the unlocked items, we also need to determine which structures can be unlocked
@@ -172,14 +172,19 @@ export const game = {
                     console.log('This task does not have a building associated to it');
                     task.task = null;
                 }
-                if(task.worker!==0) {
-                    let worker = game.workers.find(w=>w.id===task.worker);
-                    task.worker = worker;
-                    let taskSlot = worker.tasks.findIndex(t=>t===task.id);
-                    worker.tasks[taskSlot] = task;
-                    //console.log(worker.name +' got assigned task id='+ task.id);
+                if(task.worker===-1) {
+                    // Previously, this task had its worker as undefined. We need to keep it that way here
+                    delete task.worker;
                 }else{
-                    console.log('This task does not have a worker associated to it');
+                    if(task.worker!==0) {
+                        let worker = game.workers.find(w=>w.id===task.worker);
+                        task.worker = worker;
+                        let taskSlot = worker.tasks.findIndex(t=>t===task.id);
+                        worker.tasks[taskSlot] = task;
+                        //console.log(worker.name +' got assigned task id='+ task.id);
+                    }else{
+                        console.log('This task does not have a worker associated to it');
+                    }
                 }
                 task.itemsTagged = task.itemsTagged.map(tag=>{
                     if(tag.place==='worker') {
@@ -210,11 +215,13 @@ export const game = {
         }
 
         game.updateWorkers = funcUpdateWorkers;
+        game.updateTiles = funcUpdateTiles;
 
         console.log(game.workers);
 
         // Now we're ready to start up the game
         game.start();
+        game.updateTiles(game.tiles);
         game.updateWorkers(game.workers);
 
         window.game = game;  // This allows us to access the Game object from the console log. Very helpful for debugging
@@ -235,7 +242,7 @@ export const game = {
 
         // Manage ticking the local map. Local wildlife will progress slowly. Each tile will have a time point at which updates will
         // occur, and the game will wait until that time has passed before making any changes
-        game.maptick++;
+        game.mapTick++;
         
         // Manage the workers
         let hasWorkerUpdate = false;
@@ -243,6 +250,11 @@ export const game = {
             hasWorkerUpdate ||= game.workers[i].tick();   //updateWorker(game.workers[i]);
         }
         if(hasWorkerUpdate) game.updateWorkers([...game.workers]);
+
+        // Manage building updates. Not all buildings have (or need) a tick function, but we will call them when they exist
+        for(let i=0; i<game.structures.length; i++) {
+            if(typeof(game.structures[i].tick)==='function') game.structures[i].tick();
+        }
 
         // Handle time management
         let newTime = new Date().valueOf();
@@ -273,7 +285,6 @@ export const game = {
 
         // First, check if this name is in the unlocked list.
         game.checkUnlocks(name);
-
         return {name:name, group:itemGroup, inTask:0, ...extras};
     },
 
@@ -304,6 +315,24 @@ export const game = {
         // If so, the block display on the left will become green
         for(let i=0; i<game.structureTypes.length; i++) {
             if(game.structureTypes[i].newFeatures.includes(itemName)) game.structureTypes[i].featuresUnlocked = true;
+        }
+    },
+
+    clearItems: (tile, itemList, codeLocation) => {
+        // Deletes all items from the provided itemList. There are several item recipes that will consume a large list of items to produce one
+        // completed item; this makes the process of deleting those items easier
+        //   tile - map tile instance where the items are being deleted from
+        //   itemList - list of item names to delete. Note that there are currently no checks for item quality here
+        //   codeLocation - where this function was called from. Used only for debugging
+        // No return value. The specified tile instance will be modified
+
+        for(let i=0; i<itemList; i++) {
+            let slot = tile.items.findIndex(item=>item.name===itemList[i]);
+            if(slot===-1) {
+                if(game.debugging) console.log("Error: Could not find item "+ itemList[i] +" to remove. game.clearItems() Called from "+ codeLocation);
+            }else{
+                tile.items.splice(slot,1);
+            }
         }
     },
 
@@ -360,8 +389,8 @@ export const game = {
             }
 
             // Alas, no luck. Determine the costs to travel over this tile
-            let land = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
-            let lag = minimapTiles.find(tile=>tile.id===land).walkLag;
+            //let land = (tile.newlandtype===-1) ? tile.landtype : tile.newlandtype;
+            let lag = minimapTiles.find(rile=>rile.id===tile.landtype).walkLag;
 
             // Generate more filled tiles from each possible direction from here
             for(let dx=-1; dx<=1; dx++) {

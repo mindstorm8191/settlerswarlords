@@ -243,10 +243,10 @@
         // Now to save our content. A 41x41 list of tiles is a lot, so it's better if we do this in batches, like the world map
         foreach($localTiles as $long) {
             $adds = implode(',', array_map(function($tile) use ($worldTile) {
-                return '('. $worldTile['id'] .','. $tile['x'] .','. $tile['y'] .','. $tile['landType'] .",'". json_encode($tile['items']) ."')";
+                return '('. $worldTile['id'] .','. $tile['x'] .','. $tile['y'] .','. $tile['landType'] .",". $tile['landType'] .",'". json_encode($tile['items']) ."')";
             }, $long));
 
-            $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, landtype, items) VALUES ". $adds .";");
+            $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, landtype, originalland, items) VALUES ". $adds .";");
             if(!$result) {
                 reporterror('server/minimap.php->ensureMinimap()->save content', 'Local Map save failed. Content='. $adds .', error='. $db->error);
                 ajaxreject('internal', 'There was an error when saving the local map');

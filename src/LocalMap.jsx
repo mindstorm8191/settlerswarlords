@@ -17,15 +17,21 @@ let itemStats = [
     {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
     {name:'Apple Tree',          img:'appletree.png',   desc:'A tree growing apples'},
     {name:'Bark Fibers',         img:'twinestrips.png',   desc:'Pieces of bark fiber'},
-    {name:'Barley Grass',        img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
+    {name:'Barley Grass',              img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
+    {name:'Barley Hay',                img:'barleyhay.png',         desc:'Barley grasses, both straw and seed'},
     {name:'Clay Ball',                 img:'clayball.png',          desc:'A ball of clay, ready to be molded'},
     {name:'Connected Log',             img:'connectedlog.png',      desc:'Log pieces, all connected. Too heavy to move by hand!'},
     {name:'Debarked Fallen Log', img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
     {name:'Dirt Ball',           img:'dirtball.png',          desc:'A ball of dirt'},
-    {name:'Fallen Log',          img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
-    {name:'Flint',               img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
-    {name:'Flint Hatchet',       img:'flinthatchet.png',      desc:'Flint blade for cutting wood. Better than a Flint Stabber!'},
-    {name:'Flint Knife',         img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
+    {name:'Dried Barley Hay',          img:'barleyhay.png',         desc:'Barley grasses, dried and ready for use'},
+    {name:'Dried Millet Hay',          img:'millethay.png',         desc:'Millet grasses, dried and ready for use'},
+    {name:'Dried Oat Hay',             img:'oathay.png',            desc:'Oat grasses, dried and ready for use'},
+    {name:'Dried Rye Hay',             img:'ryehay.png',            desc:'Rye grasses, dried and ready for use'},
+    {name:'Dried Wheat Hay',           img:'wheathay.png',          desc:'Wheat grasses, dried and ready for use'},
+    {name:'Fallen Log',                img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
+    {name:'Flint',                     img:'flint.png',       desc:'Flint rock, easy to hammer into shapes'},
+    {name:'Flint Hatchet',             img:'flinthatchet.png',      desc:'Flint blade for cutting wood. Better than a Flint Stabber!'},
+    {name:'Flint Knife',               img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
     {name:'Flint Scythe',        img:'flintscythe.png',       desc:'Flint blade for cutting grasses'},
     {name:'Flint Shovel',        img:'flintshovel.png',       desc:'Flint shaped into a shovel blade. Good for moving dirt'},
     {name:'Flint Spear',         img:'flintspear.png',        desc:'Flint point on a long stick. Good for hunting or... defense'},
@@ -35,17 +41,25 @@ let itemStats = [
     {name:'Log Chunk',           img:'logchunk.png',          desc:'A chunk of a tree. Has a lot of good uses'},
     {name:'Long Stick',          img:'longstick.png',         desc:'A long piece of wood. Good for tools'},
     {name:'Maple Tree',          img:'mapletree.png',   desc:'A maple tree, still growing'},
-    {name:'Millet Grass',  img:'milletgrass.png',  desc:'Field of millet, growing wild'},
-    {name:'Oat Grass',           img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
-    {name:'Pine Cone',           img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
+    {name:'Millet Grass',              img:'milletgrass.png',  desc:'Field of millet, growing wild'},
+    {name:'Millet Hay',                img:'millethay.png',         desc:'Millet grasses, both straw and seed'},
+    {name:'Oat Grass',                 img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
+    {name:'Oat Hay',                   img:'oathay.png',            desc:'Oat grasses, both straw and seed'},
+    {name:'Oat Seed',                  img:'oatseed.png',           desc:'The seeds of oat grass, unprocessed'},
+    {name:'Pine Cone',                 img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
     {name:'Pine Tree',           img:'pinetree.png',     desc:'A pine tree, growing strong'},
     {name:'Removed Stick',       img:'removedstick.png',      desc:'Not real! Represents a stick missing from the trees'},
-    {name:'Rye Grass',           img:'ryegrass.png',    desc:'Field of natural rye grain'},
+    {name:'Rye Grass',                 img:'ryegrass.png',    desc:'Field of natural rye grain'},
+    {name:'Rye Hay',                   img:'ryehay.png',            desc:'Rye grasses, both straw and seed'},
     {name:'Short Stick',         img:'shortstick.png',        desc:'A short piece of wood. Good for tools'},
-    {name:'Small Rope',          img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
-    {name:'Turnip Plant',        img:'turnipplant.png',  desc:'Turnips, growing wild'},
-    {name:'Wheat Grass',         img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
-    {name:'Wheat Seed',          img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
+    {name:'Small Rope',                img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
+    {name:'Straw',                     img:'straw.png',              desc:'Grass shoots with the seeds removed'},
+    {name:'Thatch Tile',               img:'thatchtile.png',        desc:'A roofing tile, made from straw'},
+    {name:'Turnip Plant',              img:'turnipplant.png',  desc:'Turnips, growing wild'},
+    {name:'Wheat Grass',               img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
+    {name:'Wheat Hay',                 img:'wheathay.png',          desc:'Golden wheat, both straw and seed'},
+    {name:'Wheat Seed',                img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
+    {name:'Wood Pitchfork',            img:'woodpitchfork.png',     desc:'A pitchfork, made of sticks. Better than nothing'},
     {name:'Wooden Bucket',             img:'woodenbucket.png',       desc:'A bucket, made of wood. Good for non-food liquids'},
     {name:'Wooden Creek Water Bucket', img:'woodenwaterbucket.png', desc:'A bucket, made of wood, filled with creek water'},
     {name:'Wooden Pond Water Bucket', img:'woodenwaterbucket.png',  desc:'A bucket, made of wood, filled with pond water'}
@@ -112,7 +126,7 @@ export function LocalMap(props) {
                     })}
                 </div>
                 <DraggableMap style={{ width: "100vh", height: "calc(100vh - 185px)", touchAction: "none" }} threshhold={5}>
-                    {game.tiles.map((tile, key) => {
+                    {props.tiles.map((tile, key) => {
                         // Determine what tile type to show. When new tiles are added we might not have an image, so that needs
                         // to be checkedfirst.
                         let targetTile = minimapTiles.find((e) => e.id === parseInt(tile.landtype));
@@ -288,10 +302,10 @@ function LocalMapRightPanel(props) {
 
     if(parseInt(props.selected.structureid)===0) {
         // Nothing is built here. Show basic data about it
-        let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
-        let tileData = minimapTiles.find(e=>e.id===landType);
+        //let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
+        let tileData = minimapTiles.find(e=>e.id===props.selected.landtype);
         if(typeof(tileData)==='undefined') {
-            return <div className="localmaprightpanel" style={{width:300}}>Oops, there's no description for land type where id={landType}</div>;
+            return <div className="localmaprightpanel" style={{width:300}}>Oops, there's no description for land type where id={props.selected.landtype}</div>;
         }
         return (
             <div className="localmaprightpanel" style={{width:300}}>

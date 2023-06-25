@@ -19,16 +19,16 @@ export function WaterSource() {
         newFeatures: [],
         canBuild: tile => {
             // This can only be built on water tiles... there's only a few available
-            if(tile.newlandtype===-1) {
+            //if(tile.newlandtype===-1) {
                 if(minimapTiles.find(d=>d.name==='Still Water').id===tile.landtype) return '';
                 if(minimapTiles.find(d=>d.name==='Stream').id === tile.landtype) return '';
                 return 'Must place this in water';
-            }else{
-                if(minimapTiles.find(d=>d.name==='Still Water').id===tile.newlandtype) return '';
-                if(minimapTiles.find(d=>d.name==='Stream').id === tile.newlandtype) return '';
+            //}else{
+            //    if(minimapTiles.find(d=>d.name==='Still Water').id===tile.newlandtype) return '';
+            //    if(minimapTiles.find(d=>d.name==='Stream').id === tile.newlandtype) return '';
                 // We will likely have other water types in the future, but that needs to be built, first
-                return 'Must place this in water';
-            }
+            //    return 'Must place this in water';
+            //}
         },
         create: tile => {
             // Return a completed structure instance
@@ -62,8 +62,8 @@ export function WaterSource() {
                             let slot = tile.items.findIndex(i=>i.name==='Wooden Bucket');
                             if(slot===-1) { console.log('Error: could not find Wooden Bucket'); return; }
                             tile.items.splice(slot,1);
-                            let land = (tile.newlandtype===-1?tile.landtype : tile.newlandtype);
-                            switch(land) {
+                            //let land = (tile.newlandtype===-1?tile.landtype : tile.newlandtype);
+                            switch(tile.landtype) {
                                 case minimapTiles.find(d=>d.name==='Still Water').id:
                                     tile.items.push(game.createItem('Wooden Pond Water Bucket', 'item'));
                                 break;
@@ -71,7 +71,7 @@ export function WaterSource() {
                                     tile.items.push(game.createItem('Wooden Creek Water Bucket', 'item'));
                                 break;
                                 default:
-                                    console.log('Error: land type id='+ land +' not handled. Nothing was created');
+                                    console.log('Error: land type id='+ tile.landtype +' not handled. Nothing was created');
                             }
                             tile.modified = true;
                         }

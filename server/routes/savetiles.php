@@ -26,8 +26,8 @@
         verifyInput($tile, [
             ['name'=>'x',           'required'=>true, 'format'=>'int'],
             ['name'=>'y',           'required'=>true, 'format'=>'int'],
-            // we don't need to save the normal landtype, since this never changes
-            ['name'=>'newlandtype', 'required'=>true, 'format'=>'int'],
+            // we don't need to save the original landtype, since it never changes
+            ['name'=>'landtype',    'required'=>true, 'format'=>'int'],
             ['name'=>'structureid', 'required'=>true, 'format'=>'int'],
             ['name'=>'items',       'required'=>true, 'format'=>'array'],
         ], 'server/routes/savetiles.php->verify tiles');
@@ -37,7 +37,10 @@
         JSEvery($tile['items'], function($item) {
             verifyInput($item, [
                 ['name'=>'name',   'required'=>true, 'format'=>'stringnotempty'],
-                ['name'=>'inTask', 'required'=>true, 'format'=>'int']
+                ['name'=>'inTask', 'required'=>true, 'format'=>'int'],
+                ['name'=>'group',  'required'=>false, 'format'=>'stringnotempty'],
+                ['name'=>'efficiency', 'required'=>false, 'format'=>'float'],
+                ['name'=>'endurance',  'required'=>false, 'format'=>'float']
             ], 'server/routes/savetiles.php->verify tile items');
         });
     });
@@ -60,13 +63,13 @@
             $tile['x'] .','.
             $tile['y'] .','.
             // We don't need landtype, as that will never really change
-            $tile['newlandtype'] .','.
+            $tile['landtype'] .','.
             $tile['structureid'] .",'".
             json_encode($tile['items']) ."')";
     }, $con['tiles']);
-    $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, newlandtype, structureid, items) VALUES ".
+    $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, landtype, structureid, items) VALUES ".
         implode(',', $tileString)
-    ." ON DUPLICATE KEY UPDATE newlandtype=VALUES(newlandtype), structureid=VALUES(structureid), items=VALUES(items);");
+    ." ON DUPLICATE KEY UPDATE landtype=VALUES(landtype), structureid=VALUES(structureid), items=VALUES(items);");
     if(!$result) {
         $error = mysqli_error($db);
         reporterror('server/routes/savetiles.php->save tiles', 'query error; mysql says '. $error);

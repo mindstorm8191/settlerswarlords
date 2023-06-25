@@ -6,6 +6,13 @@
 import { game } from "./game.jsx";
 
 export const gameTasks = {
+    tasks: [],
+    lastTaskId: 0, // All tasks also need IDs
+    getNextTaskId: () => {
+        game.lastTaskId++;
+        return game.lastTaskId;
+    },
+
     createTask: (building, task, quantity = 1) => {
         // Generates a new task, assigning it to the game object and to the respective building.
         //  building - what building this task is associated with
@@ -87,7 +94,9 @@ export const gameTasks = {
         //console.log('This task has '+ task.itemsTagged.length +' items to de-tag');
         for (let i = 0; i < task.itemsTagged.length; i++) {
             if (task.itemsTagged[i] !== null) {
-                task.itemsTagged[i].inTask = 0;
+                if (task.itemsTagged[i].task === task.id) {
+                    task.itemsTagged[i].inTask = 0;
+                }
                 //console.log('Clear item tag:', task.itemsTagged[i]);
             }
         }

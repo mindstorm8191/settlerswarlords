@@ -19,12 +19,12 @@ export function LeanTo() {
         canBuild: (tile)=>{
             // Returns true if this structure can be built here
             // Any tile with trees in it will do
-            if(tile.newlandtype===-1) {
+            //if(tile.newlandtype===-1) {
                 if(tile.landtype>=5 && tile.landtype<=20) return '';
                 return 'This must be placed on a tile with trees';
-            }
-            if(tile.newlandtype>=5 && tile.newlandtype<=20) return '';
-            return 'This must be placed on a tile with trees';
+            //}
+            //if(tile.newlandtype>=5 && tile.newlandtype<=20) return '';
+            //return 'This must be placed on a tile with trees';
         },
         create: (tile)=>{
             let b = {
@@ -45,8 +45,6 @@ export function LeanTo() {
                 blinkValue: 0,
                 update: (value)=>{
                     if(b.blinker!==null) b.blinker(value);
-                    //b.blinkValue++;
-                    //if(b.blinker!==null) b.blinker(b.blinkValue);
                 },
                 tasks: [
                     {

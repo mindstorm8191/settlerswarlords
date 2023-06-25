@@ -67,10 +67,25 @@
                 ]), 'server/routes/save.php->verify structures->dirt source');
             break;
 
+            case 'Hay Dryer':
+                verifyInput($st, array_merge($baseObject, [
+                    ['name'=>'holdingTask', 'required'=>true, 'format'=>'posint'],
+                    ['name'=>'activeItems', 'required'=>true, 'format'=>'array']
+                ]), 'server/routes/save.php->verify structures->Hay Dryer basic');
+                JSEvery($st['activeItems'], function($so) {
+                    verifyInput($so, [
+                        ['name'=>'name', 'required'=>true, 'format'=>'stringnotempty'],
+                        ['name'=>'tick', 'required'=>true, 'format'=>'int'],
+                        ['name'=>'cycle', 'required'=>true, 'format'=>'int']
+                    ], 'server/routes/save.php->verify structures->Hay Dryer activeItems');
+                });
+            break;
+
             case 'Rock Knapper':
             case 'Loggers Post':
             case 'Rope Maker':
             case 'Water Source':
+            case 'Farmers Post':
                 // There are multiple buildings that have only the basic properties
                 verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->all basic structures');
             break;

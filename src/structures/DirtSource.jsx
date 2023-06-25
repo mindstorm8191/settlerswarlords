@@ -17,14 +17,19 @@ export function DirtSource() {
         newFeatures: [],
         canBuild: tile => {
             // This can only be built on non-forest and non-rock tiles
-            if(tile.newlandtype===-1) {
-                if(tile.landtype<=4) return '';
-                return 'Must place this on light vegetation';
-            }else{
-                if(tile.newlandtype<=4) return '';
-                if(tile.newlandtype===43) return '';
-                return 'Must place this on light vegetation';
-            }
+            //if(tile.newlandtype===-1) {
+            //    if(tile.landtype<=4) return '';
+            //    return 'Must place this on light vegetation';
+            //}else{
+            //    if(tile.newlandtype<=4) return '';
+            //    if(tile.newlandtype===42) return '';
+            //    if(tile.newlandtype===44) return '';
+            //    return 'Must place this on light vegetation';
+            //}
+            if(tile.landtype<=4) return '';
+            if(tile.landtype===42) return '';
+            if(tile.landtype===44) return '';
+            return 'Must place this on light vegetation';
         },
         create: tile => {
             // Return a completed structure instance

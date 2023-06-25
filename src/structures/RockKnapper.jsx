@@ -15,11 +15,11 @@ export function RockKnapper() {
         prereqs: [],
         newFeatures: ['Small Rope'],
         canBuild: (tile) => {
-            if(tile.newlandtype===-1) {
+            //if(tile.newlandtype===-1) {
                 if(tile.landtype===21) return '';
-            }else{
-                if(tile.newlandtype===21) return '';
-            }
+            //}else{
+            //    if(tile.newlandtype===21) return '';
+            //}
             return 'This must be placed on a rocky surface';
         },
         create: tile => {
@@ -169,19 +169,42 @@ export function RockKnapper() {
                         canAssign: ()=>game.unlockedItems.includes('Small Rope'),
                         onComplete: x=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
-                            let slot = tile.items.findIndex(i=>i.name==='Long Stick');
-                            if(slot===-1) { console.log('Error: Could not find Long Stick at structure'); return; }
-                            tile.items.splice(slot,1);
-                            slot = tile.items.findIndex(i=>i.name==='Short Stick');
-                            if(slot===-1) { console.log('Error: Could not find Short Stick at structure'); return; }
-                            tile.items.splice(slot,1);
-                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
-                            if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
-                            tile.items.splice(slot,1);
-                            slot = tile.items.findIndex(i=>i.name==='Small Rope');
-                            if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
-                            tile.items.splice(slot,1);
+                            game.clearItems(tile, ['Long Stick', 'Short Stick', 'Small Rope', 'Small Rope'],
+                                            'src/structures/RockKnapper.jsx->task Craft Flint Scythe');
+                            //let slot = tile.items.findIndex(i=>i.name==='Long Stick');
+                            //if(slot===-1) { console.log('Error: Could not find Long Stick at structure'); return; }
+                            //tile.items.splice(slot,1);
+                            //slot = tile.items.findIndex(i=>i.name==='Short Stick');
+                            //if(slot===-1) { console.log('Error: Could not find Short Stick at structure'); return; }
+                            //tile.items.splice(slot,1);
+                            //slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            //if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
+                            //tile.items.splice(slot,1);
+                            //slot = tile.items.findIndex(i=>i.name==='Small Rope');
+                            //if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
+                            //tile.items.splice(slot,1);
                             tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*8})); // 8 minutes
+                            tile.modified = true;
+                        }
+                    },{
+                        name: 'Craft Wood Pitchfork',
+                        desc: 'Make a Pitchfork, for turning hay',
+                        taskType: 'craft',
+                        workLocation: 'structure',
+                        itemsNeeded: [
+                            {options: [{name: 'Long Stick', qty:1}], role:'item', workSite:false},
+                            {options: [{name: 'Short Stick', qty:2}], role:'item', workSite:false},
+                            {options: [{name: 'Small Rope', qty:2}], role:'item', workSite:false}
+                        ],
+                        outputItems: ['Wood Pitchfork'],
+                        buildTime: 20 * 60, // 1 minute
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Flint Scythe'),
+                        onComplete: x=>{
+                            let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
+                            game.clearItems(tile, ['Long Stick', 'Short Stick', 'Short Stick', 'Small Rope', 'Small Rope'],
+                                            'src/structures/RockKnapper.jsx->task Craft Flint Pitchfork');
+                            tile.items.push(game.createItem('Wood Pitchfork', 'tool', {efficiency:1, endurance:20*60*5})); // 5 minutes
                             tile.modified = true;
                         }
                     }

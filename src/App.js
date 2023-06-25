@@ -28,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/game_tasks.js                     src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php      notes/futureprocesses.md
-//     src/app.css                          src/worker.jsx                        src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php                   notes/tasklist.md
-//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/WorldMap.jsx                      server/routes/log.php                README.md
-//            src/libs/ShowBlog.jsx                src/foodOptions.js                     server/routes/autologin.php          server/routes/login.php              notes/techtree.md
-//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx              server/config.php                    server/routes/save.php               notes/automationtree.md
-//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx         server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
-//                     src/Account.jsx                      src/structures/RockKnapper.jsx         server/libs/jsarray.php               server/routes/sendunits.php        notes/worldgen.md
-//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx         server/events.php                    server/routes/signup.php           notes/worldhistory.md
-//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx           server/getInput.php                  server/libs/DanGlobal.php         notes/magicsystem.md
-//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx          server/finishLogin.php               server/libs/clustermap.php        notes/undergroundbiomes.md
-//                                  src/game.jsx                          src/structures/WaterSource.jsx         server/globals.php                    server/minimap.php               notes/workercrafting.md
-// 349+54+120+96+48+38+229+65+83+68+413+138+735+72+60+99+56+165+184+66+95+124+415+190+254+37+8+307+230+233+33+38+299+127+40+36+44+127+77+95+350+37+141+256+42+22+51+58+14+8+67+13+11+18+11+30+19
+// src/app.js                           src/game_tasks.js                      src/structures/FarmersPost.jsx         server/finishLogin.php               server/libs/clustermap.php         notes/undergroundbiomes.md
+//     src/app.css                          src/worker.jsx                        src/structures/HayDryer.jsx            server/globals.php                    server/minimap.php                notes/workercrafting.md
+//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php       notes/futureprocesses.md
+//            src/libs/ShowBlog.jsx                src/foodOptions.js                     src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php                    notes/tasklist.md
+//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx               src/WorldMap.jsx                      server/routes/log.php                README.md
+//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx            server/routes/autologin.php          server/routes/login.php              notes/techtree.md
+//                     src/Account.jsx                      src/structures/RockKnapper.jsx           server/config.php                    server/routes/save.php               notes/automationtree.md
+//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx         server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
+//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx           server/libs/jsarray.php               server/routes/sendunits.php         notes/worldgen.md
+//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx           server/events.php                    server/routes/signup.php            notes/worldhistory.md
+//                                  src/game.jsx                           src/structures/WaterSource.jsx          server/getInput.php                  server/libs/DanGlobal.php          notes/magicsystem.md
+// 352+54+120+96+48+38+229+65+83+68+435+146+637+72+66+99+61+219+235+66+100+137+93+211+427+190+254+37+8+307+230+232+33+39+299+127+40+36+44+138+77+95+350+37+141+255+42+22+52+58+14+32+67+13+11+18+11+34+28
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -47,6 +47,8 @@
 // 5/07/23: 5644 lines
 // 6/01/23: 6180 lines
 // 6/10/23: 6667 lines
+// 6/17/23: 7105 lines
+// 6/24/23: 7528 lines
 
 import "./App.css";
 import React from "react";
@@ -71,6 +73,7 @@ function App() {
     const [page, setPage] = React.useState("HomePage");
     const [userData, setUserData] = React.useState(null);
     const [loginError, setLoginError] = React.useState("");
+    const [localTiles, setLocalTiles] = React.useState([]); // Holds all data about local tiles
     const [worldMap, setWorldMap] = React.useState([]); // holds data about the world map
     const [worldCoords, setWorldCoords] = React.useState({}); // Where on the world map the player is. This isn't shown directly to the player, but
     // is needed to mark where the player is on the world map
@@ -107,7 +110,7 @@ function App() {
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        game.setup(pack, setLocalWorkers);
+        game.setup(pack, setLocalWorkers, setLocalTiles);
 
         setPage("LocalMap");
     }
@@ -134,7 +137,7 @@ function App() {
                 // remove unneeded fields
                 delete u.modified;
                 delete u.image;
-                delete u.landtype; // we won't need to send this either, since it will never change
+                delete u.originalland; // we won't need to send this either, since it will never change
 
                 // items in tasks needs their task links converted to a task ID
                 u.items = u.items.map((i) => {
@@ -191,7 +194,7 @@ function App() {
                     name: task.task === null ? "none" : task.task.name,
                     status: task.status,
                     taskType: task.taskType,
-                    worker: task.worker === null ? 0 : task.worker.id,
+                    worker: task.worker === null ? 0 : typeof task.worker === "undefined" ? -1 : task.worker.id,
                     targetx: task.targetx === null ? -1 : task.targetx,
                     targety: task.targety === null ? -1 : task.targety,
                     targetItem: task.targetItem, // used only in itemMove tasks
@@ -251,7 +254,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap workers={localWorkers} onSave={onSave} setPage={setPage} />;
+                return <LocalMap tiles={localTiles} workers={localWorkers} onSave={onSave} setPage={setPage} />;
             case "WorldMap":
                 return (
                     <WorldMap

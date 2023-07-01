@@ -48,6 +48,7 @@ export function FarmersPost() {
                                 {name:'Millet Grass', qty:1}], role:'item', workSite:true},
                             {options: [{name:'Flint Scythe', qty:1}], role:'tool', workSite:false}
                         ],
+                        outputItems: hayTypes.map(q=>q.grass),
                         buildTime: 20*30, // 30 seconds to clear a one tile
                         hasQuantity: true,
                         canAssign: ()=>true, // can assign any time
@@ -94,6 +95,7 @@ export function FarmersPost() {
                             {options: hayTypes.map(u=>({name:u.out, qty:1})), role:'item', workSite:false},
                             {options: [{name: 'Flint Knife', qty:1}], role:'tool', workSite:false}
                         ],
+                        outputItems: ['Straw', ...hayTypes.map(u=>u.seed)],
                         buildTime: 20*30, // a stack should take about 30 seconds each
                         hasQuantity: true,
                         canAssign: ()=>hayTypes.some(u=>game.unlockedItems.includes(u.out)),
@@ -126,12 +128,13 @@ export function FarmersPost() {
                             {options: [{name: 'Straw', qty:1}], role:'item', workSite:false},
                             {options: [{name: 'Small Rope', qty:1}], role:'item', workSite:false}
                         ],
+                        outputItems: ['Thatch Tile'],
                         buildTime: 20*15, // 15 seconds
                         hasQuantity: true,
                         canAssign: ()=>game.unlockedItems.includes('Straw'),
                         onComplete: x=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
-                            game.clearItems(tile, ['Straw', 'Small Rope'], 'Farmers Post->Craft Thatch Tiles');
+                            game.clearItems(tile, [{name:'Straw', qty:1}, {name:'Small Rope', qty:1}], 'Farmers Post->Craft Thatch Tiles');
                             //let item = game.createItem('Thatch Tile', 'item')
                             //console.log('We made a '+ item.name +'!');
                             tile.items.push(game.createItem('Thatch Tile', 'item'));

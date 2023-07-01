@@ -37,6 +37,7 @@
 
     // Now set variable for using the response script
     $playerid = $player['id'];
+    $playername = $player['name'];
     $playerx = $player['currentx'];
     $playery = $player['currenty'];
     require_once("../finishLogin.php");

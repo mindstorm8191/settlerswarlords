@@ -22,7 +22,8 @@
         ['name'=>'workers',       'required'=>true, 'format'=>'array'],
         ['name'=>'structures',    'required'=>true, 'format'=>'array'],
         ['name'=>'tasks',         'required'=>true, 'format'=>'array'],
-        ['name'=>'unlockeditems', 'required'=>true, 'format'=>'arrayOfStrings']
+        ['name'=>'unlockeditems', 'required'=>true, 'format'=>'arrayOfStrings'],
+        ['name'=>'mapTick',       'required'=>true, 'format'=>'posint']
     ], 'server/routes/save.php->verify input level 1');
 
     // An array doesn't really verify anything, so we need to verify the worker data details now
@@ -79,6 +80,13 @@
                         ['name'=>'cycle', 'required'=>true, 'format'=>'int']
                     ], 'server/routes/save.php->verify structures->Hay Dryer activeItems');
                 });
+            break;
+
+            case 'Open Dryer':
+                verifyInput($st, array_merge($baseObject, [
+                    ['name'=>'mode', 'required'=>true, 'format'=>'stringnotempty'],
+                ]), 'server/routes/save.php->verify structures->Open Dryer');
+                // This drying structure will likely get more complicated. But this is enough for now
             break;
 
             case 'Rock Knapper':
@@ -142,9 +150,9 @@
     $player = $res[0];  // This will tell us which worldmap tile to update
 
     // Update everything in the worldmap tile, in one go
-    DanDBList("UPDATE sw_map SET workers=?, structures=?, tasks=?, unlockeditems=? WHERE x=? AND y=?;", 'ssssii',
+    DanDBList("UPDATE sw_map SET workers=?, structures=?, tasks=?, unlockeditems=?, localmaptick=? WHERE x=? AND y=?;", 'ssssiii',
               [json_encode($con['workers']), json_encode($con['structures']), json_encode($con['tasks']),
-              json_encode($con['unlockeditems']), $player['currentx'], $player['currenty']],
+              json_encode($con['unlockeditems']), $con['mapTick'], $player['currentx'], $player['currenty']],
               'routes/save.php->save map content');
 
     // With that done, the server can go back to... wait, what does a server do when it's not doing work???

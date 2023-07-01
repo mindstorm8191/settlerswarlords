@@ -48,20 +48,22 @@ let itemStats = [
     {name:'Oat Seed',                  img:'oatseed.png',           desc:'The seeds of oat grass, unprocessed'},
     {name:'Pine Cone',                 img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
     {name:'Pine Tree',           img:'pinetree.png',     desc:'A pine tree, growing strong'},
-    {name:'Removed Stick',       img:'removedstick.png',      desc:'Not real! Represents a stick missing from the trees'},
+    {name:'Removed Stick',             img:'removedstick.png',      desc:'Not real! Represents a stick missing from the trees'},
     {name:'Rye Grass',                 img:'ryegrass.png',    desc:'Field of natural rye grain'},
     {name:'Rye Hay',                   img:'ryehay.png',            desc:'Rye grasses, both straw and seed'},
-    {name:'Short Stick',         img:'shortstick.png',        desc:'A short piece of wood. Good for tools'},
+    {name:'Short Stick',               img:'shortstick.png',        desc:'A short piece of wood. Good for tools'},
     {name:'Small Rope',                img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
     {name:'Straw',                     img:'straw.png',              desc:'Grass shoots with the seeds removed'},
     {name:'Thatch Tile',               img:'thatchtile.png',        desc:'A roofing tile, made from straw'},
     {name:'Turnip Plant',              img:'turnipplant.png',  desc:'Turnips, growing wild'},
+    {name:'Wet Clay Brick',            img:'wetclaybrick.png',      desc:'A clay brick. Must be dried before firing'},
     {name:'Wheat Grass',               img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
     {name:'Wheat Hay',                 img:'wheathay.png',          desc:'Golden wheat, both straw and seed'},
     {name:'Wheat Seed',                img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
     {name:'Wood Pitchfork',            img:'woodpitchfork.png',     desc:'A pitchfork, made of sticks. Better than nothing'},
     {name:'Wooden Bucket',             img:'woodenbucket.png',       desc:'A bucket, made of wood. Good for non-food liquids'},
     {name:'Wooden Creek Water Bucket', img:'woodenwaterbucket.png', desc:'A bucket, made of wood, filled with creek water'},
+    {name:'Wooden Pole',               img:'woodenpole.png',        desc:'A long pole of wood. Good for structures'},
     {name:'Wooden Pond Water Bucket', img:'woodenwaterbucket.png',  desc:'A bucket, made of wood, filled with pond water'}
 ];
 
@@ -70,6 +72,7 @@ export function LocalMap(props) {
     // Prop fields - data
     //      tiles - all tiles of the local map
     //      workers - all workers on this map
+    //      mobileMode - set to true or false if the display needs to be managed more
     // Prop fields - functions
     //      onSave - called when the Save button is clicked
     //      onTileUpdate - called when a tile has been updated
@@ -79,6 +82,7 @@ export function LocalMap(props) {
     const [errorText, setErrorText] = React.useState('');
     const [tileSelected, setTileSelected] = React.useState(null);
     const [tutorialDisplay, setTutorialDisplay] = React.useState(true);
+    const [rightPanelDisplay, setRightPanelDisplay] = React.useState(props.mobileMode?false:true);
 
     // Set the game's tutorialDisplay function while we're here
     game.tutorialDisplay = setTutorialDisplay;
@@ -201,6 +205,7 @@ export function LocalMap(props) {
                                     if(game.tutorialModes[game.tutorialState].name==='Welcome') game.advanceTutorial();
 
                                     setTileSelected(tile);
+                                    setRightPanelDisplay(true);
                                 }}
                             >
                                 {/* Show contents of this tile. This is a multi-choice result */}
@@ -220,7 +225,7 @@ export function LocalMap(props) {
                                         />
                                     </>
                                 ): (hasWorker===true) ?  (
-                                    <img src={imageURL + "worker.png"} alt="worker" />
+                                    <img src={imageURL + "worker.png"} alt="worker" draggable="false" />
                                 ): (parseInt(tile.structureid)!==0)? (
                                     <img src={imageURL +"structures/"+ tile.image} alt="Building" style={{pointerEvents:'none', border:0}} draggable="false" />
                                 ): (
@@ -257,7 +262,7 @@ export function LocalMap(props) {
                         </div>
                     </FixedPositionChild>
                 </DraggableMap>
-                <LocalMapRightPanel selected={tileSelected} />
+                {rightPanelDisplay===true?(<LocalMapRightPanel selected={tileSelected} mobileMode={props.mobileMode} onClose={()=>setRightPanelDisplay(false)}/>):('')}
             </div>
             {!(dragStructure===null)?(
                 <div style={{display:'block', position:'absolute', top:dragStructure.y-20, left:dragStructure.x-20, width:40, height:40, pointerEvents:'none'}}>
@@ -270,6 +275,11 @@ export function LocalMap(props) {
 
 function LocalMapRightPanel(props) {
     // Manages displaying the right panel of the local map, with whatever is needed to be shown there
+    // prop fields - data
+    //      selected - which tile is currently selected by the user
+    //      mobileMode - true if the display is small. This will trigger the close button to be displayed
+    // prop fields - functions
+    //      onClose - called when the close button is clicked
 
     const [blinker,setBlinker] = React.useState(0);
     // Blinker is used to trigger React to re-render this side panel; the setter function is shared with the structure. Since the game
@@ -295,7 +305,15 @@ function LocalMapRightPanel(props) {
 
     if(props.selected===null) {
         // Nothing is selected
-        return <div className="localmaprightpanel" style={{width:300}}>Click a tile to view its details</div>;
+        // There's a good chance that this won't ever display, but might as well offer a way to exit that screen
+        return (
+            <div className="localmaprightpanel" style={{width:300}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()} /></p>
+                ):''}
+                Click a tile to view its details
+            </div>
+        );
     }
 
     let worker = game.workers.find(w=>w.x===props.selected.x && w.y===props.selected.y);
@@ -305,10 +323,20 @@ function LocalMapRightPanel(props) {
         //let landType = (props.selected.newlandtype===-1)?props.selected.landtype : props.selected.newlandtype;
         let tileData = minimapTiles.find(e=>e.id===props.selected.landtype);
         if(typeof(tileData)==='undefined') {
-            return <div className="localmaprightpanel" style={{width:300}}>Oops, there's no description for land type where id={props.selected.landtype}</div>;
+            return (
+                <div className="localmaprightpanel" style={{width:300}}>
+                    {props.mobileMode? (
+                        <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()} /></p>
+                    ):''}
+                    Oops, there's no description for land type where id={props.selected.landtype}
+                </div>
+            );
         }
         return (
             <div className="localmaprightpanel" style={{width:300}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()} /></p>
+                ):''}
                 <p>{tileData.desc}</p>
                 {/* I'm adding map coordinates here only to help in the debugging process */}
                 <p>[{props.selected.x},{props.selected.y}]</p>
@@ -319,9 +347,18 @@ function LocalMapRightPanel(props) {
     }
 
     // The default case; this is a tile with a structure on it
+
+    // First see if our structure exists. If not, we should display an error instead of a structure
     const structure = game.structures.find(e=>parseInt(e.id)===parseInt(props.selected.structureid));
     if(typeof(structure)==='undefined') {
-        return <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>Error: Did not find building id={props.selected.structureid}</div>;
+        return (
+            <div className="localmaprightpanel" style={{width:300, backgroundColor:'pink'}}>
+                {props.mobileMode? (
+                    <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()} /></p>
+                ):''}
+                Error: Did not find building id={props.selected.structureid}
+            </div>
+        );
     }
     
     // Make a list of assignable tasks. If this is empty, we'll show something else
@@ -334,6 +371,9 @@ function LocalMapRightPanel(props) {
     const SidePanel = structure.SidePanel;
     return (
         <div className="localmaprightpanel" style={{width:300}}>
+            {props.mobileMode? (
+                <p><img src={imageURL +"exit.png"} alt="eXit" style={{cursor:"pointer"}} onClick={()=>props.onClose()} /></p>
+            ):''}
             <div style={{width:'100%', textAlign:'center', fontWeight:'bold'}}>{structure.name}</div>
             <p>{structure.descr}</p>
             <p>{structure.usage}</p>

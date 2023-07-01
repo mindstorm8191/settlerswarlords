@@ -129,6 +129,10 @@ export function createWorker(pack) {
             }
 
             /////////////////////////////////////////////////////////////////
+            if(typeof(w.tasks[0].task)==='undefined') {
+                console.log(w.tasks[0]);
+                w.tasks[0].task = null;
+            }
 
             // Next, we need to determine the exact recipe we will use. My intention is to allow multiple ways to produce each item, and the
             // workers wil select the best recipe to use
@@ -558,7 +562,7 @@ export function createWorker(pack) {
 
             if(w.tasks.length===0) return false;
             if(typeof(w.tasks[0].targetx)==='undefined' || w.tasks[0].targetx===null) {
-                console.log('Error in worker.move(): trying to move but targetx is not defined (or is null)');
+                console.log('Error in worker.move(): '+ w.name +' is trying to move but targetx is not defined (or is null). Task: ', w.tasks[0]);
                 return false;
             } 
 

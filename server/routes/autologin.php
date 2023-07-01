@@ -30,6 +30,7 @@
 
     // Now use the login script to send a response to the client
     $playerid = $player['id'];
+    $playername = $player['name'];
     $playerx = $player['currentx'];
     $playery = $player['currenty'];
     $ajaxcode = $con['ajaxcode'];

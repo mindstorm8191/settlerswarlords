@@ -32,3 +32,13 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 1.  Players will be able to collect ores of a lot of different metals. Each will need a different process to refine.
 2.  Iron can be smelted directly from its ore, but will give Pig Iron. This will contain a lot of carbon and silicon impurities.
 3.  Pig Iron can be heated and hammered more to produce Wrought Iron. This may be a lengthy process.
+
+### Foliage regrowth
+
+This one is a little different, as it's not directly controlled by the player
+
+-   All land tiles will have a specific land type that nature will progress towards the tile having
+-   Workers can clear lands, flood it with toxins, etc, but eventually nature will lead this land back to its original form (that being said, it could take several years in realtime to reach that, but still)
+-   Structures built by the player will eventually decay into rubble, then get overrun with plants, and then convert back to the original tile type it was
+-   Workers travelling across the same tile multiple times will also cause the lands to take wear damage, expecially grasslands. The effects will first remove grass items until there is none left. Once empty, the tile type will change to a muddied grass tile (we may have several iterations of this), then a full dirt tile. If these tiles are left undisturbed for a time, it will revert back to its original state
+-   It may be more realistic to have tiles cycle naturally, aka trees & other plants grow and die at a steady rate. But this would become much more complex than the scope of this game should cover.

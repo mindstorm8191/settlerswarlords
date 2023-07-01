@@ -13,11 +13,14 @@ import { LoggersPost } from "./structures/LoggersPost.jsx";
 import { RopeMaker } from "./structures/RopeMaker.jsx";
 import { DirtSource } from "./structures/DirtSource.jsx";
 import { WaterSource } from "./structures/WaterSource.jsx";
+import { ClayFormer } from "./structures/ClayFormer.jsx";
 import { FarmersPost } from "./structures/FarmersPost.jsx";
 import { HayDryer } from "./structures/HayDryer.jsx";
+import { OpenDryer } from "./structures/OpenDryer.jsx";
 
 export const game = {
     debugging: true, // determines if console log entries will be generated for errors and debugging. This needs to be used more often...
+    mobileModeEnabled: false, // gets set to true in app.js if the window width is smaller than 900px
     timerLoop: null, // Contains a timer handle when the game starts
     tiles: [], // all tiles of the local map
     workers: [], // all workers on this map
@@ -41,8 +44,10 @@ export const game = {
         RopeMaker(),
         DirtSource(),
         WaterSource(),
+        ClayFormer(),
         FarmersPost(),
-        HayDryer()
+        HayDryer(),
+        OpenDryer()
     ],
 
     tutorialState:0,
@@ -169,7 +174,7 @@ export const game = {
                     task.task = building.tasks.find(t=>t.name===task.name);
                     if(typeof(task.task)==='undefined') task.task = null;
                 }else{
-                    console.log('This task does not have a building associated to it');
+                    console.log('This task does not have a building associated to it. Task: ', task);
                     task.task = null;
                 }
                 if(task.worker===-1) {
@@ -322,18 +327,35 @@ export const game = {
         // Deletes all items from the provided itemList. There are several item recipes that will consume a large list of items to produce one
         // completed item; this makes the process of deleting those items easier
         //   tile - map tile instance where the items are being deleted from
-        //   itemList - list of item names to delete. Note that there are currently no checks for item quality here
+        //   itemList - list of objects:
+        //      name - name of the item to delete. There isn't any item specifics beyond this (currently)
+        //      qty - how many of these items to delete
         //   codeLocation - where this function was called from. Used only for debugging
         // No return value. The specified tile instance will be modified
 
-        for(let i=0; i<itemList; i++) {
+        for(let i=0; i<itemList.length; i++) {
+            for(let j=0; j<itemList[i].qty; j++) {
+                let slot = tile.items.findIndex(item=>item.name===itemList[i].name);
+                if(slot===-1) {
+                    // The item wasn't found... not good!
+                    console.log("Error: Could not find item "+ itemList[i].name +" to remove. game.clearItems() called from "+ codeLocation);
+                    j = itemList[i].qty; // go ahead and skip to the end of this portion
+                }else{
+                    tile.items.splice(slot,1);
+                }
+            }
+        }
+        /*
+        for(let i=0; i<itemList.length; i++) {
             let slot = tile.items.findIndex(item=>item.name===itemList[i]);
+            console.log(itemList[i] +' is at slot '+ slot);
             if(slot===-1) {
-                if(game.debugging) console.log("Error: Could not find item "+ itemList[i] +" to remove. game.clearItems() Called from "+ codeLocation);
+                if(game.debugging===true)
+                    console.log("Error: Could not find item "+ itemList[i] +" to remove. game.clearItems() Called from "+ codeLocation);
             }else{
                 tile.items.splice(slot,1);
             }
-        }
+        }*/
     },
 
     pathTo: (startX, startY, callback)=>{

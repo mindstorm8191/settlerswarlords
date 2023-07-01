@@ -15,7 +15,7 @@ import { ErrorOverlay } from "./libs/ErrorOverlay.jsx"; // A convenient tool to 
 export function AccountBox(props) {
         // Handles displaying account access at the top right of the page
     // prop fields - data
-    //      user - full package of the user data, as received from the server. This will be null before they have logged in
+    //      user - full package of the user data, as received from the server. This should be null before they have logged in
     //      errorText - Error received when user tried to log in
     // prop fields - functions
     //      onLogin - Gets called when the user has requested to log in (or out)
@@ -65,25 +65,27 @@ export function AccountBox(props) {
 
     function handleLogout() {
         // Allows the user to log out, by sending a message to the server
+        // Note that we don't need any user specifics here
+        
         fetch(serverURL +'routes/logout.php', DAX.serverMessage({}, true))
-        .then(res => DAX.manageResponseConversion(res))
-        .catch(err => console.log(err))
-        .then(data => {
-            if(data.result !== "success") {
-                // We should probably enable the Error Overlay here...
-                console.log("Error from server:", data);
-                return;
-            }
-            // Update login information, by just clearing it out
-            props.onLogin(null);
-        })
+            .then(res => DAX.manageResponseConversion(res))
+            .catch(err => console.log(err))
+            .then(data => {
+                if(data.result !== "success") {
+                    // We should probably enable the Error Overlay here...
+                    console.log("Error from server:", data);
+                    return;
+                }
+                // Update login information, by just clearing it out
+                props.onLogin(null);
+            })
     }
 
     return (
         <div id="loginblock" >
             {isLoggedIn?(
                 <div>
-                    <p>Hello, {props.user.name}!</p>
+                    <p>Hello, {props.user}!</p>
                     <br />
                     <input type="button" value="Logout" onClick={handleLogout} />
                 </div>

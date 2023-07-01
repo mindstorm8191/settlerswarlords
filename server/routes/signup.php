@@ -63,6 +63,7 @@
                   $playerx, $playery
               ], 'server/routes/signup.php->add new player');
     $playerid = mysqli_insert_id($db);
+    $playername = $con['username'];
 
     // Now is a good time to create the workers on this map
     $workers = createWorkers(4);

@@ -7,6 +7,7 @@
     // This file is included where it is called. It ends the script when done
     // parameters needed:
     // $playerid - ID of the player to show data for
+    // $playername - Name of the player, as displayed to the user
     // $playerx - X coordinate of where the player is at
     // $playery - Y coordinate of where the player is at
     // $ajaxcode - ajax code that is passed to the client
@@ -22,6 +23,7 @@
     die(json_encode([
         'result'=>'success',
         'userid'=>$playerid,
+        'username'=>$playername,
         'userType'=>'player',
         'ajaxcode'=>$ajaxcode,
         'localContent'=>[

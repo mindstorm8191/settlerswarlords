@@ -48,5 +48,6 @@ And additional information
 -   [Underground Biomes](/notes/undergroundbiomes.md)
 -   [Worker Crafting](/notes/workercrafting.md)
 -   [Future Processes Planned](/notes/futureprocesses.md)
+-   [Influences from other games](/notes/influences.md)
 
 Currently, players can start playing the game, but there's only two structures available: the lean-to and forage post. I am still working on getting workers to accept tasks properly.

@@ -136,6 +136,7 @@ export function HayDryer() {
                         taskType: 'craft',
                         workLocation: 'structure',
                         itemsNeeded: [{options: hayTypes.map(n=>({name:n.in, qty:1})), role:'item', workSite:false}],
+                        outputItems: hayTypes.map(u=>u.out),
                         buildTime: 20, // 1 second to place the hay how it needs to be
                         hasQuantity: true,
                         canAssign: ()=>true, // this task is not assigned by the player
@@ -183,6 +184,7 @@ export function HayDryer() {
                             // field blank
                             {options: [{name:'Wood Pitchfork', qty:1}], role:'tool', workSite:false}
                         ],
+                        outputItems: [], // this task isn't considered when searching for item conversion opportunities
                         buildTime: 20*5,
                         hasQuantity: true,
                         canAssign: ()=>false,  // This task gets generated automatically by this building, when it's time to turn the hay

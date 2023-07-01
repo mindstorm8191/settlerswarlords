@@ -226,6 +226,31 @@ export function LoggersPost() {
                             tile.items.push(game.createItem('Wooden Bucket'));
                             tile.modified = true;
                         }
+                    },{
+                        name: 'Cut Wooden Pole',
+                        desc: 'Craft wooden poles from connected logs',
+                        taskType: 'craft',
+                        workLocation: 'atItem',
+                        itemsNeeded: [
+                            {options: [{name: 'Connected Log', qty:3}], role:'item', workSite:true},
+                            {options: [{name: 'Flint Hatchet', qty:1}], role:'tool', workSite:false}
+                        ],
+                        outputItems: ['Wooden Pole'],
+                        buildTime: 20 * 60 * 2, // 2 minutes... but you get 4 poles from it
+                        hasQuantity: true,
+                        canAssign: ()=>game.unlockedItems.includes('Connected Log'),
+                        onComplete: worker=>{
+                            let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                            game.clearItems(tile, [{name: 'Connected Log', qty:3}],
+                                'src/structures/LoggersPost.jsx->Task Cut Wooden Pole->onComplete');
+                            tile.items.push(
+                                game.createItem('Wooden Pole', 'item'),
+                                game.createItem('Wooden Pole', 'item'),
+                                game.createItem('Wooden Pole', 'item'),
+                                game.createItem('Wooden Pole', 'item')
+                            );
+                            tile.modified = true;
+                        }
                     }
                 ]
             }

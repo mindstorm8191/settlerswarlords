@@ -28,18 +28,18 @@
 */
 
 // Lines count
-// src/app.js                           src/game_tasks.js                      src/structures/FarmersPost.jsx         server/finishLogin.php               server/libs/clustermap.php         notes/undergroundbiomes.md
-//     src/app.css                          src/worker.jsx                        src/structures/HayDryer.jsx            server/globals.php                    server/minimap.php                notes/workercrafting.md
-//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/LocalMap.jsx                       server/libs/weightedRandom.php        server/routes/worldmap.php       notes/futureprocesses.md
-//            src/libs/ShowBlog.jsx                src/foodOptions.js                     src/libs/DraggableMap.jsx              server/routes/getblog.php            resetgame.php                    notes/tasklist.md
-//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx               src/WorldMap.jsx                      server/routes/log.php                README.md
-//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx            server/routes/autologin.php          server/routes/login.php              notes/techtree.md
-//                     src/Account.jsx                      src/structures/RockKnapper.jsx           server/config.php                    server/routes/save.php               notes/automationtree.md
-//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx         server/libs/common.php                 server/routes/savetiles.php         notes/wartree.md
-//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx           server/libs/jsarray.php               server/routes/sendunits.php         notes/worldgen.md
-//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx           server/events.php                    server/routes/signup.php            notes/worldhistory.md
-//                                  src/game.jsx                           src/structures/WaterSource.jsx          server/getInput.php                  server/libs/DanGlobal.php          notes/magicsystem.md
-// 352+54+120+96+48+38+229+65+83+68+435+146+637+72+66+99+61+219+235+66+100+137+93+211+427+190+254+37+8+307+230+232+33+39+299+127+40+36+44+138+77+95+350+37+141+255+42+22+52+58+14+32+67+13+11+18+11+34+28
+// src/app.js                           src/game_tasks.js                      src/structures/ClayFlormer.jsx         server/events.php                    server/routes/sendunits.php         notes/worldgen.md
+//     src/app.css                          src/worker.jsx                        src/structures/FarmersPost.jsx          server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
+//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/structures/HayDryer.jsx            server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
+//            src/libs/ShowBlog.jsx                src/foodOptions.js                     src/structures/OpenDryer.jsx          server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
+//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx              src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
+//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx           src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
+//                     src/Account.jsx                      src/structures/RockKnapper.jsx           src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
+//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx           server/routes/autologin.php          server/routes/login.php              README.md                        notes/tasklist.md
+//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx            server/config.php                    server/routes/logout.php             notes/techtree.md
+//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx          server/libs/common.php                server/routes/save.php               notes/automationtree.md
+//                                  src/game.jsx                           src/structures/WaterSource.jsx         server/libs/jsarray.php               server/routes/savetiles.php         notes/wartree.md
+// 381+58+108+96+48+38+231+65+83+68+466+150+628+72+66+97+61+207+260+66+100+137+72+149+243+86+476+190+254+38+8+307+230+232+33+41+299+127+40+36+45+36+160+80+95+351+37+141+256+42+22+52+58+14+32+67+13+11+18+11+44+59+27
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -49,6 +49,7 @@
 // 6/10/23: 6667 lines
 // 6/17/23: 7105 lines
 // 6/24/23: 7528 lines
+// 7/1/23: 8018 lines
 
 import "./App.css";
 import React from "react";
@@ -77,6 +78,7 @@ function App() {
     const [worldMap, setWorldMap] = React.useState([]); // holds data about the world map
     const [worldCoords, setWorldCoords] = React.useState({}); // Where on the world map the player is. This isn't shown directly to the player, but
     // is needed to mark where the player is on the world map
+    const [mobileMode, setMobileMode] = React.useState(window.innerWidth >= 900 ? false : true);
 
     const [localWorkers, setLocalWorkers] = React.useState([]);
 
@@ -99,11 +101,36 @@ function App() {
                 // From here, everything is handled the same as a normal login
                 onLogin(data);
             });
+
+        const handleResize = () => {
+            if (window.innerWidth <= 900) {
+                setMobileMode(true);
+                game.mobileModeEnabled = true;
+            } else {
+                setMobileMode(false);
+                game.mobileModeEnabled = false;
+            }
+            console.log("win-width: " + window.innerWidth + ", mode=" + game.mobileModeEnabled);
+        };
+        window.addEventListener("resize", handleResize);
+        return () => {
+            // This will remove the event listener when we're done with it... which I guess is when the app is closed.
+            // Which I guess isn't really necessary, but might as well leave it in
+            window.removeEventListener("resize", handleResize);
+        };
     }, []);
 
     function onLogin(pack) {
         // Handles the response when a user logs in. The same response is received when a user first signs up
 
+        if (pack === null) {
+            console.log("Logout successful!");
+            localStorage.clearItem("userid");
+            localStorage.clearItem("ajaxcode");
+            setPage("HomePage");
+            setUserData(null);
+            return;
+        }
         console.log("Login successful!", pack);
 
         // Use localStorage to keep the user's ID & access code, so autoLogin can work
@@ -113,6 +140,7 @@ function App() {
         game.setup(pack, setLocalWorkers, setLocalTiles);
 
         setPage("LocalMap");
+        setUserData(pack.username);
     }
 
     function onSave() {
@@ -230,6 +258,7 @@ function App() {
                 };
             }),
             unlockeditems: game.unlockedItems,
+            mapTick: game.mapTick,
         };
         //DanLog.add("src/App.js->onSave()->before first message", "load-save", { note: "ready to send:", ...pack });
         fetch(serverURL + "/routes/save.php", DAX.serverMessage(pack, true))
@@ -254,7 +283,7 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "LocalMap":
-                return <LocalMap tiles={localTiles} workers={localWorkers} onSave={onSave} setPage={setPage} />;
+                return <LocalMap tiles={localTiles} workers={localWorkers} onSave={onSave} setPage={setPage} mobileMode={mobileMode} />;
             case "WorldMap":
                 return (
                     <WorldMap
@@ -271,7 +300,7 @@ function App() {
     }
 
     return (
-        <div>
+        <div className="body">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
                 <div id="titleblock">
                     <AccountBox onLogin={onLogin} user={userData} errorText={loginError} setErrorText={setLoginError} />
@@ -313,7 +342,7 @@ function HomePage(props) {
                     backgroundImage: "url(" + imageURL + "dirttexture.png)",
                 }}
             >
-                <DanCarousel style={{ maxWidth: 600 }}>
+                <DanCarousel style={{ maxWidth: 470 }} displayTime={8000} transitionTime={2000} showProgressBar={true}>
                     <>
                         <p>
                             Settlers and Warlords is an online multiplayer game mixing Idle game concepts with Civilization-style strategy.

@@ -3,10 +3,6 @@
     Built for the game Settlers & Warlords
 */
 
-// ToDo List
-// 1) Update code to use the new showTime & transitionTime values
-// 2) Set default times to 6 seconds per slide and 2 seconds to transition
-
 import React from "react";
 
 export function DanCarousel(props) {
@@ -17,7 +13,8 @@ export function DanCarousel(props) {
     // prop fields - data:
     //      displayTime - int; how long each slide is displayed for, in milliseconds
     //      transitionTime - int; how long it takes to transition between each slide, in milliseconds
-    //      showProgressBar
+    //      showProgressBar - bool; set to true to show a progress bar across the bottom. It will increase in length as the selected frame sits,
+    //          and then decrease as the frame slides over
 
     //    entries - array of output content to display
 
@@ -25,81 +22,64 @@ export function DanCarousel(props) {
     const [mode, setMode] = React.useState(0);
     const [offset, setOffset] = React.useState(0);
     const [display, setDisplay] = React.useState(typeof props.startFrame === "undefined" ? 0 : props.startFrame);
-    let displayTime = typeof props.displayTime === "undefined" ? 5 : props.displayTime;
-    let transitionTime = typeof props.transitionTime === "undefined" ? 1 : props.transitionTime;
+    const [slidePosition, setSlidePosition] = React.useState(0);
+    let displayTime = typeof props.displayTime === "undefined" ? 6000 : props.displayTime;
+    let transitionTime = typeof props.transitionTime === "undefined" ? 2000 : props.transitionTime;
     let width = typeof props.style.maxWidth === "undefined" ? 500 : props.style.maxWidth;
 
     const slides = React.Children.toArray(props.children);
+    // Transitions will work fine like this, except for the last frame. It will slide over to darkness, then instantly jump to the first frame.
+    // To fix this, we will add the first frame at the end of the array, and still instantly jump to the first frame once we reach that frame.
+    slides.push(slides[0]);
 
     // tick will actually contain the progress needed between sessions... we should probably reset it once it reaches the next 'frame'
 
-    let carouselTimeout;
-    let carouselTime;
     let carouselStart;
     let carouselRootTimeout = null;
-    let othermode = 0;
+    let isRunning;
 
     React.useEffect(() => {
         // I was going to set up a setInterval loop, but we should keep this running using requestAnimationFrame()
         if (carouselRootTimeout === null) {
-            carouselTime = new Date().valueOf();
-            carouselTimeout = setTimeout(function () {
-                window.requestAnimationFrame(CarouselTick);
-            }, 50);
+            isRunning = true;
             carouselStart = new Date().valueOf();
-            carouselRootTimeout = setTimeout(CarouselFlip, 5000);
+            window.requestAnimationFrame(CarouselTick);
         }
         return ()=> {
+            isRunning = false;
             console.log('Carousel unmounted');
-            clearTimeout(carouselTimeout);
-            clearTimeout(carouselRootTimeout);
-            carouselRootTimeout = null;
         }
     }, []);
-    
-    function CarouselFlip() {
-        setMode((mode) => 1 - mode);
-        if (othermode === 0) {
-            console.log("Long");
-            othermode = 1;
-            carouselRootTimeout = setTimeout(CarouselFlip, 1000);
-        } else {
-            othermode = 0;
-            console.log("Short");
-            carouselRootTimeout = setTimeout(CarouselFlip, 5000);
-            setDisplay((display) => display + 1);
-        }
-    }
 
     function CarouselTick() {
         // Do work
         let curTime = new Date().valueOf();
-        setTick(Math.floor(curTime - carouselStart));
-
+        let fullFrame = displayTime + transitionTime; // we will need to update this later; for now, we will use constants
+        
         // `tick` might be useful to show progress between slides, but won't help us (directly) to transition between them. We still need
         // to use curTime
-        let elapsed = (Math.floor(curTime - carouselStart) % 6000) - 5000;
+        
+        let elapsed = (Math.floor(curTime - carouselStart) % fullFrame) - displayTime;
         if (elapsed > 0) {
             // This is the transitioning period
-            setOffset((elapsed / 1000.0) * 470);
+            setOffset((elapsed / parseFloat(transitionTime)) * width);
+            setSlidePosition(((transitionTime-elapsed)/parseFloat(transitionTime)) * width);
         } else {
             setOffset(0);
+            // We could use elapsed for the slider value, but it will be hard. It counts up from a big negative value, until it reaches zero
+            let slideTime = Math.floor(curTime - carouselStart) % fullFrame;
+            setSlidePosition((slideTime / parseFloat(displayTime)) * width);
+            //console.log(slideTime);
         }
+        setDisplay(Math.floor((curTime - carouselStart) / fullFrame));
 
-        // Handle time management
-        let newTime = new Date().valueOf();
-        let diff = newTime - carouselTime;
-        carouselTime = newTime;
-        // diff is now the amount of time from last frame to this frame.
-        diff -= 50;
-        if (diff < 0) diff = 0;
-        carouselTimeout = setTimeout(function () {
-            window.requestAnimationFrame(CarouselTick);
-        }, 50 - diff);
+        // Time management will work differently than in the game. We won't rely on a fixed 20 frames per second rate. Instead, we can run
+        // this cycle as fast as the browser will allow
+        if(isRunning) window.requestAnimationFrame(CarouselTick);
     }
 
     return (
-        <div style={{ position: "relative", overflow: "hidden", ...props.style, width: 460, height: 400 }}>
+        <div style={{ position: "relative", overflow: "hidden", ...props.style, width: width, height: 400 }}>
             {slides.map((slide, key) => (
                 <div
                     key={key}
@@ -107,7 +87,8 @@ export function DanCarousel(props) {
                         display: "block",
                         position: "absolute",
                         top: 0,
-                        left: (key - (display % slides.length)) * 470 - offset,
+                        left: (key - (display % (slides.length-1))) * width - offset,
+                        // for slides.length, don't forget to ignore the last frame, since it's also the first
                         width: 460,
                         backgroundColor: "white",
                     }}
@@ -115,6 +96,13 @@ export function DanCarousel(props) {
                     {slide}
                 </div>
             ))}
+            {props.showProgressBar===true?(
+                <div style={{display:'block', position:'relative', backgroundColor:"grey", width:width, height:10}}>
+                    {/* So, I guess this progress bar will be across the top, instead of the bottom like I had planned.
+                        I'll let someone else figure out how to fix that! */}
+                    <div style={{display:'block', position:'absolute', top:0, left:0, width:slidePosition, height:10, backgroundColor:'black'}} />
+                </div>
+            ):''}
         </div>
     );
 }

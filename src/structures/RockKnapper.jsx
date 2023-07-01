@@ -169,20 +169,8 @@ export function RockKnapper() {
                         canAssign: ()=>game.unlockedItems.includes('Small Rope'),
                         onComplete: x=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
-                            game.clearItems(tile, ['Long Stick', 'Short Stick', 'Small Rope', 'Small Rope'],
+                            game.clearItems(tile, [{name: 'Long Stick', qty:1}, {name: 'Short Stick', qty:1}, {name:'Small Rope', qty:2}],
                                             'src/structures/RockKnapper.jsx->task Craft Flint Scythe');
-                            //let slot = tile.items.findIndex(i=>i.name==='Long Stick');
-                            //if(slot===-1) { console.log('Error: Could not find Long Stick at structure'); return; }
-                            //tile.items.splice(slot,1);
-                            //slot = tile.items.findIndex(i=>i.name==='Short Stick');
-                            //if(slot===-1) { console.log('Error: Could not find Short Stick at structure'); return; }
-                            //tile.items.splice(slot,1);
-                            //slot = tile.items.findIndex(i=>i.name==='Small Rope');
-                            //if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
-                            //tile.items.splice(slot,1);
-                            //slot = tile.items.findIndex(i=>i.name==='Small Rope');
-                            //if(slot===-1) { console.log('Error: Could not find Small Rope at structure'); return; }
-                            //tile.items.splice(slot,1);
                             tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*8})); // 8 minutes
                             tile.modified = true;
                         }
@@ -202,7 +190,7 @@ export function RockKnapper() {
                         canAssign: ()=>game.unlockedItems.includes('Flint Scythe'),
                         onComplete: x=>{
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
-                            game.clearItems(tile, ['Long Stick', 'Short Stick', 'Short Stick', 'Small Rope', 'Small Rope'],
+                            game.clearItems(tile, [{name:'Long Stick', qty:1}, {name:'Short Stick', qty:2}, {name:'Small Rope', qty:2}],
                                             'src/structures/RockKnapper.jsx->task Craft Flint Pitchfork');
                             tile.items.push(game.createItem('Wood Pitchfork', 'tool', {efficiency:1, endurance:20*60*5})); // 5 minutes
                             tile.modified = true;

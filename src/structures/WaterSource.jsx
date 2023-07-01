@@ -84,7 +84,7 @@ export function WaterSource() {
                             {options: [{name:'Wooden Pond Water Bucket', qty:1}, {name:'Wooden Creek Water Bucket', qty:1}], role:'item', workSite:false},
                             {options: [{name:'Dirt Ball', qty:5}], role:'item', workSite:false}
                         ],
-                        outputItems: ['Wooden Water Bucket', 'Clay Ball'],
+                        outputItems: ['Wooden Bucket', 'Clay Ball'],
                         buildTime: 20*60,
                         hasQuantity: true,
                         canAssign: ()=>true,

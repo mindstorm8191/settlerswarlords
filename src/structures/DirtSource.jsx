@@ -75,7 +75,7 @@ export function DirtSource() {
                         taskType: 'craft',
                         workLocation: 'structure',
                         itemsNeeded: [{options: [{name: 'Flint Shovel', qty:1}], role:'tool', workSite:false}],
-                        outputItems: [],
+                        outputItems: ['Dirt Ball'],
                         buildTime: 20 * 5, // 5 seconds... shoveling up a ball of dirt wouldn't take very long
                         hasQuantity: true,
                         canAssign: ()=>b.areaCleared, // can only assign if the area has been cleared first

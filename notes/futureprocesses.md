@@ -42,3 +42,18 @@ This one is a little different, as it's not directly controlled by the player
 -   Structures built by the player will eventually decay into rubble, then get overrun with plants, and then convert back to the original tile type it was
 -   Workers travelling across the same tile multiple times will also cause the lands to take wear damage, expecially grasslands. The effects will first remove grass items until there is none left. Once empty, the tile type will change to a muddied grass tile (we may have several iterations of this), then a full dirt tile. If these tiles are left undisturbed for a time, it will revert back to its original state
 -   It may be more realistic to have tiles cycle naturally, aka trees & other plants grow and die at a steady rate. But this would become much more complex than the scope of this game should cover.
+
+### Notes on tutorials
+
+-   Good tutorials enagage the player as they go along
+-   Complex games should spread tutorial coverage out, allowing the player to play the game for a time before introducing new concepts. Too many concepts at the start of the game leaves the players uninterested and won't learn
+-   Guides during the game (to warn of impending dangers) is helpful
+-   Providing documentation about subjects throughout the game is also helpful. Players can refer to them whenever needed
+-   Pictures or animations can be more effective than trying to describe things
+
+### Notes on crafting systems
+
+-   Breaks down into 3 parts: Resource collection, crafting, and usage
+-   Collection cannot be too tedious, or players will not enjoy doing it. Automation of this process will help greatly
+-   Crafting needs to be engaging
+-   Usage has to be important. Players don't want to spend an hour collecting & crafting boring decorations. There needs to be real benefits to completing the target crafting

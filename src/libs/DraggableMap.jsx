@@ -104,7 +104,7 @@ export function DraggableMap(props) {
         // on the device... we are only concerned with the first one. We'll need to update based on first known coordinates, though
         
         e.stopPropagation();
-        e.preventDefault();
+        if(e.changedTouches.length > 1) e.preventDefault();
 
         let startX = parseInt(e.touches[0].clientX);
         let startY = parseInt(e.touches[0].clientY);
@@ -119,7 +119,7 @@ export function DraggableMap(props) {
     function continueTouchPan(e) {
         
         // preventDefault and stopPropagation MUST be first. Otherwise this won't function properly
-        e.preventDefault();
+        if(e.changedTouches.length > 1) e.preventDefault();
         e.stopPropagation();
         setScrollPos({
             ...scrollPos,

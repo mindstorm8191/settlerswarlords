@@ -87,13 +87,64 @@ export function LocalMap(props) {
     // Set the game's tutorialDisplay function while we're here
     game.tutorialDisplay = setTutorialDisplay;
 
+    function ShowError(errorText) {
+        setErrorText(errorText);
+        clearTimeout(errorTimeout);
+        errorTimeout = setTimeout(()=>{
+            errorTimeout=null;
+            setErrorText('');
+        }, 8000);
+    }
+
+    function onDragStructureDrop(tile) {
+        if(dragStructure===null) return;
+        if(tile.structureid!==0) {
+            ShowError('There is already a building here')
+            setDragStructure(null);
+            return;
+        }
+        let reason = dragStructure.selected.canBuild(tile);
+        if(reason!=='') {
+            // We need to display an error to the user, and then clear it after 8 seconds
+            ShowError(reason);
+            setDragStructure(null);
+            return;
+        }
+
+        ShowError('Placed at ['+ tile.x +','+ tile.y +']');
+        
+        // Now we're ready to actually add the structure
+        let structure = dragStructure.selected.create(tile);
+        game.structures.push(structure);
+        tile.structureid = structure.id;
+        tile.image = structure.image;
+        tile.modified = true;
+        
+        // Look for a Construct task for this building. If one exists, do that task
+        let buildTask = structure.tasks.find(task=>task.taskType==='construct');
+        if(typeof(buildTask)!=='undefined') {
+            game.createTask(structure, buildTask);
+        }
+
+        clearDragFlag();
+        setDragStructure(null);
+        setTileSelected(tile); // also select the tile once the structure is placed
+    }
+
     return (
         <div
             onMouseMove={(event) => {
                 if (dragStructure === null) return;
                 setDragStructure({...dragStructure, x:event.clientX, y:event.clientY});
             }}
+            onTouchMove={(e)=>{
+                e.stopPropagation();
+                if(e.changedTouches.length > 1) e.preventDefault();
+                if(dragStructure===null) return;
+                setDragStructure({...dragStructure, x:parseInt(e.touches[0].clientX), y:parseInt(e.touches[0].clientY)});
+            }}
             onMouseUp={()=>{
+                // If the dragged structure is placed at a random location (triggering this), we want to simply drop it
                 if(dragStructure !== null) {
                     setDragStructure(null);
                 }
@@ -120,8 +171,20 @@ export function LocalMap(props) {
                                 onMouseDown={(e) => {
                                     setDragStructure({selected:str, x:e.clientX, y:e.clientY})
                                 }}
+                                onTouchStart={(e)=>{
+                                    e.stopPropagation();
+                                    if(e.changedTouches.length > 1) e.preventDefault();
+                                    setDragStructure({selected:str, x:parseInt(e.touches[0].clientX), y:parseInt(e.touches[0].clientY)});
+                                }}
                                 onMouseUp={() => {
                                     setDragStructure(null);
+                                }}
+                                onTouchEnd={(e)=>{
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setDragStructure(null);
+                                    ShowError('Structure dropped in gutter', e.touches[0]);
+                                    console.log(e);
                                 }}
                             >
                                 <img src={imageURL + "structures/" + str.image} alt={str.name} draggable="false" title={str.tooltip} />
@@ -129,7 +192,8 @@ export function LocalMap(props) {
                         );
                     })}
                 </div>
-                <DraggableMap style={{ width: "100vh", height: "calc(100vh - 185px)", touchAction: "none" }} threshhold={5}>
+                {/* removed touchAction:"none" from style */}
+                <DraggableMap style={{ width: "100vh", height: "calc(100vh - 185px)"}} threshhold={5}>
                     {props.tiles.map((tile, key) => {
                         // Determine what tile type to show. When new tiles are added we might not have an image, so that needs
                         // to be checkedfirst.
@@ -158,46 +222,13 @@ export function LocalMap(props) {
                                 onMouseUp={(e) => {
                                     // Handle dragging & dropping new structures this way. When an image is dropped here, we will only
                                     // recieve a mouseUp event.
-                                    if(dragStructure===null) return;
-                                    if(tile.structureid!==0) {
-                                        setErrorText('There is already a building here');
-                                        clearTimeout(errorTimeout);
-                                        errorTimeout = setTimeout(()=>{
-                                            errorTimeout=null;
-                                            setErrorText('');
-                                        }, 8000);
-                                        setDragStructure(null);
-                                        return;
-                                    }
-                                    let reason = dragStructure.selected.canBuild(tile);
-                                    if(reason!=='') {
-                                        // We need to display an error to the user, and then clear it after 8 seconds
-                                        setErrorText(reason);
-                                        clearTimeout(errorTimeout);
-                                        errorTimeout = setTimeout(()=>{
-                                            errorTimeout=null;
-                                            setErrorText('');
-                                        }, 8000);
-                                        setDragStructure(null);
-                                        return;
-                                    }
-                                    
-                                    // Now we're ready to actually add the structure
-                                    let structure = dragStructure.selected.create(tile);
-                                    game.structures.push(structure);
-                                    tile.structureid = structure.id;
-                                    tile.image = structure.image;
-                                    tile.modified = true;
-                                    
-                                    // Look for a Construct task for this building. If one exists, do that task
-                                    let buildTask = structure.tasks.find(task=>task.taskType==='construct');
-                                    if(typeof(buildTask)!=='undefined') {
-                                        game.createTask(structure, buildTask);
-                                    }
-
-                                    clearDragFlag();
-                                    setDragStructure(null);
-                                    setTileSelected(tile); // also select the tile once the structure is placed
+                                    onDragStructureDrop(tile);
+                                }}
+                                onTouchEnd={(e)=>{
+                                    console.log('Touch tile!');
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    onDragStructureDrop(tile);
                                 }}
                                 onClick={()=>{
                                     // Start by checking the drag flag state. If it returns true, we just finished dragging the map

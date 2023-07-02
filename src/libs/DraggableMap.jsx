@@ -71,7 +71,7 @@ export function DraggableMap(props) {
         x: typeof(props.defaultx)==='undefined'?0:props.defaultx,
         y: typeof(props.defaulty)==='undefined'?0:props.defaulty,
         touchStartX: 0,
-        touchStartY:0
+        touchStartY: 0
     });
     let threshhold = (typeof(props.threshhold)==='undefined')?2:(props.threshhold<0)?0:props.threshhold;
 
@@ -140,16 +140,19 @@ export function DraggableMap(props) {
     // Convert the child elements to an array, so we can single out any FixedPositionChild elements
     const children = React.Children.toArray(props.children);
     const normalChildren = children.filter(c => {
-        if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item
-        if(typeof(c.type)==='undefined') return true; // Normal text not contained in a DOM element should be treated as a DOM element
-        return c.type.name !== 'FixedPositionChild';
+        //if(typeof(c.type)==='string') return true; // This is a normal DOM element; treat it as a moveable item
+        //if(typeof(c.type)==='undefined') return true; // Normal text not contained in a DOM element should be treated as a DOM element
+        if(typeof(c.props)==='undefined') return true;  // This is a normal DOM element
+        if(typeof(c.props.name)==='undefined') return true;
+        return c.props.name !== 'FixedPositionChild';
     });
     const fixedChildren = children.filter(c => {
-        if(typeof(c.type)==='string') return false; // This can't be one of the FixedPositionChild elements
-        if(typeof(c.type)==='undefined') return false;
-        return c.type.name === 'FixedPositionChild';
+        //if(typeof(c.type)==='string') return false; // This can't be one of the FixedPositionChild elements
+        //if(typeof(c.type)==='undefined') return false;
+        if(typeof(c.props)==='undefined') return false;
+        if(typeof(c.props.name)==='undefined') return false;
+        return c.props.name === 'FixedPositionChild';
     });
-
 
     // The first div is a map container. The second is the actual map layer (that can be dragged). Inside that is the actual map content
     return (
@@ -178,9 +181,13 @@ export function DraggableMap(props) {
     );
 }
 
-export function FixedPositionChild(props) {
-    return <>{props.children}</>
-}
+// This component is no longer useful. The reason is that, in production mode, a child component does not have a type property (or type.name).
+// So searching for a FixedPositionChild based on this function name returned no hits
+// Fixed position children still works. Instead of using this function, your target component should have `name="FixedPositionChild"` as a
+// component. DraggableMap will filter out the 
+//export function FixedPositionChild(props) {
+//    return <>{props.children}</>;
+//}
 
 function within(value, target, threshhold) {
     // Returns true if the given value is close to the target value, within the threshhold. Aka 193 is near 200 +/- 10

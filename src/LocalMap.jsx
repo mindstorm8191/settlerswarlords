@@ -235,32 +235,28 @@ export function LocalMap(props) {
                         );
                     })}
                     {errorText===''?(''):(
-                        <FixedPositionChild>
-                            <div style={{display:'block', position:'absolute', backgroundColor:'pink', zIndex:1, padding:5, bottom:0, right:0}}>
-                                {errorText}
-                            </div>
-                        </FixedPositionChild>
+                        <div name="FixedPositionChild" style={{display:'block', position:'absolute', backgroundColor:'pink', zIndex:1, padding:5, bottom:0, right:0}}>
+                            {errorText}
+                        </div>
                     )}
                     {/* Also display the tutorial block. This will always show at least something, but not always the tutorial text */}
-                    <FixedPositionChild>
-                        <div style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:2, padding:3, margin:3, top:0, left:0, whiteSpace:'normal'}}>
-                            {tutorialDisplay===true?(
-                                <>
-                                    <img src={imageURL +'exit.png'} style={{display:'inline-block', marginRight:5, cursor:'pointer'}}
-                                        onClick={()=>{
-                                            game.tutorialDisplay = null;
-                                            setTutorialDisplay(false);
-                                        }} />
-                                    {game.tutorialModes[game.tutorialState].display}
-                                </>
-                            ):(
-                                <img src={imageURL +"TutorialButton.png"} style={{cursor:'pointer'}} onClick={()=>{
-                                    game.tutorialDisplay=!game.tutorialDisplay;
-                                    setTutorialDisplay(!tutorialDisplay);
-                                }} />
-                            )}
-                        </div>
-                    </FixedPositionChild>
+                    <div name="FixedPositionChild" style={{display:'block', position:'absolute', backgroundColor:'white', zIndex:2, padding:3, margin:3, top:0, left:0, whiteSpace:'normal'}}>
+                        {tutorialDisplay===true?(
+                            <>
+                                <img src={imageURL +'exit.png'} style={{display:'inline-block', marginRight:5, cursor:'pointer'}}
+                                    onClick={()=>{
+                                        game.tutorialDisplay = null;
+                                        setTutorialDisplay(false);
+                                    }} />
+                                {game.tutorialModes[game.tutorialState].display}
+                            </>
+                        ):(
+                            <img src={imageURL +"TutorialButton.png"} style={{cursor:'pointer'}} onClick={()=>{
+                                game.tutorialDisplay=!game.tutorialDisplay;
+                                setTutorialDisplay(!tutorialDisplay);
+                            }} />
+                        )}
+                    </div>
                 </DraggableMap>
                 {rightPanelDisplay===true?(<LocalMapRightPanel selected={tileSelected} mobileMode={props.mobileMode} onClose={()=>setRightPanelDisplay(false)}/>):('')}
             </div>

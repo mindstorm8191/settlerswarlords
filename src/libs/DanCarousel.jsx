@@ -13,10 +13,16 @@ export function DanCarousel(props) {
     // prop fields - data:
     //      displayTime - int; how long each slide is displayed for, in milliseconds
     //      transitionTime - int; how long it takes to transition between each slide, in milliseconds
-    //      showProgressBar - bool; set to true to show a progress bar across the bottom. It will increase in length as the selected frame sits,
+    //      showProgressBar - bool; set to true to show a progress bar across the top. It will increase in length as the selected frame sits,
     //          and then decrease as the frame slides over
 
-    //    entries - array of output content to display
+    // Example usage
+    // <DanCarousel>
+    //   <><p>This is a first entry</p></>
+    //   <><p>Every entry shows for 6 seconds</p></>
+    //   <><p>Then transitions for 2 seconds</p></>
+    //   <><p>These defaults can be changed</p></>
+    // </DanCarousel>
 
     const [tick, setTick] = React.useState(0);
     const [mode, setMode] = React.useState(0);

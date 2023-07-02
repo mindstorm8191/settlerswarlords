@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 01, 2023 at 10:45 AM
+-- Generation Time: Jul 01, 2023 at 01:35 PM
 -- Server version: 8.0.21
 -- PHP Version: 7.3.21
 
@@ -31,10 +31,10 @@ DROP TABLE IF EXISTS `sw_blog`;
 CREATE TABLE IF NOT EXISTS `sw_blog` (
   `id` int NOT NULL AUTO_INCREMENT,
   `onday` date NOT NULL COMMENT 'What day this blog entry was added',
-  `title` text NOT NULL,
-  `content` text NOT NULL,
+  `title` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
+  `content` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
 --
 -- Dumping data for table `sw_blog`
@@ -47,7 +47,8 @@ INSERT INTO `sw_blog` (`id`, `onday`, `title`, `content`) VALUES
 (4, '2023-02-19', 'Let\'s start version 8', '<p>Yes; I have decided to start revamping the entire game - again. I feel like I made some good progress with the last version, and was about to really progress with the tech tree. But a few major bugs was preventing any real progress.</p>\r\n<ul>\r\n  <li>The first problem: worker tasks weren\'t saving and reloading correctly. Adding the saving & loading so late in development left lots of potential bugs that I couldn\'t find.\r\n  <li>Tasks couldn\'t manage multiple quantities (maybe an easy fix) or workers assisting one another (I\'m thinking of just dropping this feature now).\r\n</ol>\r\n<p>I started building a new task system that\'s very robust. But it seemed to only add complexity; and in programming, any extra complexity is only an invitation for more bugs. My plan, now, is to incorporate game saving early on in development, so that I can identify bugs much earlier. And of course the task management code will be totally redone, again.</p>\r\n<p>This will be a lot of work, yes, but I think the end result will be worthwhile.</p>'),
 (6, '2023-04-10', 'In the thick of it', '<p>I have been working on the new version of this game for a few weeks now, adding new features where I can, and have started working on implementing the new task system. At this point, all this is proving difficult! But I think I can still make it work.</p>\r\n<p>There\'s a few aspects that is making this part difficult.</p>\r\n<ol>\r\n<li>One, some tasks have to be performed where specific items are located (such as cutting down a tree, which happens at the tree). Ideally, this location would be decided after we know everything else is ready (thus getting a shortest path for the worker), but when would that be? I have decided to pick a work location first... for now. But generally it is easy to get lost on what needs done first, last, etc.\r\n<li>Secondly, I am planning on certain crafting recipes to allow different items to be used, but at variable quantities. For example, I could use one of one type of item, or 3 of another type, to get the same result. This is doubly-hard because I will need to pick from one of the options, and then be able to select all the items of that - or craft more if there isn\'t enough. But which one should get crafted?\r\n</ol>\r\n<p>I still think this is possible, but it\'ll take time. I\'ll just keep at it</p>'),
 (7, '2023-05-06', 'Task management system working as planned', '<p>Finally! After like a month of working on this, I think my task management system is going to work as I had planned it.</p>\r\n<p>Completing this system was very challenging. At one point I had to determine which recipe to use from a tasks\' options, before even knowing what items were on the map to pick from - and even before knowing where to complete the task at. I didn\'t want to make the task structure even more complex, as I never know when the parameters might change (especially after saving & reloading the game).</p>\r\n<p>I opted to go with a temporary data structure; I literally create it only to decide what recipes to use (tag items as part of this task) before dropping the data again. But it was enough to organize what I needed done, and make a determination on the recipe. Not every aspect about this has been tested yet (edge-case testing can be challenging), and the code goes for the simplest solution in some places (instead of the most ideal), but I think that any issues that arise can be addressed.</p>\r\n<p>What this means for the rest of the game is that I can finally push forward, start adding new features, and grow the tech tree. Creating new tasks for buildings is much simpler this time around, and since it all uses the same code base, there\'s much less chance of bugs to resolve. Here\'s hoping I can make some good progress this time!</p>'),
-(8, '2023-06-28', 'Expanding in multiple directions', '<p>Progress on developing Setters & Warlords is still going steadily, even if I haven\'t blogged about it.</p>\r\n<p>After getting the task management system working, I decided to switch directions and start working on exploring the world map. Players <i>can</i> explore the world map now... but that\'s about it - it needs a lot more work put into it. I need to figure out pathfinding, server-side. I then switched to adding more tech progression. After struggling with the Hay Dryer for a while, we now have thatch tiles and can build a covered drying space, our first serious structure.</p>\r\n<p>Development at this point can branch out in a dozen different directions, primarily because the game\'s tech tree does too. It\'s an exciting time, but also challenging: Which direction do I need to work on next? It will take a while to put work into each direction, but I plan to complete it all eventually.</p>');
+(8, '2023-06-28', 'Expanding in multiple directions', '<p>Progress on developing Setters & Warlords is still going steadily, even if I haven\'t blogged about it.</p>\r\n<p>After getting the task management system working, I decided to switch directions and start working on exploring the world map. Players <i>can</i> explore the world map now... but that\'s about it - it needs a lot more work put into it. I need to figure out pathfinding, server-side. I then switched to adding more tech progression. After struggling with the Hay Dryer for a while, we now have thatch tiles and can build a covered drying space, our first serious structure.</p>\r\n<p>Development at this point can branch out in a dozen different directions, primarily because the game\'s tech tree does too. It\'s an exciting time, but also challenging: Which direction do I need to work on next? It will take a while to put work into each direction, but I plan to complete it all eventually.</p>'),
+(9, '2023-07-01', 'Big changes', '<p>If you have seen this game in the past, you\'re already noticing big changes here. I have been working on an update for several months now, with lots of useful changes, and I think it\'s time to update the online version</p>\r\n<p>For existing players, that unfortunately means that your existing games are gone. (Don\'t worry! This version is better!) I expect that future updates will require resetting the game more times, as new features are added to the world. I am debating about what point a player\'s play-time should warrant trying to update the world, instead of a full world reset... but that can be answered later</p>\r\n<p>This version includes big changes to how workers manage tasks... but there are still some bugs to work out. Workers will easily be able to craft pre-req items to craft the item they need, but there is a bug when crafting multiple items at once. There\'s another bug causing workers to simply quit working, and that is proving harder to track down.</p>\r\n<p>But so far, everything is working as planned, and tech progression now allows you to build an Open Dryer. It\'s a structure requiring thatch roof tiles along with many other things. But you can build it! And then you can... oh. That\'s as far as the tech has gotten so far.</p>\r\n<p>As always, there is lots more planned in this game. I hope to work on hunting next, and make food consumption a requirement for workers. We\'ll see where I can take this project next!</p>');
 
 -- --------------------------------------------------------
 
@@ -110,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `sw_knownmap` (
   `biome` int NOT NULL COMMENT 'biome as the user understands it',
   `isexploring` int NOT NULL DEFAULT '0' COMMENT 'set to 1 if there is a group going to scout this tile',
   PRIMARY KEY (`playerid`,`x`,`y`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COMMENT='known map and last known states for this user. Includes owned lands';
+) ENGINE=MyISAM DEFAULT CHARSET=ascii COMMENT='known map and last known states for this user. Includes owned lands';
 
 -- --------------------------------------------------------
 
@@ -122,11 +123,11 @@ DROP TABLE IF EXISTS `sw_log`;
 CREATE TABLE IF NOT EXISTS `sw_log` (
   `id` int NOT NULL AUTO_INCREMENT,
   `happens` datetime NOT NULL COMMENT 'when this entry was added',
-  `codelocation` text NOT NULL COMMENT 'where in the source this was called',
-  `loggroup` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'subject group',
-  `content` text NOT NULL COMMENT 'full info for this, in JSON',
+  `codelocation` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'where in the source this was called',
+  `loggroup` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'subject group',
+  `content` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'full info for this, in JSON',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='logs for debugging the game';
+) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=ascii COMMENT='logs for debugging the game';
 
 -- --------------------------------------------------------
 
@@ -146,16 +147,16 @@ CREATE TABLE IF NOT EXISTS `sw_map` (
   `civlevel` float NOT NULL DEFAULT '0' COMMENT 'strength of civilization here',
   `owner` int DEFAULT '0' COMMENT 'which player inhabits this land',
   `population` int NOT NULL DEFAULT '0',
-  `name` varchar(50) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'Unique name given by the land owner',
-  `structures` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'JSON of all running blocks in the map',
+  `name` varchar(50) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'Unique name given by the land owner',
+  `structures` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'JSON of all running blocks in the map',
   `workers` text NOT NULL COMMENT 'JSON of all workers here',
   `unlockeditems` text NOT NULL COMMENT 'List of all items unlocked here',
-  `tasks` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'details of all tasks in this area',
+  `tasks` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'details of all tasks in this area',
   `foodCounter` double NOT NULL DEFAULT '180' COMMENT 'counter on food production (this may be expanded later)',
   `localmaptick` int NOT NULL DEFAULT '0' COMMENT 'Tick value to track local map updates',
   PRIMARY KEY (`id`),
   UNIQUE KEY `coords` (`x`,`y`)
-) ENGINE=MyISAM AUTO_INCREMENT=2446489 DEFAULT CHARSET=latin1 COMMENT='world map';
+) ENGINE=MyISAM AUTO_INCREMENT=2446489 DEFAULT CHARSET=ascii COMMENT='world map';
 
 -- --------------------------------------------------------
 
@@ -215,9 +216,9 @@ CREATE TABLE IF NOT EXISTS `sw_traveler` (
   `workers` text NOT NULL COMMENT 'JSON of workers in party',
   `items` text NOT NULL COMMENT 'JSON of all items carried',
   `commands` text NOT NULL COMMENT 'JSON list of commands for travelers to complete',
-  `detail` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'Extra info for this group',
+  `detail` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'Extra info for this group',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='every travelling party';
+) ENGINE=MyISAM AUTO_INCREMENT=29 DEFAULT CHARSET=ascii COMMENT='every travelling party';
 
 -- --------------------------------------------------------
 
@@ -231,7 +232,7 @@ CREATE TABLE IF NOT EXISTS `sw_usertracker` (
   `lasterror` datetime NOT NULL,
   `errorcount` int NOT NULL,
   `blocktrigger` int NOT NULL DEFAULT '0'
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=MyISAM DEFAULT CHARSET=ascii;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -117,7 +117,6 @@ export function createWorker(pack) {
                     // We will leave our current task still without a target location, but that should be remedied once this task is resumed
                 }
                 // Mark this item as part of our task, and set the x & y coordinates of this task. We don't need the path to get here
-//                console.log(foundItem);
                 //w.tasks[0].itemsTagged.push(outcome.tile.items.find(i=>i.name===foundItem));
                 // We can't actually add this item at this time, as it will mess with the recipe selection below...
                 // but we need to add this item now, or else we won't know what to look out for later.
@@ -130,7 +129,7 @@ export function createWorker(pack) {
 
             /////////////////////////////////////////////////////////////////
             if(typeof(w.tasks[0].task)==='undefined') {
-                console.log(w.tasks[0]);
+                console.log('Found task id='+ w.tasks[0].id +' with no root:', w.tasks[0]);
                 w.tasks[0].task = null;
             }
 
@@ -403,6 +402,17 @@ export function createWorker(pack) {
                             if(w.tasks[0].quantity>1) {
                                 w.tasks[0].quantity--;
                                 w.tasks[0].progress = 0;
+                                if(w.tasks[0].workLocation==='atItem') {
+                                    w.tasks[0].targetx = null;
+                                    w.tasks[0].targety = null;
+                                }
+                                w.tasks[0].recipeChoices = [];
+                                // We need to manually clear all items, so they can be (properly) tagged again
+                                for(let i=0; i<w.tasks[0].itemsTagged.length; i++) {
+                                    w.tasks[0].itemsTagged[i].inTask = 0;
+                                }
+                                w.tasks[0].itemsTagged = [];
+                                console.log('Attempted task reset for next crafting of quantity');
                             }else{
                                 let taskCount = w.tasks.length;
                                 game.deleteTask(w.tasks[0]);

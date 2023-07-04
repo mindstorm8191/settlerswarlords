@@ -17,6 +17,8 @@ import { ClayFormer } from "./structures/ClayFormer.jsx";
 import { FarmersPost } from "./structures/FarmersPost.jsx";
 import { HayDryer } from "./structures/HayDryer.jsx";
 import { OpenDryer } from "./structures/OpenDryer.jsx";
+import { HuntersPost } from "./structures/HuntersPost.jsx";
+import { Campfire } from "./structures/Campfire.jsx";
 
 export const game = {
     debugging: true, // determines if console log entries will be generated for errors and debugging. This needs to be used more often...
@@ -47,7 +49,9 @@ export const game = {
         ClayFormer(),
         FarmersPost(),
         HayDryer(),
-        OpenDryer()
+        OpenDryer(),
+        HuntersPost(),
+        Campfire()
     ],
 
     tutorialState:0,

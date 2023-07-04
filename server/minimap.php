@@ -119,68 +119,99 @@
                     case 'maple': // Produces Samaras, the helicopter style seeds, which are edible... we won't include that here
                         $wide['items'] = [['name'=>'Maple Tree', 'amount'=>rand(3,12)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,5)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'birch': // Typically tall and narrow, growing in tight clusters. Their seeds aren't edible
                         $wide['items'] = [['name'=>'Birch Tree', 'amount'=>rand(8,60)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,8)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'oak': // Produces acorns, which are edible... I should include those at some point
                         $wide['items'] = [['name'=>'Oak Tree', 'amount'=>rand(4,16)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,7)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'mahogany': // Produces large fruits, and the insides are edible, but the outsides are poisonous
                         $wide['items'] = [['name'=>'Mahogany Tree', 'amount'=>rand(3,8)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,10)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'pine': // Produces pinecones, that contain edible nuts
                         $a = rand(7,20);
                         $wide['items'] = [['name'=>'Pine Tree', 'amount'=>$a], ['name'=>'Pine Cone', 'amount'=>$a*rand(4,5)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,10)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'cedar': // Produces nuts which are edible, but poisonous in large numbers
                         $wide['items'] = [['name'=>'Cedar Tree', 'amount'=>rand(4,20)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'fir':  // Also produces pine cones, but a smaller variety. I think we'll leave those out
                         $wide['items'] = [['name'=>'Fir Tree', 'amount'=>rand(5,16)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,11)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'hemlock': // Produces even smaller pine cones
                         $wide['items'] = [['name'=>'Hemlock Tree', 'amount'=>rand(8,50)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,4)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'cherry': // We will treat cherries as unit piles, not individual items. Also, fruit trees are too small to produce fallen logs
                         $a = rand(5,10);
                         $wide['items'] = [['name'=>'Cherry Tree', 'amount'=>$a], ['name'=>'Cherries', 'amount'=>$a*rand(2,3)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'apple':
                         $a = rand(5,10);
                         $wide['items'] = [['name'=>'Apple Tree', 'amount'=>$a], ['name'=>'Apple', 'amount'=>$a*rand(4,6)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'pear':
                         $a = rand(4,8);
                         $wide['items'] = [['name'=>'Pear Tree', 'amount'=>$a], ['name'=>'Pear', 'amount'=>$a*rand(3,4)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'orange':
                         $a = rand(5,12);
                         $wide['items'] = [['name'=>'Orange Tree', 'amount'=>$a], ['name'=>'Orange', 'amount'=>$a*rand(4,5)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'hawthorne': // These are small trees, they won't produce fallen logs
                         $wide['items'] = [['name'=>'Hawthorne Tree', 'amount'=>rand(8,20)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'dogwood': // These are also very small trees
                         $wide['items'] = [['name'=>'Dogwood Tree', 'amount'=>rand(3,8)]];
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'locust': // Most locust tree fruits are not edible; only one variety is
                         $wide['items'] = [['name'=>'Locust Tree', 'amount'=>rand(3,8)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(4,12)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'juniper':
                         $wide['items'] = [['name'=>'Juniper Tree', 'amount'=>rand(5,10)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Log', 'amount'=>rand(1,3)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
+                        if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'rock': $wide['items'] = [['name'=>'Gravel', 'amount'=>rand(0,10)]]; break;
-                    // I don't know what else to fill the rest of the tiles with, so we'll just use blank items lists
                     case 'carrots':  // Ground vegeatables will come only as plants. Others will come as plants & fruits
                         $wide['items'] = [['name'=>'Carrot Plant', 'amount'=>rand(3,8)]];
                     break;
@@ -214,6 +245,7 @@
                     case 'mushroom':
                         $wide['items'] = [['name'=>'Mushroom', 'amount'=>rand(7,16)]];
                     break;
+                    // I don't know what else to fill the rest of the tiles with, so we'll just use blank item lists
                     default: $wide['items'] = []; break;
                 }
                 return $wide;

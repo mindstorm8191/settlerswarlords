@@ -15,14 +15,18 @@ let errorTimeout = null;
 
 let itemStats = [
     {name:'Apple',        img:'apple.png',       desc:'An apple, edible straight from the tree'},
-    {name:'Apple Tree',          img:'appletree.png',   desc:'A tree growing apples'},
-    {name:'Bark Fibers',         img:'twinestrips.png',   desc:'Pieces of bark fiber'},
+    {name:'Apple Tree',                img:'appletree.png',   desc:'A tree growing apples'},
+    {name:'Bark Fibers',               img:'twinestrips.png',   desc:'Pieces of bark fiber'},
     {name:'Barley Grass',              img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
     {name:'Barley Hay',                img:'barleyhay.png',         desc:'Barley grasses, both straw and seed'},
     {name:'Clay Ball',                 img:'clayball.png',          desc:'A ball of clay, ready to be molded'},
     {name:'Connected Log',             img:'connectedlog.png',      desc:'Log pieces, all connected. Too heavy to move by hand!'},
-    {name:'Debarked Fallen Log', img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
-    {name:'Dirt Ball',           img:'dirtball.png',          desc:'A ball of dirt'},
+    {name:'Dead Boar',                 img:'deadboar.png',          desc:'A giant pig. Dangerous alive, but dead now. Makes a lot of good meat'},
+    {name:'Dead Chicken',              img:'deadchicken.png',       desc:'A chicken. Small, but makes good meat'},
+    {name:'Dead Deer',                 img:'deaddeer.png',          desc:'A deer. Fast creatures, but dead now. Makes good meat'},
+    {name:'Dead Wolf',                 img:'deadwolf.png',          desc:'A wolf. Dangerous in packs, but dead now. Makes good meat'},
+    {name:'Debarked Fallen Log',       img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
+    {name:'Dirt Ball',                 img:'dirtball.png',          desc:'A ball of dirt'},
     {name:'Dried Barley Hay',          img:'barleyhay.png',         desc:'Barley grasses, dried and ready for use'},
     {name:'Dried Millet Hay',          img:'millethay.png',         desc:'Millet grasses, dried and ready for use'},
     {name:'Dried Oat Hay',             img:'oathay.png',            desc:'Oat grasses, dried and ready for use'},
@@ -115,6 +119,7 @@ export function LocalMap(props) {
         
         // Now we're ready to actually add the structure
         let structure = dragStructure.selected.create(tile);
+        if(typeof(structure)==='undefined') console.log("Error in onDragStructureDrop; are you sure structure.create() returns an object?");
         game.structures.push(structure);
         tile.structureid = structure.id;
         tile.image = structure.image;
@@ -180,11 +185,11 @@ export function LocalMap(props) {
                                     setDragStructure(null);
                                 }}
                                 onTouchEnd={(e)=>{
-                                    e.stopPropagation();
+                                    /*e.stopPropagation();
                                     e.preventDefault();
                                     setDragStructure(null);
                                     ShowError('Structure dropped in gutter', e.touches[0]);
-                                    console.log(e);
+                                    console.log(e);*/
                                 }}
                             >
                                 <img src={imageURL + "structures/" + str.image} alt={str.name} draggable="false" title={str.tooltip} />

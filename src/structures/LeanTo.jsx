@@ -70,7 +70,6 @@ export function LeanTo() {
                             // Determines what happens when the task is completed. Not all tasks will include this attribute
                             b.mode = 'inuse';
                             b.progress = (20*60*20); // 20 minutes
-                            if(game.tutorialModes[game.tutorialState].name==='shelter') game.advanceTutorial();
                         }
                     }
                 ],
@@ -91,6 +90,8 @@ export function LeanTo() {
                     b.progress = pack.progress;
                 }
             };
+            // We need to advance the tutorial when the building is placed, not when it is completed
+            if(game.tutorialModes[game.tutorialState].name==='shelter') game.advanceTutorial();
             return b;
         }
     };

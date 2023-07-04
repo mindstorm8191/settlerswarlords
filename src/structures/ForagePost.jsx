@@ -42,7 +42,9 @@ export function ForagePost() {
                         desc: 'Collect food from available sources in the area',
                         taskType: 'gatherfood',
                         workLocation: 'atItem',
-                        itemsNeeded: [{options: foodOptions.map(g=>({name: g.name, qty:1})), role:'item', workSite:true}],
+                        itemsNeeded: [
+                            {options: foodOptions.filter(g=>g.purpose==='food').map(g=>({name: g.name, qty:1})), role:'item', workSite:true}
+                        ],
                         outputItems: ['Cherries', 'Apple', 'Pear', 'Orange', 'Carrots', 'Potato', 'Tomatoes', 'Turnip', 'Peanuts', 'Corn',
                                       'Beans', 'Onion', 'Broccoli', 'Pumpkin', 'Mushroom'],
                         buildTIme: 20*10,   // we'll mark this as 10 seconds, but each one will actually be different, based on what food is collected

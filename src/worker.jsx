@@ -60,48 +60,21 @@ export function createWorker(pack) {
             // a fixed-position item is located
             let itemNameToUse = '';
             if(w.tasks[0].targetx===null) {
-                // Find the item with a flag of workSite, and that such a value is set to true
-                let targetSet = w.tasks[0].task.itemsNeeded.find(list=>{
-                    if(typeof(list.workSite)==='undefined') return false;
-                    return list.workSite;
-                });
-                if(typeof(targetSet)==='undefined') {  // Making sure I coded the tasks correctly
-                    console.log('Error in worker.jsx->tick(): No required item marked as workSite. Task cannot be completed');
-                    // For this, we should show a proper user-error message: That task is broken (it has no job site). Try something else
-                    let taskCount = w.tasks.length;
-                    game.deleteTask(w.tasks[0]);
-                    if(w.tasks.length===taskCount) {
-                        console.log('Error: above deleted task still assigned to worker. Dropping manually...');
-                        w.tasks.splice(0,1);
-                    }
-                    return;
-                }
+                // Some tasks have customized locations to pick
+                if(w.tasks[0].task.workLocation==='custom') {
+                    let result = w.tasks[0].task.pickLocation(w);
+                    w.tasks[0].targetx = result[0];
+                    w.tasks[0].targety = result[1];
+                }else{
 
-                // Next; find the (pathwise) closest route to a suitable object. While we select a valid tile, also pick up the target item(s)
-                //let itemNameToUse = '';
-                let outcome = game.pathTo(w.x, w.y, tile=>{
-                    if(w.tasks[0].taskType==='gatherfood' && tile.x===w.tasks[0].building.x && tile.y===w.tasks[0].building.y) return false;
-
-                    // This would be much simpler if we didn't need to hold onto the item we locate
-                    for(let r=0; r<targetSet.options.length; r++) {
-                        let total = tile.items.filter(i=>{
-                            if(i.inTask!==0) return false;
-                            return targetSet.options[r].name === i.name;
-                        }).length;
-                        //console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
-                        if(total >= targetSet.options[r].qty) {
-                            itemNameToUse = targetSet.options[r].name;
-                            return true;
-                        } 
-                    }
-                    return false;
-                });
-                if(outcome.result==='fail') {
-                    // There isn't any of these items on the map anywhere. Pick one and look for a building that can craft it.
-                    let sR = w.findCraftingStructure(targetSet.options.map(o=>o.name));
-                    if(sR.result==='fail') {
-                        // We searched everything, nothing can craft any of these items. Show a proper error message... for now show a console log entry
-                        console.log('Error: there are no buildings that can craft any of '+ targetSet.options.map(o=>o.name).join(', ') +'. Task cancelled');
+                    // Find the item with a flag of workSite, and that such a value is set to true
+                    let targetSet = w.tasks[0].task.itemsNeeded.find(list=>{
+                        if(typeof(list.workSite)==='undefined') return false;
+                        return list.workSite;
+                    });
+                    if(typeof(targetSet)==='undefined') {  // Making sure I coded the tasks correctly
+                        console.log('Error in worker.jsx->tick(): No required item marked as workSite. Task cannot be completed');
+                        // For this, we should show a proper user-error message: That task is broken (it has no job site). Try something else
                         let taskCount = w.tasks.length;
                         game.deleteTask(w.tasks[0]);
                         if(w.tasks.length===taskCount) {
@@ -110,21 +83,56 @@ export function createWorker(pack) {
                         }
                         return;
                     }
-                    // Generate this task, and then assign it (as first) to this worker
-                    let newTask = game.createTask(sR.structure, sR.structure.tasks[sR.taskSlot]);
-                    w.tasks.unshift(newTask);
-                    return;
-                    // We will leave our current task still without a target location, but that should be remedied once this task is resumed
-                }
-                // Mark this item as part of our task, and set the x & y coordinates of this task. We don't need the path to get here
-                //w.tasks[0].itemsTagged.push(outcome.tile.items.find(i=>i.name===foundItem));
-                // We can't actually add this item at this time, as it will mess with the recipe selection below...
-                // but we need to add this item now, or else we won't know what to look out for later.
-                // We will have to handle this one as a special case
 
-                w.tasks[0].targetx = outcome.tile.x;
-                w.tasks[0].targety = outcome.tile.y;
-                console.log('Found target for '+ w.tasks[0].task.name +' at '+ outcome.tile.x +','+ outcome.tile.y);
+                    // Next; find the (pathwise) closest route to a suitable object. While we select a valid tile, also pick up the target item(s)
+                    //let itemNameToUse = '';
+                    let outcome = game.pathTo(w.x, w.y, tile=>{
+                        if(w.tasks[0].taskType==='gatherfood' && tile.x===w.tasks[0].building.x && tile.y===w.tasks[0].building.y) return false;
+
+                        // This would be much simpler if we didn't need to hold onto the item we locate
+                        for(let r=0; r<targetSet.options.length; r++) {
+                            let total = tile.items.filter(i=>{
+                                if(i.inTask!==0) return false;
+                                return targetSet.options[r].name === i.name;
+                            }).length;
+                            //console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
+                            if(total >= targetSet.options[r].qty) {
+                                itemNameToUse = targetSet.options[r].name;
+                                return true;
+                            } 
+                        }
+                        return false;
+                    });
+                    if(outcome.result==='fail') {
+                        // There isn't any of these items on the map anywhere. Pick one and look for a building that can craft it.
+                        let sR = w.findCraftingStructure(targetSet.options.map(o=>o.name));
+                        if(sR.result==='fail') {
+                            // We searched everything, nothing can craft any of these items. Show a proper error message... for now show a console log entry
+                            console.log('Error: there are no buildings that can craft any of '+ targetSet.options.map(o=>o.name).join(', ') +'. Task cancelled');
+                            let taskCount = w.tasks.length;
+                            game.deleteTask(w.tasks[0]);
+                            if(w.tasks.length===taskCount) {
+                                console.log('Error: above deleted task still assigned to worker. Dropping manually...');
+                                w.tasks.splice(0,1);
+                            }
+                            return;
+                        }
+                        // Generate this task, and then assign it (as first) to this worker
+                        let newTask = game.createTask(sR.structure, sR.structure.tasks[sR.taskSlot]);
+                        w.tasks.unshift(newTask);
+                        return;
+                        // We will leave our current task still without a target location, but that should be remedied once this task is resumed
+                    }
+                    // Mark this item as part of our task, and set the x & y coordinates of this task. We don't need the path to get here
+                    //w.tasks[0].itemsTagged.push(outcome.tile.items.find(i=>i.name===foundItem));
+                    // We can't actually add this item at this time, as it will mess with the recipe selection below...
+                    // but we need to add this item now, or else we won't know what to look out for later.
+                    // We will have to handle this one as a special case
+
+                    w.tasks[0].targetx = outcome.tile.x;
+                    w.tasks[0].targety = outcome.tile.y;
+                    console.log('Found target for '+ w.tasks[0].task.name +' at '+ outcome.tile.x +','+ outcome.tile.y);
+                }
             }
 
             /////////////////////////////////////////////////////////////////
@@ -396,7 +404,9 @@ export function createWorker(pack) {
                         w.tasks[0].progress++;
                         if(w.tasks[0].progress>=w.tasks[0].task.buildTime) {
                             // This task is now complete. Call the onComplete function
+                            let lastId = w.tasks[0].id;
                             w.tasks[0].task.onComplete(w);
+                            if(w.tasks[0].id !== lastId) return; // This worker got something else assigned. Go ahead and exit this sub-function
 
                             // We might need to craft more than one item. If so, start that process now
                             if(w.tasks[0].quantity>1) {

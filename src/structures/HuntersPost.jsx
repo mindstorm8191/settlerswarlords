@@ -3,10 +3,8 @@
     For the game Settlers & Warlords
 */
 
-// We're not fully ready to add this structure into the game. We need to sort out the remaining bugs in the worker code, first. If it's not stable,
-// I can't add complexity to it.
-
 import { game } from "../game.jsx";
+import { DanCommon } from "../libs/DanCommon.js";
 
 export function HuntersPost() {
     return {
@@ -39,18 +37,46 @@ export function HuntersPost() {
                         desc: 'Venture out and attempt to kill an animal',
                         taskType: 'craft',
                         workLocation: 'custom',
+                        pickLocation: worker => {
+                            // We will have the workers to to one of the corners of the map for hunting. Figure out which corner is closest
+                            return [
+                                (worker.x>20)?40:0,
+                                (worker.y>20)?40:0
+                            ];
+                            // Well... that's a whole lot easier than searching for items!
+                        },
                         itemsNeeded: [{options: [{name:'Flint Spear', qty:1}], role:'tool', workSite:false}],
                         outputItems: ['Dead Deer', 'Dead Wolf', 'Dead Chicken', 'Dead Boar'],
                         // We'll probably have more, I think, but this'll do for now
-                        buildTime: 20*60*3, // out for 3 minutes each time
+                        buildTime: 20*5, //20*60*3, // out for 3 minutes each time
                         hasQuantity: true,
                         canAssign: ()=>true,
                         onComplete: worker => {
-                            // I don't really know how much we'll use this function, yet
+                            // Firstly, there will be a 50% chance of success with hunting (this number will go vary based on the frequency of
+                            // hunting).
+                            if(Math.random()<0.5) {
+                                console.log('Hunting venture failed');
+                                return;
+                            }
+                            
+                            // Next, we will generate a random dead item and place it on the map.
+                            let rile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+                            let newItemName = DanCommon.getRandomFrom(['Dead Deer', 'Dead Wolf', 'Dead Chicken', 'Dead Boar'])
+                            console.log('Hunting successful! We got a '+ newItemName);
+                            rile.items.push(game.createItem(newItemName, 'item'));
+                            rile.modified = true;
+
+                            // Now, create an itemMove task for this worker, so they can carry it to the Hunters Post. We also need to delete
+                            // this current task
+                            game.deleteTask(worker.tasks[0]);
+                            let newTask = game.createItemMoveTask(rile.items[rile.items.length-1], worker.x, worker.y, b.x, b.y);
+                            worker.tasks.unshift(newTask);
+                            newTask.worker = worker;
                         }
                     }
                 ]
-            }
+            };
+            return b;
         }
     }
 }

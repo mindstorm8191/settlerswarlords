@@ -63,10 +63,13 @@ export const gameTasks = {
         // item - item instance to be moved
         // Returns the newly made task so that it can be assigned to the right worker
 
+        if (typeof item === "string") console.log("Error in game.createItemMoveTask - you need to pass the item, not the name");
+
         let newtask = {
             id: game.getNextTaskId(),
             building: null,
             task: null,
+            worker: null,
             status: "unassigned",
             taskType: "pickupItem", // This will be set to putdownItem once an item has been picked up
             targetx: sourcex,
@@ -110,6 +113,10 @@ export const gameTasks = {
             // Remember, buildings only hold the ID of a task, not the task itself
             slot = task.building.activeTasks.findIndex((t) => t === task.id);
             if (slot !== -1) task.building.activeTasks.splice(slot, 1);
+        }
+
+        if (typeof task.worker === "undefined") {
+            console.log("Error in game.deleteTask: task.worker is not defined");
         }
 
         // Remove the task from the worker it's assigned to

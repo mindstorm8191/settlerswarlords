@@ -44,6 +44,7 @@ Settlers & Warlords is influenced by several other games I have played
 -   There is no need to consider structural limitations; blocks can be placed anywhere. Floating bases are entirely possible
 -   Mobs are pretty static, in terms of combat. Once players are able to craft armor and weapons, they can fend off lots of monsters very easily
 -   Exploration is fun, but there's only so much that can be found by the player, even in caves. It all eventually becomes repetitive
+-   Exploration above ground is fun. Exploration underground is fairly fun as well
 
 -   Aspects to include
     -   Exploration needs to be a bigger part of Settlers & Warlords

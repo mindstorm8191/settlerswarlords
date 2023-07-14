@@ -25,21 +25,29 @@
     1)  Whenever a task gets completed, if the building with that task is selected, React will still attempt to render that task from
         the task list, despite the fact that it doesn't exist anymore. I have added a check within the loop to check if the task is
         defined or not; it will display 'none' as the task, if so.
+    
+    buy a home @ $150K
+    spend $30K to convert into two homes
+    sell each for $100K
+    profit = $20K
+    maximum RTI is 6 months... does not acount for problems popping up
+
+
 */
 
 // Lines count
-// src/app.js                           src/game_tasks.js                      src/structures/ClayFlormer.jsx       server/libs/common.php                server/routes/save.php               notes/automationtree.md
-//     src/app.css                          src/worker.jsx                        src/structures/FarmersPost.jsx        server/libs/jsarray.php               server/routes/savetiles.php         notes/wartree.md
-//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                  src/structures/HayDryer.jsx           server/events.php                    server/routes/sendunits.php         notes/worldgen.md
-//            src/libs/ShowBlog.jsx                src/foodOptions.js                     src/structures/OpenDryer.jsx          server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
-//               src/libs/DanAjax.js                  src/structures/LeanTo.jsx              src/structures/HuntersPost.jsx        server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
-//                  src/libs/DanLog.js                   src/structures/ForagePost.jsx          src/structure/Campfire.jsx            server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
-//                     src/Account.jsx                      src/structures/RockKnapper.jsx         src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
-//                         src/libs/DanInput.jsx                src/structures/LoggersPost.jsx         src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
-//                            src/libs/DanCommon.js                 src/structures/RopeMaker.jsx           src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
-//                               src/libs/ErrorOverlay.jsx             src/structures/DirtSource.jsx           server/routes/autologin.php          server/routes/login.php              README.md                        notes/tasklist.md
-//                                  src/game.jsx                           src/structures/WaterSource.jsx         server/config.php                    server/routes/logout.php             notes/techtree.md
-// 381+58+108+96+48+38+231+65+83+68+466+150+628+72+66+97+61+207+260+66+100+137+72+149+243+86+85+62+476+190+254+38+8+307+230+232+33+41+299+127+40+36+45+36+160+80+95+351+37+141+256+42+22+52+58+14+32+67+13+11+18+11+44+59+27
+// src/app.js                           src/game_tasks.js                       src/structures/ClayFlormer.jsx        server/libs/common.php                server/routes/save.php               notes/automationtree.md
+//     src/app.css                          src/worker.jsx                         src/structures/FarmersPost.jsx         server/libs/jsarray.php               server/routes/savetiles.php         notes/wartree.md
+//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                   src/structures/HayDryer.jsx            server/events.php                    server/routes/sendunits.php         notes/worldgen.md
+//            src/libs/ShowBlog.jsx                src/foodOptions.js                      src/structures/OpenDryer.jsx           server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
+//               src/libs/DanAjax.js                   src/structures/LeanTo.jsx              src/structures/HuntersPost.jsx         server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
+//                  src/libs/DanLog.js                    src/structures/ForagePost.jsx          src/structure/Campfire.jsx             server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
+//                     src/Account.jsx                       src/structures/RockKnapper.jsx          src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
+//                         src/libs/DanInput.jsx                 src/structures/LoggersPost.jsx          src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
+//                            src/libs/DanCommon.js                  src/structures/RopeMaker.jsx            src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
+//                               src/libs/ErrorOverlay.jsx              src/structures/DirtSource.jsx            server/routes/autologin.php          server/routes/login.php              README.md                        notes/monetizationstrategies.md
+//                                  src/game.jsx                            src/structures/WaterSource.jsx          server/config.php                    server/routes/logout.php             notes/techtree.md                notes/tasklist.md
+// 390+58+114+96+48+38+231+65+83+68+470+163+693+72+140+98+63+207+260+66+100+137+72+149+243+86+82+406+514+197+254+38+8+307+230+233+33+41+299+127+40+36+45+36+169+80+95+351+37+141+288+42+22+54+58+22+32+67+13+11+28+11+65+60+25+28
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -50,6 +58,7 @@
 // 6/17/23: 7105 lines
 // 6/24/23: 7528 lines
 // 7/01/23: 8018 lines
+// 7/14/23: 8835 lines
 
 import "./App.css";
 import React from "react";

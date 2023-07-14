@@ -53,13 +53,16 @@ export function createWorker(pack) {
                 foundTask.worker = w;
                 w.tasks.push(foundTask);
                 w.walkPath = '';
-                console.log(w.name +' picked up a task');
+                console.log(w.name +' starts task '+ (typeof(w.tasks[0].task)==='undefined' || w.tasks[0].task===null)?w.tasks[0].taskType:w.tasks[0].task.name);
             }
 
             // First thing we should do is to determine where this task should be performed at. Some task locations are based on where
             // a fixed-position item is located
             let itemNameToUse = '';
             if(w.tasks[0].targetx===null) {
+                if(typeof(w.tasks[0].task.workLocation)==='undefined') {
+                    console.log('Error: task does not have workLocation defined. Task name='+ w.tasks[0].task.name);
+                }
                 // Some tasks have customized locations to pick
                 if(w.tasks[0].task.workLocation==='custom') {
                     let result = w.tasks[0].task.pickLocation(w);
@@ -87,7 +90,9 @@ export function createWorker(pack) {
                     // Next; find the (pathwise) closest route to a suitable object. While we select a valid tile, also pick up the target item(s)
                     //let itemNameToUse = '';
                     let outcome = game.pathTo(w.x, w.y, tile=>{
-                        if(w.tasks[0].taskType==='gatherfood' && tile.x===w.tasks[0].building.x && tile.y===w.tasks[0].building.y) return false;
+                        if((w.tasks[0].taskType==='gatherfood' || w.tasks[0].taskType==='gatheritems') &&
+                            tile.x===w.tasks[0].building.x &&
+                            tile.y===w.tasks[0].building.y) return false;
 
                         // This would be much simpler if we didn't need to hold onto the item we locate
                         for(let r=0; r<targetSet.options.length; r++) {
@@ -167,7 +172,7 @@ export function createWorker(pack) {
                     for(let group=0; group < w.tasks[0].task.itemsNeeded.length; group++) {
                         // First, see if this is already solved, for when we looked for a suitable work location
                         if(typeof(w.tasks[0].task.itemsNeeded[group].workSite)!=='undefined' && w.tasks[0].task.itemsNeeded[group].workSite===true) {
-                            console.log('Working slot '+ group +', has already been validated above');
+                            //console.log('Working slot '+ group +', has already been validated above');
                             let build = {
                                 groupId:group,
                                 optionId: w.tasks[0].task.itemsNeeded[group].options.findIndex(r=>r.name===itemNameToUse),
@@ -190,7 +195,7 @@ export function createWorker(pack) {
                                 }
                             }
                             if(build.items.length === w.tasks[0].task.itemsNeeded[group].options[build.optionId].qty) {
-                                console.log('This slot has all needed items');
+                                //console.log('This slot has all needed items');
                                 build.hasAllItems = true;
                             }
                             optionChoices.push(build);
@@ -218,8 +223,8 @@ export function createWorker(pack) {
                                             //}
                                             return false;
                                         }
-                                        console.log('Found match of '+ mild.items[match].name +' with task='+ mild.items[match].inTask +' at ['+
-                                            mild.x +','+ mild.y +']');
+                                        //console.log('Found match of '+ mild.items[match].name +' with task='+ mild.items[match].inTask +' at ['+
+                                        //    mild.x +','+ mild.y +']');
                                         foundItem = mild.items[match];
                                         return true;
                                     });
@@ -242,7 +247,7 @@ export function createWorker(pack) {
                             }
                         }
                     }
-                    console.log("Option choices: ", optionChoices);
+                    //console.log("Option choices: ", optionChoices);
                     
                     // Now, separate each section into its own group, and pick the best one
                     w.tasks[0].recipeChoices = [];
@@ -346,7 +351,7 @@ export function createWorker(pack) {
                         if(outcome.result==='fail') {
                             // oh no, we didn't find the item. Remove this from the tagged items. We will need to add another to replace it
                             // First we need the name, though
-                            console.log('Error: could not find path to item name='+ w.tasks[0].itemsTagged[i].name +'. Searching for replacement');
+                            console.log('Error: could not find path to item name='+ w.tasks[0].itemsTagged[i].name +' for '+ w.name +'. Searching for replacement');
                             let itemName = w.tasks[0].itemsTagged[i].name;
                             w.tasks[0].itemsTagged.splice(i,1);
                             let item = null;
@@ -372,7 +377,8 @@ export function createWorker(pack) {
                             }else{
                                 // While we have this path data, go ahead and create a task to move this to our location, so we don't have to
                                 // search for it again later
-                                let newTask = game.createItemMoveTask(w.tasks[0].itemsTagged[i], outcome.x, outcome.y, w.tasks[0].targetx, w.tasks[0].targety);
+                                w.tasks[0].itemsTagged[i] = item;
+                                let newTask = game.createItemMoveTask(item, outcome.tile.x, outcome.tile.y, w.tasks[0].targetx, w.tasks[0].targety, 'worker.jsx->check item locations');
                                 w.tasks.unshift(newTask);
                                 return;
                             }
@@ -446,10 +452,16 @@ export function createWorker(pack) {
                     break;
                     case 'pickupItem':
                         // Here we only need to pick up an item. The task should have a nextX and nextY, that we can set the targetX & targetY to
+                        if(typeof(w.tasks[0].targetItem)==='undefined') {
+                            console.log('Error: got pickupItem task but task.targetItem is undefined. Cancelling task');
+                            game.deleteTask(w.tasks[0]);
+                            return;
+                        }
                         let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
                         let slot = tile.items.findIndex(i=>i===w.tasks[0].targetItem);
                         if(slot===-1) {
-                            console.log('Error: could not find item='+ w.tasks[0].targetItem.name +' in tile');
+                            console.log('Error: could not find item='+ w.tasks[0].targetItem.name +' in tile. Cancelling task');
+                            game.deleteTask(w.tasks[0]);
                             return;
                         }
                         w.carrying.push(tile.items[slot]);
@@ -467,6 +479,7 @@ export function createWorker(pack) {
                         let pslot = w.carrying.findIndex(i=>i===w.tasks[0].targetItem);
                         if(pslot===-1) {
                             console.log('Error: could not find item='+ w.tasks[0].targetItem.name +' in worker');
+                            game.deleteTask(w.tasks[0]);
                             return;
                         }
                         ptile.items.push(w.carrying[pslot]);
@@ -540,6 +553,38 @@ export function createWorker(pack) {
                         game.deleteTask(w.tasks[0]);
                         w.tasks.unshift(newTask);
                         w.tasks[0].worker = w;
+                    break;
+                    case 'gatheritems':
+                        // This is similar to gatherfood, but is not exclusive to food-related items. There is no potential conversion of
+                        // objects, either
+                        w.tasks[0].progress++;
+                        if(w.tasks[0].progress >=w.tasks[0].task.buildTime) {
+                            let result = w.tasks[0].task.onComplete(w);
+                            if(!result) return;
+                            // Since this was successful, we need to create an item-move task, to take the target item to the target structure
+                            let carryName = w.tasks[0].task.itemsNeeded[0].options[w.tasks[0].recipeChoices[0]].name;
+                            let tile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                            let item = tile.items.find(i=>i.name===carryName);
+                            let building = w.tasks[0].building;
+                            if(w.tasks[0].quantity>1) {
+                                w.tasks[0].quantity--;
+                                w.tasks[0].progress = 0;
+                                w.tasks[0].targetx = null;
+                                w.tasks[0].targety = null;
+                                w.tasks[0].recipeChoices = [];
+                                // Manually clear all tagged items
+                                for(let i=0; i<w.tasks[0].itemsTagged.length; i++) {
+                                    w.tasks[0].itemsTagged[i].inTask = 0;
+                                }
+                                w.tasks[0].itemsTagged = [];
+                                // This will allow us to start the process again, when the worker gets back to this task
+                            }else{
+                                game.deleteTask(w.tasks[0]);
+                            }
+                            let newTask = game.createItemMoveTask(item, w.x, w.y, building.x, building.y);
+                            w.tasks.unshift(newTask);
+                            newTask.worker = w;
+                        }
                     break;
                     default:
                         console.log('Have task type of '+ w.tasks[0].taskType +' but have no case for it');

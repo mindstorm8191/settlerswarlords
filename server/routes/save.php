@@ -84,9 +84,18 @@
 
             case 'Open Dryer':
                 verifyInput($st, array_merge($baseObject, [
-                    ['name'=>'mode', 'required'=>true, 'format'=>'stringnotempty'],
+                    ['name'=>'mode', 'required'=>true, 'format'=>'stringnotempty']
                 ]), 'server/routes/save.php->verify structures->Open Dryer');
                 // This drying structure will likely get more complicated. But this is enough for now
+            break;
+
+            case 'Campfire':
+                verifyInput($st, array_merge($baseObject, [
+                    ['name'=>'holdingTask', 'required'=>true, 'format'=>'posint'],
+                    ['name'=>'temp', 'required'=>true, 'format'=>'float'],
+                    ['name'=>'fuelTime', 'required'=>true, 'format'=>'int'],
+                    ['name'=>'cookTime', 'required'=>true, 'format'=>'int']
+                ]), 'server/routes/save.php->verify structures->Campfire');
             break;
 
             case 'Rock Knapper':

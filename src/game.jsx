@@ -258,12 +258,12 @@ export const game = {
         for(let i=0; i<game.workers.length; i++) {
             hasWorkerUpdate ||= game.workers[i].tick();   //updateWorker(game.workers[i]);
         }
-        if(hasWorkerUpdate) game.updateWorkers([...game.workers]);
 
         // Manage building updates. Not all buildings have (or need) a tick function, but we will call them when they exist
         for(let i=0; i<game.structures.length; i++) {
-            if(typeof(game.structures[i].tick)==='function') game.structures[i].tick();
+            if(typeof(game.structures[i].tick)==='function') hasWorkerUpdate ||= game.structures[i].tick();
         }
+        if(hasWorkerUpdate) game.updateWorkers([...game.workers]);
 
         // Handle time management
         let newTime = new Date().valueOf();

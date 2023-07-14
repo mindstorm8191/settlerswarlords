@@ -17,6 +17,12 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 4.  Jars will need to be sealed and left to sit for a time, let's say 20 minutes. There is a 1 in 5 chance that the jar will produce wine; the others will become vinegar
 5.  Jars that produced wine (and not vinegar) can be used for wine making again, this time having 100% chance of making wine
 
+### Torches
+
+1.  Torches will be necessary for underground exploration, beyond using a Fire Miner
+2.  Torches, in reality, can be made from many different sources. For this we will use a short stick, a unit of dried straw, and a flamable liquid; the earliest available source is animal fats, captured from a grease pan under the Campfire.
+3.  Torches will only last a minute or two
+
 ### Mining
 
 1.  How do you mind without a pickaxe? The secret is Thermal Shock.

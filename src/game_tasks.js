@@ -20,7 +20,7 @@ export const gameTasks = {
         //  quantity - how many of this item to make. Not all tasks use a quantity amount, it will be ignored for those tasks
 
         // All tasks start without a worker assigned to it; it will be assigned later
-        console.log(task);
+        //console.log(task);
 
         // Task location depends on settings in the task
         let targetx = null;
@@ -57,13 +57,19 @@ export const gameTasks = {
         return newtask;
     },
 
-    createItemMoveTask: (item, sourcex, sourcey, destx, desty) => {
+    createItemMoveTask: (item, sourcex, sourcey, destx, desty, codeSource) => {
         // Creates a task to move an item to a new location. This task isn't associated to any building, but has a specific item to locate
         // on a specific tile.
         // item - item instance to be moved
+        // sourcex, sourcey - where to pick the target item up from
+        // destx, desty - where to place the item when finished
+        // codeSource - where this code was called from. Used for debugging
         // Returns the newly made task so that it can be assigned to the right worker
 
-        if (typeof item === "string") console.log("Error in game.createItemMoveTask - you need to pass the item, not the name");
+        if (typeof item === "string")
+            console.log("Error in game.createItemMoveTask - you need to pass the item, not the name. Called from " + codeSource);
+        if (typeof item === "undefined")
+            console.log("Error in game.createItemMoveTask: got target item of undefined. called from " + codeSource);
 
         let newtask = {
             id: game.getNextTaskId(),

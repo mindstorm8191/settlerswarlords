@@ -18,6 +18,7 @@ import { FarmersPost } from "./structures/FarmersPost.jsx";
 import { HayDryer } from "./structures/HayDryer.jsx";
 import { OpenDryer } from "./structures/OpenDryer.jsx";
 import { HuntersPost } from "./structures/HuntersPost.jsx";
+import { ButcherShop } from "./structures/ButcherShop.jsx";
 import { Campfire } from "./structures/Campfire.jsx";
 
 export const game = {
@@ -51,6 +52,7 @@ export const game = {
         HayDryer(),
         OpenDryer(),
         HuntersPost(),
+        ButcherShop(),
         Campfire()
     ],
 

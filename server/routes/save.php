@@ -103,6 +103,7 @@
             case 'Rope Maker':
             case 'Water Source':
             case 'Farmers Post':
+            case 'Butcher Shop':
                 // There are multiple buildings that have only the basic properties
                 verifyInput($st, $baseObject, 'server/routes/save.php->verify structures->all basic structures');
             break;

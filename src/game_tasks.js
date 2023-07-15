@@ -146,7 +146,7 @@ export const gameTasks = {
                 }
             }
         } else {
-            console.log("Task id=" + task.id + " has no worker assigned");
+            console.log("Task id=" + task.id + " has no worker assigned. Task type=" + task.taskType);
         }
 
         // Remove the task from the game

@@ -12,17 +12,19 @@
 9.  Forage Post: All workers will need a new attribute: a food counter. This will decrease every game-tick. At a certain point, workers will take it upon themselves to go find more food, and eat it. They'll likely search at the Forage Post before looking for some in the wild
 10. Forage Post: This may be a good opportunity to allow players to set a minimum quantity of food items, and auto-generate tasks when that count is below that number.
 11. Campfire: Have the fire temperature decay faster when it is very high; above 225 or 250 it should start decreasing rate; probably never get above 350 degrees. Might want to reduce operating times for logs, as well, but I'm not sure
-12. Continue working on localmap ticking
+12. Campfire: Add a toggle on the SidePanel to allow players to cook only butchered meat, or all available meats
+13. Campfire: Adjust how the displayed values are shown. Instead of specific numbers, we should show temps like moderate, warm, hot, extreme. Instead of fueltime, show temperature trends as either warming or cooling. Cook time should be a percentage of the current product's cooking progress.
+14. Continue working on localmap ticking
     -   Every 'local map event' will have a tick value associated with it
     -   The game object will hold a value to know which tick event takes place next. No action will be taken until that tick event point is reached
     -   Once the tick event is processed, the game will search all tiles for the next tick event in the sequence
     -   Local map events won't generate until the player has done something to the map. Workers moving around count in this
     -   Every tile will have a traveldamage value. It will increase by 3 minutes each time a worker walks across it.
-13. World map: We will still need a pathfinding routine on the server, no matter what. We could use that for client-side, and send troops using a string path, and go from there.
-14. World map: When a player sends units out to other tiles, use the same request to decide which worker is being sent on the journey
-15. World map: Have a means to show active troops traveling on the world map. This will be approximated based on a player's limited information, instead of the actual information. For example, if the troops are sent 5 tiles out, get attacked in tile 2 and return, the player will believe they are still traveling out, until they arrive back home again.
-16. World map: Start showing NPC civilizations on the map, as they are found. We will need artwork for this...
-17. World map: Create a means to generate pathfinding between points on the world map. The generated path will ultimately be used on the server end, but we also want to show the path to the user; so it'll help if we can generate it on the client side. At the same time, events can happen on the server side to remote troops, causing them to need to reroute or return home, so we need to be able to do it on the server side as well.
-18. World map: Once pathfinding is complete, start to calculate the distance to reach target tiles
-19. Lean-to: Add a tick function to have the Lean-to's lifetime decay while in use. Have the game's tick call every block's tick function, but only if that function exists
-20. Check that all task types has an outputItems field (if it outputs items).
+15. World map: We will still need a pathfinding routine on the server, no matter what. We could use that for client-side, and send troops using a string path, and go from there.
+16. World map: When a player sends units out to other tiles, use the same request to decide which worker is being sent on the journey
+17. World map: Have a means to show active troops traveling on the world map. This will be approximated based on a player's limited information, instead of the actual information. For example, if the troops are sent 5 tiles out, get attacked in tile 2 and return, the player will believe they are still traveling out, until they arrive back home again.
+18. World map: Start showing NPC civilizations on the map, as they are found. We will need artwork for this...
+19. World map: Create a means to generate pathfinding between points on the world map. The generated path will ultimately be used on the server end, but we also want to show the path to the user; so it'll help if we can generate it on the client side. At the same time, events can happen on the server side to remote troops, causing them to need to reroute or return home, so we need to be able to do it on the server side as well.
+20. World map: Once pathfinding is complete, start to calculate the distance to reach target tiles
+21. Lean-to: Add a tick function to have the Lean-to's lifetime decay while in use. Have the game's tick call every block's tick function, but only if that function exists
+22. Check that all task types has an outputItems field (if it outputs items).

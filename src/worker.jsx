@@ -291,7 +291,7 @@ export function createWorker(pack) {
                     }
                     // All that above seems like a lot of work, but we have reduced the problem: We have determined which recipes to use
                     // for each part of this task.
-                    console.log("Tagged Items: ", w.tasks[0].itemsTagged.map(i=>i.name).join(','));
+                    //console.log("Tagged Items: ", w.tasks[0].itemsTagged.map(i=>i.name).join(','));
                 }
 
                 // Now, we only need to determine if we have all the parts available. We can start producing items in order

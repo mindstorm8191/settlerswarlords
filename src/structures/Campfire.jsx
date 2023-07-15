@@ -19,7 +19,11 @@ const cookOptions = [
     {name: 'Dead Deer', cookTime:20*60, result: "Cooked Deer Meat", qty:8, overcook:20*60*2, fail: "Burnt Meat"},
     {name: 'Dead Boar', cookTime:20*90, result: "Cooked Boar Meat", qty:12, overcook:20*60*4, fail: "Burnt Meat"},
     {name: 'Dead Wolf', cookTime:20*30, result: "Cooked Wolf Meat", qty:5, overcook:20*30*3, fail: "Burnt Meat"},
-    {name: 'Dead Chicken', cookTime:20*20, result: "Cooked Chicken Meat", qty:2, overcook:20*60, fail: "Burnt Meat"}
+    {name: 'Dead Chicken', cookTime:20*20, result: "Cooked Chicken Meat", qty:2, overcook:20*60, fail: "Burnt Meat"},
+    {name: 'Raw Boar Meat', cookTime:20*10, result: "Cooked Boar Meat", qty:1, overcook:20*60, fail: "Burnt Meat"},
+    {name: "Raw Chicken Meat", cookTime:20*10, result: "Cooked Chicken Meat", qty:1, overcook:20*60, fail: "Burnt Meat"},
+    {name: 'Raw Deer Meat', cookTime:20*10, result: "Cooked Deer Meat", qty:1, overcook:20*60, fail: "Burnt Meat"},
+    {name: 'Raw Wolf Meat', cookTime:20*10, result: "Cooked Wolf Meat", qty:1, overcook:20*60, fail: "Burnt Meat"}
 ];
 // cookTime is how long, in ticks, it takes to cook this, when the temp is at 250. Progress will scale gradually, starting from 100
 
@@ -317,12 +321,7 @@ export function Campfire() {
                         desc: 'Starts to cook meats over the fire',
                         taskType: 'gatheritems',
                         workLocation: 'atItem',
-                        itemsNeeded: [{options: [
-                            {name: 'Dead Deer', qty:1},
-                            {name: 'Dead Boar', qty:1},
-                            {name: 'Dead Wolf', qty:1},
-                            {name: 'Dead Chicken', qty:1}
-                        ], role:'item', workSite:true}],
+                        itemsNeeded: [{options: cookOptions.map(u=>({name:u.name, qty:1})), role:'item', workSite:true}],
                         outputItems: ['Cooked Deer Meat', 'Cooked Boar Meat', 'Cooked Wolf Meat', 'Cooked Chicken Meat'],
                         buildTime: 1,
                         hasQuantity: true,

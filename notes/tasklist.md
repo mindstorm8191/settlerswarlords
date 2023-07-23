@@ -2,9 +2,9 @@
 
 1.  Make the game easier to transition through version changes.
     -   Have each local map generate with a new RNG key. We will keep that key as part of the map's basic data
-2.  Mobile support: Dragging buildings to the map doesn't work with mouse commands, on mobile. We need to incorporate Touch controls to handle building placement.
-3.  Show workers where-ever they are on the map. We need to show additional details of their actions here
-4.  Determine what extra parts will be needed before we can have tools break during usage
+2.  Show workers where-ever they are on the map. We need to show additional details of their actions here
+3.  Determine what extra parts will be needed before we can have tools break during usage
+4.  On the task assignment process, allow users to specify what type of product to use as input for specific tasks. This process should mark unavailable items with red text
 5.  Hay Dryer: Determine a way to limit the number of drying hay items to 30. I don't think we have an easy way to prevent tasks from moving items to the structure, but we can stop adding them to the list of drying elements after a certain point. These items should not be added to the structure's task (so that they can be moved to another structure, if desired).
 6.  Use Gimp to create a paper texture for showing the Blog on the front page. We can use new textures and effects as the game's tech progresses.
 7.  Create the artwork for any remaining items that occur on game startup. From here we'll add new items as they become available
@@ -20,7 +20,7 @@
     -   Once the tick event is processed, the game will search all tiles for the next tick event in the sequence
     -   Local map events won't generate until the player has done something to the map. Workers moving around count in this
     -   Every tile will have a traveldamage value. It will increase by 3 minutes each time a worker walks across it.
-15. World map: We will still need a pathfinding routine on the server, no matter what. We could use that for client-side, and send troops using a string path, and go from there.
+15. World map: We will still need a pathfinding routine on the server, no matter what. Have the client request a route from the server, to reach a specific tile. Call the code-route getpath. The sendunits code will expect a path string
 16. World map: When a player sends units out to other tiles, use the same request to decide which worker is being sent on the journey
 17. World map: Have a means to show active troops traveling on the world map. This will be approximated based on a player's limited information, instead of the actual information. For example, if the troops are sent 5 tiles out, get attacked in tile 2 and return, the player will believe they are still traveling out, until they arrive back home again.
 18. World map: Start showing NPC civilizations on the map, as they are found. We will need artwork for this...

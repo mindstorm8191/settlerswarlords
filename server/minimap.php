@@ -228,7 +228,7 @@
                         $wide['items'] = [['name'=>'Peanut Plant', 'amount'=>rand(2,10)], ['name'=>'Raw Peanuts', 'amount'=>rand(4,8)]];
                     break;
                     case 'maize':
-                        $wide['items'] = [['name'=>'Maize Plant', 'amount'=>rand(6,14)], ['name'=>'Whole Corn', 'amount'=>rand(4,12)]];
+                        $wide['items'] = [['name'=>'Maize Plant', 'amount'=>rand(6,14)], ['name'=>'Corn Cob', 'amount'=>rand(4,12)]];
                     break;
                     case 'beans':
                         $wide['items'] = [['name'=>'Bean Plant', 'amount'=>rand(5,10)], ['name'=>'Beans', 'amount'=>rand(4,8)]];

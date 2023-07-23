@@ -4,87 +4,16 @@
 */
 
 import React from "react";
-import { DraggableMap, FixedPositionChild, clearDragFlag } from "./libs/DraggableMap.jsx";
+import { DraggableMap, clearDragFlag } from "./libs/DraggableMap.jsx";
 import { DanInput } from "./libs/DanInput.jsx";
 
 import { imageURL } from "./App.js";
 import { minimapTiles } from "./minimapTiles.js";
+import { itemStats } from "./itemstats.js";
 import { game } from "./game.jsx";
 
 let errorTimeout = null;
 
-let itemStats = [
-    {name:'Apple',                     img:'apple.png',       desc:'An apple, edible straight from the tree'},
-    {name:'Apple Tree',                img:'appletree.png',   desc:'A tree growing apples'},
-    {name:'Bark Fibers',               img:'twinestrips.png',   desc:'Pieces of bark fiber'},
-    {name:'Barley Grass',              img:'barleygrass.png', desc:'Fields of barley, growing naturally'},
-    {name:'Barley Hay',                img:'barleyhay.png',         desc:'Barley grasses, both straw and seed'},
-    {name:'Boar Skin',                 img:'boarskin.png',          desc:'Boar skin, freshly cleaned. Very warm'},
-    {name:'Bone',                      img:'bone.png',              desc:'Animal bone. Has many uses'},
-    {name:'Clay Ball',                 img:'clayball.png',          desc:'A ball of clay, ready to be molded'},
-    {name:'Connected Log',             img:'connectedlog.png',      desc:'Log pieces, all connected. Too heavy to move by hand!'},
-    {name:'Cooked Boar Meat',          img:'cookedboarmeat.png',    desc:'Boar meat, cooked & ready to eat'},
-    {name:'Cooked Chicken Meat',       img:'cookedchickenmeat.png', desc:'Chicken meat, cooked & ready to eat'},
-    {name:'Cooked Deer Meat',          img:'cookeddeermeat.png',    desc:'Deer meat, cooked & ready to eat'},
-    {name:'Cooked Wolf Meat',          img:'cookedwolfmeat.png',    desc:'Wolf meat, cooked & ready to eat'},
-    {name:'Dead Boar',                 img:'deadboar.png',          desc:'A giant pig. Dangerous alive, but dead now. Makes a lot of good meat'},
-    {name:'Dead Chicken',              img:'deadchicken.png',       desc:'A chicken. Small, but makes good meat'},
-    {name:'Dead Deer',                 img:'deaddeer.png',          desc:'A deer. Fast creatures, but dead now. Makes good meat'},
-    {name:'Dead Wolf',                 img:'deadwolf.png',          desc:'A wolf. Dangerous in packs, but dead now. Makes good meat'},
-    {name:'Debarked Fallen Log',       img:'debarkedfallenlog.png', desc:'A rotten log, without bark'},
-    {name:'Deer Skin',                 img:'deersking.png',         desc:'Deer skin, freshly cleaned. Very warm'},
-    {name:'Dirt Ball',                 img:'dirtball.png',          desc:'A ball of dirt'},
-    {name:'Dried Barley Hay',          img:'barleyhay.png',         desc:'Barley grasses, dried and ready for use'},
-    {name:'Dried Millet Hay',          img:'millethay.png',         desc:'Millet grasses, dried and ready for use'},
-    {name:'Dried Oat Hay',             img:'oathay.png',            desc:'Oat grasses, dried and ready for use'},
-    {name:'Dried Rye Hay',             img:'ryehay.png',            desc:'Rye grasses, dried and ready for use'},
-    {name:'Dried Wheat Hay',           img:'wheathay.png',          desc:'Wheat grasses, dried and ready for use'},
-    {name:'Fallen Branch',             img:'fallenbranch.png',      desc:'A rotten branch, decaying on the ground'},
-    {name:'Fallen Log',                img:'fallenlog.png',   desc:'A rotten log, decaying on the ground'},
-    {name:'Fallen Stick',              img:'fallenstick.png',       desc:'A rotten stick, decaying on the ground'},
-    {name:'Feather',                   img:'feather.png',           desc:'Chicken feathers. Has many uses'},
-    {name:'Flint',                     img:'flint.png',             desc:'Flint rock, easy to hammer into shapes'},
-    {name:'Flint Hatchet',             img:'flinthatchet.png',      desc:'Flint blade for cutting wood. Better than a Flint Stabber!'},
-    {name:'Flint Knife',               img:'flintknife.png',   desc:'Flint, cut to provide a sharp edge'},
-    {name:'Flint Scythe',              img:'flintscythe.png',       desc:'Flint blade for cutting grasses'},
-    {name:'Flint Shovel',              img:'flintshovel.png',       desc:'Flint shaped into a shovel blade. Good for moving dirt'},
-    {name:'Flint Spear',               img:'flintspear.png',        desc:'Flint point on a long stick. Good for hunting or... defense'},
-    {name:'Flint Stabber',             img:'flintstabber.png', desc:'Flint, cut to a tool for smashing wood'},
-    {name:'Gravel',                    img:'gravel.png',       desc:'A collection of small rocks of various types'},
-    {name:'Locust Tree',               img:'mapletree.png',    desc:'A locust tree, growing strong'},
-    {name:'Log Chunk',                 img:'logchunk.png',          desc:'A chunk of a tree. Has a lot of good uses'},
-    {name:'Long Stick',                img:'longstick.png',         desc:'A long piece of wood. Good for tools'},
-    {name:'Maple Tree',                img:'mapletree.png',   desc:'A maple tree, still growing'},
-    {name:'Millet Grass',              img:'milletgrass.png',  desc:'Field of millet, growing wild'},
-    {name:'Millet Hay',                img:'millethay.png',         desc:'Millet grasses, both straw and seed'},
-    {name:'Oat Grass',                 img:'oatgrass.png',     desc:'Fields of oats, growing naturally'},
-    {name:'Oat Hay',                   img:'oathay.png',            desc:'Oat grasses, both straw and seed'},
-    {name:'Oat Seed',                  img:'oatseed.png',           desc:'The seeds of oat grass, unprocessed'},
-    {name:'Pine Cone',                 img:'pinecone.png',          desc:'Dropped from pine trees. Has edible parts'},
-    {name:'Pine Tree',                 img:'pinetree.png',     desc:'A pine tree, growing strong'},
-    {name:'Raw Boar Meat',             img:'rawboarmeat.png',       desc:'Boar meat, freshly cut. You should probably cook it'},
-    {name:'Raw Chicken Meat',          img:'rawchickenmeat.png',    desc:'Chicken meat, freshly cut. You should probably cook it'},
-    {name:'Raw Deer Meat',             img:'rawdeermeat.png',       desc:'Deer meat, freshly cut. You should probably cook it'},
-    {name:'Raw Wolf Meat',             img:'rawwolfmeat.png',       desc:'Wolf meat, freshly cut. You should probably cook it'},
-    {name:'Removed Stick',             img:'removedstick.png',      desc:'Not real! Represents a stick missing from the trees'},
-    {name:'Rye Grass',                 img:'ryegrass.png',    desc:'Field of natural rye grain'},
-    {name:'Rye Hay',                   img:'ryehay.png',            desc:'Rye grasses, both straw and seed'},
-    {name:'Short Stick',               img:'shortstick.png',        desc:'A short piece of wood. Good for tools'},
-    {name:'Small Rope',                img:'smallrope.png',         desc:'A 1-foot rope, handles 5 pounds'},
-    {name:'Straw',                     img:'straw.png',              desc:'Grass shoots with the seeds removed'},
-    {name:'Thatch Tile',               img:'thatchtile.png',        desc:'A roofing tile, made from straw'},
-    {name:'Turnip Plant',              img:'turnipplant.png',  desc:'Turnips, growing wild'},
-    {name:'Wet Clay Brick',            img:'wetclaybrick.png',      desc:'A clay brick. Must be dried before firing'},
-    {name:'Wheat Grass',               img:'wheatgrass.png', desc:'Golden fields of wheat, growing wildly'},
-    {name:'Wheat Hay',                 img:'wheathay.png',          desc:'Golden wheat, both straw and seed'},
-    {name:'Wheat Seed',                img:'wheatseed.png',    desc:'The seeds of wheat grass, unprocessed'},
-    {name:'Wolf Skin',                 img:'wolfskin.png',          desc:'Wolf skin, freshly cleaned. Very warm'},
-    {name:'Wood Pitchfork',            img:'woodpitchfork.png',     desc:'A pitchfork, made of sticks. Better than nothing'},
-    {name:'Wooden Bucket',             img:'woodenbucket.png',       desc:'A bucket, made of wood. Good for non-food liquids'},
-    {name:'Wooden Creek Water Bucket', img:'woodenwaterbucket.png', desc:'A bucket, made of wood, filled with creek water'},
-    {name:'Wooden Pole',               img:'woodenpole.png',        desc:'A long pole of wood. Good for structures'},
-    {name:'Wooden Pond Water Bucket',  img:'woodenwaterbucket.png',  desc:'A bucket, made of wood, filled with pond water'}
-];
 
 export function LocalMap(props) {
     // Displays the local map
@@ -246,8 +175,8 @@ export function LocalMap(props) {
                                 }}
                                 onTouchEnd={(e)=>{
                                     console.log('Touch tile!');
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                                    //e.preventDefault();
+                                    //e.stopPropagation();
                                     onDragStructureDrop(tile);
                                 }}
                                 onClick={()=>{

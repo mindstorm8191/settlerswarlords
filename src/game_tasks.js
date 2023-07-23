@@ -100,7 +100,7 @@ export const gameTasks = {
 
         // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
         // just run through its list.
-        //console.log('This task has '+ task.itemsTagged.length +' items to de-tag');
+        console.log("This task has " + task.itemsTagged.length + " items to de-tag (id=" + task.id + ")", task.itemsTagged);
         for (let i = 0; i < task.itemsTagged.length; i++) {
             if (task.itemsTagged[i] !== null) {
                 if (task.itemsTagged[i].inTask === task.id) {
@@ -108,7 +108,9 @@ export const gameTasks = {
                 } else {
                     console.log("Item has tag " + task.itemsTagged[i].inTask + " for task id=" + task.id);
                 }
-                //console.log('Clear item tag:', task.itemsTagged[i]);
+                console.log("Clear item tag:", task.itemsTagged[i]);
+            } else {
+                console.log("in DeleteTask: itemsTagged[" + i + "] is null");
             }
         }
 

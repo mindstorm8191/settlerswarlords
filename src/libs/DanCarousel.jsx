@@ -53,7 +53,6 @@ export function DanCarousel(props) {
         }
         return ()=> {
             isRunning = false;
-            console.log('Carousel unmounted');
         }
     }, []);
 

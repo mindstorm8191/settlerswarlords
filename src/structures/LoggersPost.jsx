@@ -3,8 +3,8 @@
     For the game Settlers & Warlords
 */
 
-import React from "react";
 import { game } from "../game.jsx";
+import { itemStats } from "../itemstats.js";
 
 /* Sticks
 Users will need long & short sticks; fallen sticks will only be useable for firewood, so other sticks must be cut fresh from the trees.
@@ -91,7 +91,8 @@ export function LoggersPost() {
                         taskType: 'craft',
                         workLocation: 'atItem',
                         itemsNeeded: [
-                            {options: treetypes.map(t=>({name: t.name, qty:1})), role:'item', workSite:true},
+                            //{options: treetypes.map(t=>({name: t.name, qty:1})), role:'item', workSite:true},
+                            {options: itemStats.filter(t=>typeof(t.logs)!=='undefined').map(t=>({name: t.name, qty:1})), role:'item', workSite:true},
                             {options: [{name: 'Flint Stabber', qty:1}], role:'tool', workSite: false}
                         ],
                         outputItems: ['Long Stick', 'Removed Stick'],
@@ -100,7 +101,10 @@ export function LoggersPost() {
                         canAssign: ()=>true,
                         onComplete: worker => {
                             let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
-                            let slot = tile.items.findIndex(i=>treetypes.some(u=>u.name===i.name));
+                            // we need to find a tree type that is in this tile
+                            let treeNames = itemStats.filter(q=>typeof(q.logs)!=='undefined').map(q=>q.name);
+                            //let slot = tile.items.findIndex(i=>treetypes.some(u=>u.name===i.name));
+                            let slot = tile.items.findIndex(i=>treeNames.includes(i.name));
                             if(slot===-1) {
                                 console.log('Error in LoggersPost: there are no trees here');
                                 return;
@@ -145,7 +149,8 @@ export function LoggersPost() {
                         taskType: 'craft',
                         workLocation: 'atItem',
                         itemsNeeded: [
-                            {options: treetypes.map(u=>({name:u.name, qty:1})), role:'item', workSite:true},
+                            //{options: treetypes.map(u=>({name:u.name, qty:1})), role:'item', workSite:true},
+                            {options: itemStats.filter(u=>typeof(u.logs)!=='undefined').map(u=>({name:u.name, qty:1})), role:'item', workSite:true},
                             {options: [{name: 'Flint Hatchet', qty:1}], role:'tool', workSite:false}
                         ],
                         outputItems: ['Connected Log', 'Log Chunk'],
@@ -154,23 +159,30 @@ export function LoggersPost() {
                         canAssign: ()=>game.unlockedItems.includes('Flint Hatchet'),
                         onComplete: worker => {
                             let tile = game.tiles.find(t=>t.x===worker.x && t.y===worker.y);
+
                             // Determining trees will be a little harder than other tasks, as we will also produce a lot of freed sticks
                             // Start by selecting (to remove) the first tree type available
-                            let slot = tile.items.findIndex(i=>treetypes.some(u=>u.name===i.name));
-                            let treestats = treetypes.find(u=>u.name===tile.items[slot].name);
+                            let treeStats = itemStats.filter(u=>typeof(u.logs)!=='undefined');
+                            let slot = tile.items.findIndex(i=>{
+                                let treeSlot = treeStats.findIndex(u=>u.name===i.name);
+                                if(treeSlot===-1) return false;
+                                treeStats = treeStats[treeSlot];
+                                return true;
+                            });
+                            //let treestats = treetypes.find(u=>u.name===tile.items[slot].name);
 
                             // get a count of the removed sticks here
                             let removedsticks = tile.items.filter(i=>i.name==='Removed Stick').length;
-                            let stickcount = treestats.sticks - removedsticks;
+                            let stickcount = treeStats.sticks - removedsticks;
 
                             // Remove all the Removed Sticks items
                             tile.items = tile.items.filter(i=>i.name!=='Removed Stick');
 
                             // Now add the correct number of logs...
-                            if(treestats.logs===1) {
+                            if(treeStats.logs===1) {
                                 tile.items.push(game.createItem('Log Chunk'));
                             }else{
-                                for(let i=0; i<treestats.logs; i++) tile.items.push(game.createItem('Connected Log', 'item'));
+                                for(let i=0; i<treeStats.logs; i++) tile.items.push(game.createItem('Connected Log', 'item'));
                             }
                             for(let i=0; i<stickcount; i++) tile.items.push(game.createItem('Long Stick', 'item'));
                             tile.modified = true;

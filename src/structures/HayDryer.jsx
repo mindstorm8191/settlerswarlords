@@ -13,6 +13,7 @@ export const hayTypes = [
     {grass: 'Barley Grass', in: 'Barley Hay', out: 'Dried Barley Hay', seed: 'Barley Seed'},
     {grass: 'Millet Grass', in: 'Millet Hay', out: 'Dried Millet Hay', seed: 'Millet Seed'}
 ];
+// The trouble with integrating this into the itemStats is that these are all items
 
 // New strategy: Hay Dryer structures can only be placed on cleared tiles. They will only function from their own tile, and not use
 // any outside tiles

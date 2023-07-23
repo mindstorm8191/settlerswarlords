@@ -4,7 +4,7 @@
 */
 
 import { game } from "../game.jsx";
-import { foodOptions } from "../foodOptions.js";
+import { itemStats } from "../itemstats.js";
 
 
 // Fruit trees will take a lot longer to process, but each time will generate a lot more foods. Each tree cleared this way will become a barren
@@ -42,9 +42,11 @@ export function ForagePost() {
                         desc: 'Collect food from available sources in the area',
                         taskType: 'gatherfood',
                         workLocation: 'atItem',
-                        itemsNeeded: [
-                            {options: foodOptions.filter(g=>g.purpose==='food').map(g=>({name: g.name, qty:1})), role:'item', workSite:true}
-                        ],
+                        itemsNeeded: [{
+                            options: itemStats.filter(g=>g.role==='food' || g.role==='foodprovider').map(g=>({name: g.name, qty:1})),
+                            role:'item',
+                            workSite:true
+                        }],
                         outputItems: ['Cherries', 'Apple', 'Pear', 'Orange', 'Carrots', 'Potato', 'Tomatoes', 'Turnip', 'Peanuts', 'Corn',
                                       'Beans', 'Onion', 'Broccoli', 'Pumpkin', 'Mushroom'],
                         buildTIme: 20*10,   // we'll mark this as 10 seconds, but each one will actually be different, based on what food is collected

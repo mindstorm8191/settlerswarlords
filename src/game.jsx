@@ -20,6 +20,7 @@ import { OpenDryer } from "./structures/OpenDryer.jsx";
 import { HuntersPost } from "./structures/HuntersPost.jsx";
 import { ButcherShop } from "./structures/ButcherShop.jsx";
 import { Campfire } from "./structures/Campfire.jsx";
+import { SewingShop } from "./structures/SewingShop.jsx";
 
 export const game = {
     debugging: true, // determines if console log entries will be generated for errors and debugging. This needs to be used more often...
@@ -53,7 +54,8 @@ export const game = {
         OpenDryer(),
         HuntersPost(),
         ButcherShop(),
-        Campfire()
+        Campfire(),
+        SewingShop()
     ],
 
     tutorialState:0,
@@ -412,7 +414,8 @@ export const game = {
                     result: 'success',
                     tile:tile,
                     path: filledTiles[0].path,
-                    distance: filledTiles[0].travelled
+                    distance: filledTiles[0].travelled,
+                    tilesScanned: filledTiles.length // just some additional information for debugging
                 };
             }
 
@@ -466,6 +469,27 @@ export const game = {
             // Tag this tile as completed
             filledTiles[0].completed = true;
         }
+    },
+
+    clearOldTasks: ()=>{
+        // Despite my efforts to assure & guarantee that tasks clear every item's inTask field when they're done with it, we are still
+        // having issues with items keeping their old tasks, even after the task is long deleted.
+        // This function searches all items in every tile and clears the item's inTask value if that task no longer exists
+
+        // First, build a list of task IDs
+        let list = game.tasks.map(a=>a.id);
+        let count = 0;
+
+        for(let t=0; t<game.tiles.length; t++) {
+            for(let i=0; i<game.tiles[t].items.length; i++) {
+                if(game.tiles[t].items[i].inTask===0) continue;
+                if(!list.includes(game.tiles[t].items[i].inTask)) {
+                    game.tiles[t].items[i].inTask = 0;
+                    count++;
+                }
+            }
+        }
+        console.log('clearOldTasks corrected '+ count +' items');
     },
 
     ...gameTasks

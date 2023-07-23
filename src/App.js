@@ -36,18 +36,18 @@
 */
 
 // Lines count
-// src/app.js                           src/game_tasks.js                       src/structures/ClayFlormer.jsx          server/config.php                    server/routes/logout.php             notes/techtree.md                notes/tasklist.md
-//     src/app.css                          src/worker.jsx                         src/structures/FarmersPost.jsx         server/libs/common.php                server/routes/save.php               notes/automationtree.md
-//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                   src/structures/HayDryer.jsx            server/lib/jsarray.php                server/routes/savetiles.php         notes/wartree.md
-//            src/libs/ShowBlog.jsx                src/foodOptions.js                      src/structures/OpenDryer.jsx           server/events.php                    server/routes/sendunits.php         notes/worldgen.md
-//               src/libs/DanAjax.js                   src/structures/LeanTo.jsx              src/structures/HuntersPost.jsx          server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
-//                  src/libs/DanLog.js                    src/structures/ForagePost.jsx          src/structures/ButcherShop.jsx          server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
-//                     src/Account.jsx                       src/structures/RockKnapper.jsx          src/structures/CampFire.jsx            server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
-//                         src/libs/DanInput.jsx                 src/structures/LoggersPost.jsx          src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
-//                            src/libs/DanCommon.js                  src/structures/RopeMaker.jsx            src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
-//                               src/libs/ErrorOverlay.jsx              src/structures/DirtSource.jsx            src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
-//                                  src/game.jsx                            src/structures/WaterSource.jsx           server/routes/autologin.php          server/routes/login.php              README.md                        notes/monetizationstrategies.md
-// 390+58+114+96+48+38+231+65+83+68+470+163+693+72+140+98+63+207+260+66+100+137+72+149+243+86+82+116+406+514+197+254+38+8+307+230+233+33+41+299+127+40+36+45+36+169+80+95+351+37+141+288+42+22+54+58+22+32+67+13+11+28+11+65+60+25+28
+// src/app.js                           src/game_tasks.js                       src/structures/ClayFlormer.jsx          server/routes/autologin.php          server/routes/login.php              README.md                        notes/monetizationstrategies.md
+//     src/app.css                          src/worker.jsx                         src/structures/FarmersPost.jsx          server/config.php                    server/routes/logout.php             notes/techtree.md                notes/tasklist.md
+//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                   src/structures/HayDryer.jsx           server/libs/common.php                server/routes/save.php               notes/automationtree.md
+//            src/libs/ShowBlog.jsx                src/foodOptions.js                      src/structures/OpenDryer.jsx          server/libs/jsarray.php               server/routes/savetiles.php         notes/wartree.md
+//               src/libs/DanAjax.js                   src/structures/LeanTo.jsx              src/structures/HuntersPost.jsx         server/events.php                    server/routes/sendunits.php         notes/worldgen.md
+//                  src/libs/DanLog.js                    src/structures/ForagePost.jsx          src/structures/ButcherShop.jsx          server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
+//                     src/Account.jsx                       src/structures/RockKnapper.jsx          src/structures/CampFire.jsx            server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
+//                         src/libs/DanInput.jsx                 src/structures/LoggersPost.jsx          src/structures/SewingShop.jsx         server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
+//                            src/libs/DanCommon.js                  src/structures/RopeMaker.jsx           src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
+//                               src/libs/ErrorOverlay.jsx              src/structures/DirtSource.jsx           src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
+//                                  src/game.jsx                            src/structures/WaterSource.jsx          src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
+// 390+58+114+96+48+38+231+65+83+68+470+163+693+72+140+98+63+207+260+66+100+137+72+149+243+86+82+117+406+85+514+197+254+38+8+307+230+233+33+41+299+127+40+36+45+36+169+80+95+351+37+141+288+42+22+54+58+22+32+67+13+11+28+11+65+60+25+28
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines

@@ -340,7 +340,8 @@
                 'moveCounter'=>0,
                 'tasks'=>[],
                 'carrying'=>[],
-                'walkPath'=>''
+                'walkPath'=>'',
+                'foodTimer'=>20*60*2 + rand(0,20*60*4)
             ];
         });
 

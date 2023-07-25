@@ -35,11 +35,30 @@ export function createWorker(pack) {
         tasks: pack.tasks,      // This needs to be converted to the actual task instance, but tasks are loaded after workers; it will be converted then
         carrying: pack.carrying,
         walkPath: pack.walkPath,
+        foodTimer: typeof(pack.foodTimer)==='undefined'?20*60*3:pack.foodTimer,
 
         tick: () => {
             // Handles worker actions every game tick
             // Returns true if the worker location was updated, or false if not. (This can be OR'd with other worker tick results to see if any
             // have moved)
+
+            // See if this worker needs to eat anything now
+            if(game.mapTick>w.foodTimer) {
+                if(!w.tasks.some(t=>t.task!==null && t.task.name==='Eat Food')) {
+                    //console.log(w.name +' is hungry!');
+                    let structure = game.structures.find(s=>s.name==='Forage Post');
+                    if(typeof(structure)==='undefined') {
+                        console.log(w.name +' is hungry, theres no forage post!');
+                    }else{
+                        let taskType = structure.tasks.find(t=>t.name==='Eat Food');
+                        //console.log(w.name +' creates task '+ taskType.name);
+                        let task = game.createTask(structure, taskType, 1, 'worker.tick()->go eat');
+                        //task.worker = w;
+                        w.tasks.unshift(task);
+                        w.tasks[0].worker = w;
+                    }
+                }
+            }
 
             // See if this worker has any current work
             if(w.tasks.length===0) {
@@ -53,7 +72,7 @@ export function createWorker(pack) {
                 foundTask.worker = w;
                 w.tasks.push(foundTask);
                 w.walkPath = '';
-                console.log(w.name +' starts task '+ (typeof(w.tasks[0].task)==='undefined' || w.tasks[0].task===null)?w.tasks[0].taskType:w.tasks[0].task.name);
+                //console.log(w.name +' starts task '+ (typeof(w.tasks[0].task)==='undefined' || w.tasks[0].task===null)?w.tasks[0].taskType:w.tasks[0].task.name);
                 game.clearOldTasks();
             }
 
@@ -62,7 +81,7 @@ export function createWorker(pack) {
             let itemNameToUse = '';
             if(w.tasks[0].targetx===null) {
                 if(typeof(w.tasks[0].task.workLocation)==='undefined') {
-                    console.log('Error: task does not have workLocation defined. Task name='+ w.tasks[0].task.name);
+                    console.log('Error: task type does not have workLocation defined. Task name='+ w.tasks[0].task.name);
                 }
                 // Some tasks have customized locations to pick
                 if(w.tasks[0].task.workLocation==='custom') {
@@ -102,6 +121,9 @@ export function createWorker(pack) {
                                 return targetSet.options[r].name === i.name;
                             }).length;
                             //console.log('Found '+ total +' of '+ targetSet.options[r].name +' at ['+ tile.x +','+ tile.y +']');
+                            if(typeof(targetSet.options[r].qty)==='undefined') {
+                                console.log("Error in worker.tick()->find work location: task type's options array missing quantities");
+                            }
                             if(total >= targetSet.options[r].qty) {
                                 itemNameToUse = targetSet.options[r].name;
                                 return true;
@@ -124,7 +146,7 @@ export function createWorker(pack) {
                             return;
                         }
                         // Generate this task, and then assign it (as first) to this worker
-                        let newTask = game.createTask(sR.structure, sR.structure.tasks[sR.taskSlot]);
+                        let newTask = game.createTask(sR.structure, sR.structure.tasks[sR.taskSlot], 1, 'worker.tick()->pick location->craft fixed item');
                         w.tasks.unshift(newTask);
                         return;
                         // We will leave our current task still without a target location, but that should be remedied once this task is resumed
@@ -137,7 +159,7 @@ export function createWorker(pack) {
 
                     w.tasks[0].targetx = outcome.tile.x;
                     w.tasks[0].targety = outcome.tile.y;
-                    console.log('Found target for '+ w.tasks[0].task.name +' at '+ outcome.tile.x +','+ outcome.tile.y);
+                    //console.log('Found target for '+ w.tasks[0].task.name +' at '+ outcome.tile.x +','+ outcome.tile.y);
                 }
             }
 
@@ -180,9 +202,9 @@ export function createWorker(pack) {
                                 // All we need to hold on to is the slot ID
                                 if(itemNameToUse!=='') {
                                     w.tasks[0].recipeChoices[group] = w.tasks[0].task.itemsNeeded[group].options.findIndex(r=>r.name===itemNameToUse);
-                                    console.log('Slot '+ group +' already tagged');
+                                    //console.log('Slot '+ group +' already tagged');
                                 }else{
-                                    console.log('Seeking new target item for slot '+ group +' - was the target item deleted?');
+                                    //console.log('Seeking new target item for slot '+ group +' - was the target item deleted?');
                                     let tile = game.tiles.find(t=>t.x===w.tasks[0].targetx && t.y===w.tasks[0].targety);
                                     let items = tile.items.map(i=>i.name);
                                     w.tasks[0].recipeChoices[group] = w.tasks[0].task.itemsNeeded[group].options.findIndex(r=>items.includes(r.name));
@@ -191,7 +213,7 @@ export function createWorker(pack) {
                                 optionChoices = [];
                                 for(let choice=0; choice<w.tasks[0].task.itemsNeeded[group].options.length; choice++) {
                                     let targetItemName = w.tasks[0].task.itemsNeeded[group].options[choice].name;
-                                    console.log('Working slot '+ group +', item '+ targetItemName);
+                                    //console.log('Working slot '+ group +', item '+ targetItemName);
 
                                     // Go ahead and build a working group
                                     let build = { groupId: group, optionId:choice, hasAllItems:false, items:[]};
@@ -207,9 +229,9 @@ export function createWorker(pack) {
                                         if(searchOutcome.result==='fail') {
                                             // We didn't find this item in any tile
                                             working = false;
-                                            console.log('Could not find any more of item '+ targetItemName);
+                                            //console.log('Could not find any more of item '+ targetItemName);
                                         }else{
-                                            console.log('Found '+ targetItemName +' at relative location ['+ (searchOutcome.tile.x-w.tasks[0].targetx) +','+ (searchOutcome.tile.y-w.tasks[0].targety) +']');
+                                            //console.log('Found '+ targetItemName +' at relative location ['+ (searchOutcome.tile.x-w.tasks[0].targetx) +','+ (searchOutcome.tile.y-w.tasks[0].targety) +']');
                                             build.items.push({
                                                 item:foundItem,
                                                 distance:searchOutcome.path.length,
@@ -240,18 +262,16 @@ export function createWorker(pack) {
                                     }, null);
                                 }
 
-                                // Before dropping this list, remove the inTask value from all items tagged this way
+                                // Before dropping this list, remove the inTask value from all items tagged this way. Including any items
+                                // we use for our selected recipe - this step is ONLY to select the recipe
                                 for(let i=0; i<optionChoices.length; i++) {
                                     for(let j=0; j<optionChoices[i].items.length; j++) {
-                                        //if(j!==valid.choice) {
-                                            optionChoices[i].items[j].item.inTask = 0;
-                                            console.log('Clearing inTask for '+ optionChoices[i].items[j].item.name);
-                                        //}
+                                        optionChoices[i].items[j].item.inTask = 0;
                                     }
                                 }
                             
                                 w.tasks[0].recipeChoices[group] = valid.optionId;
-                                console.log('Chose slot '+ valid.optionId +' out of ['+ w.tasks[0].task.itemsNeeded[group].options.map(u=>u.name).join(',') +']');
+                                //console.log('Chose slot '+ valid.optionId +' out of ['+ w.tasks[0].task.itemsNeeded[group].options.map(u=>u.name).join(',') +']');
                             }
                         }
                     }
@@ -263,22 +283,20 @@ export function createWorker(pack) {
                 for(let i=0; i<w.tasks[0].task.itemsNeeded.length; i++) {
                     // Here, the item we need to locate is w.tasks[0].task.itemsNeeded[i].choices[w.tasks[0].recipeChoices[i]].name
                     let choice = w.tasks[0].task.itemsNeeded[i].options[w.tasks[0].recipeChoices[i]];
+                    // When a tool breaks, this code will trigger needing another one
                     let onHand = w.tasks[0].itemsTagged.filter(item=>{
                         return item.name === choice.name;
                     }).length;
-                    //if(w.tasks[0].itemsTagged.filter(item=>{
-                    //    return item.name === choice.name;
-                    //}).length < choice.qty) {
                     if(onHand < choice.qty) {
-                        console.log('Need more '+ choice.name +' (have '+ onHand +', need '+ choice.qty +')');
+                        //console.log('Need more '+ choice.name +' (have '+ onHand +', need '+ choice.qty +')');
                         // We don't have enough tagged items. Before making a task to produce more, see if there are more we can find.
                         // This will count as this worker's 'turn' / tick
                         let slot = -1;
                         let outcome = game.pathTo(w.tasks[0].targetx, w.tasks[0].targety, tile=>{
                             let s = tile.items.findIndex(i=>{
-                                if(i.name===choice.name && choice.name==='Flint Knife') {
-                                    console.log('Got Flint Knife with inTask of '+ i.inTask +' at relative ['+ (tile.x-w.tasks[0].targetx) +','+ (tile.y-w.tasks[0].targety) +']');
-                                }
+                                //if(i.name===choice.name && choice.name==='Flint Knife') {
+                                //    console.log('Got Flint Knife with inTask of '+ i.inTask +' at relative ['+ (tile.x-w.tasks[0].targetx) +','+ (tile.y-w.tasks[0].targety) +']');
+                                //}
                                 return i.inTask===0 && i.name===choice.name;
                             });
                             if(s===-1) return false;
@@ -287,7 +305,7 @@ export function createWorker(pack) {
                         });
                         if(outcome.result==='success') {
                             // Wait - we found a hit! Tag this item. This will still result in the end of our 'turn'
-                            console.log('Found '+ choice.name +' at relative ['+ (outcome.tile.x-w.x) +','+ (outcome.tile.y-w.y) +'] after '+ outcome.tilesScanned +' tiles');
+                            //console.log('Found '+ choice.name +' at relative ['+ (outcome.tile.x-w.x) +','+ (outcome.tile.y-w.y) +'] after '+ outcome.tilesScanned +' tiles');
                             w.tasks[0].itemsTagged.push(outcome.tile.items[slot]);
                             outcome.tile.items[slot].inTask = w.tasks[0].id;
                             return;
@@ -305,7 +323,7 @@ export function createWorker(pack) {
                             }
                             return;
                         }
-                        let newTask = game.createTask(outcome.structure, outcome.structure.tasks[outcome.taskSlot]);
+                        let newTask = game.createTask(outcome.structure, outcome.structure.tasks[outcome.taskSlot], 1, 'worker.tick()->gather items->craft missing items');;
                         w.tasks.unshift(newTask);
                         newTask.worker = w;
                         return;
@@ -370,7 +388,6 @@ export function createWorker(pack) {
                     // If we found all items in the above list, we are ready to actually complete our task!
                 }
                 if(newTaskList.length>0) {
-                    //console.log('We created '+ newTaskList.length +' new moveItem tasks');
                     w.tasks = [...newTaskList, ...w.tasks];
                     console.log(w.tasks);
                     return;
@@ -386,6 +403,39 @@ export function createWorker(pack) {
 
                         // Allow tools to wear out and break. We have the recipeChoices array, we need to drain the endurance of any
                         // items marked as tools
+                        let toolTile = game.tiles.find(t=>t.x===w.x && t.y===w.y);
+                        for(let u=0; u<w.tasks[0].task.itemsNeeded.length; u++) {
+                            if(w.tasks[0].task.itemsNeeded[u].role!=='tool') continue;
+                            let choice = w.tasks[0].recipeChoices[u];
+                            //console.log(choice);
+                            let toolName = w.tasks[0].task.itemsNeeded[u].options[w.tasks[0].recipeChoices[u]].name;
+                            let slot = toolTile.items.findIndex(i=>i.name===toolName && i.inTask===w.tasks[0].id);
+                            // I don't know what we'll do when we need more than one of the same tool for a job!
+                            toolTile.items[slot].endurance--;
+                            if(toolTile.items[slot].endurance<=0) {
+                                // This tool has broken. It needs to be deleted now
+                                // Find the item in the itemsTagged list, and remove it
+                                let tagSlot = w.tasks[0].itemsTagged.findIndex(y=>y===toolTile.items[slot]);
+                                if(tagSlot===-1) {
+                                    console.log('Error on tool break: target tool not found in task.itemsTagged. Finding another way...');
+                                    tagSlot = w.tasks[0].itemsTagged.findIndex(y=>y.name===toolTile.items[slot].name && y.inTask===toolTile.items[slot].inTask);
+                                    if(tagSlot===-1) {
+                                        console.log('Error on tool break: still didnt find tool. Trying by name only');
+                                        tagSlot = w.tasks[0].itemsTagged.findIndex(y=>y.name===toolTile.items[slot].name);
+                                        if(tagSlot===-1) {
+                                            console.log('Error on tool break: still couldnt find tool by name only. Ignoring');
+                                        }else{
+                                            w.tasks[0].itemsTagged.splice(tagSlot,1);
+                                        }
+                                    }else{
+                                        w.tasks[0].itemsTagged.splice(tagSlot,1);
+                                    }
+                                }else{
+                                    w.tasks[0].itemsTagged.splice(tagSlot,1);
+                                }
+                                toolTile.items.splice(slot,1);
+                            }
+                        }
 
                         if(w.tasks[0].progress>=w.tasks[0].task.buildTime) {
                             // This task is now complete. Call the onComplete function
@@ -527,12 +577,12 @@ export function createWorker(pack) {
 
                         // With our updates completed, we still need to take our food item to the Forage Post. Create a new itemMove task,
                         // and delete this existing task
-                        console.log(foodName);
+                        //console.log(foodName);
                         let target = mile.items.find(i=>{
                             console.log(i.name);
                             return i.name===foodName;
                         });
-                        console.log(target);
+                        //console.log(target);
                         let newTask = game.createItemMoveTask(target, w.x,w.y, w.tasks[0].building.x, w.tasks[0].building.y);
                         game.deleteTask(w.tasks[0]);
                         w.tasks.unshift(newTask);

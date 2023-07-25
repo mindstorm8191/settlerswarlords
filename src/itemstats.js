@@ -54,6 +54,7 @@ export const itemStats = [
     {
         name: "Apple",
         role: "food",
+        foodTime: 20 * 30, // 30 seconds is not a lot for an apple
         harvestTime: 20 * 2,
         lifespan: 20 * 90, // fruits won't survive long on their own
         conversion: "Rotten Fruit",
@@ -111,6 +112,7 @@ export const itemStats = [
     {
         name: "Broccoli",
         role: "food",
+        foodTime: 20 * 60,
         lifespan: 20 * 60 * 4,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -130,6 +132,7 @@ export const itemStats = [
     {
         name: "Carrot",
         role: "food",
+        foodTime: 20 * 90,
         lifespan: 20 * 60 * 8,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -157,6 +160,7 @@ export const itemStats = [
     {
         name: "Cherries",
         role: "food",
+        foodTime: 20 * 30,
         harvestTime: 20 * 8,
         lifespan: 20 * 90,
         conversion: "Rotten Fruit",
@@ -185,6 +189,7 @@ export const itemStats = [
     {
         name: "Cooked Boar Meat",
         role: "food",
+        foodTime: 20 * 60 * 5,
         lifespan: 20 * 60 * 5,
         conversion: "Rotten Meat",
         conversionQty: 1,
@@ -194,6 +199,7 @@ export const itemStats = [
     {
         name: "Cooked Chicken Meat",
         role: "food",
+        foodTime: 20 * 60 * 5,
         lifespan: 20 * 60 * 5,
         conversion: "Rotten Meat",
         conversionQty: 1,
@@ -202,6 +208,7 @@ export const itemStats = [
     },
     {
         name: "Cooked Deer Meat",
+        foodTime: 20 * 60 * 5,
         role: "food",
         lifespan: 20 * 60 * 5,
         conversion: "Rotten Meat",
@@ -211,6 +218,7 @@ export const itemStats = [
     },
     {
         name: "Cooked Wolf Meat",
+        foodTime: 20 * 60 * 5,
         role: "food",
         lifespan: 20 * 60 * 5,
         conversion: "Rotten Meat",
@@ -220,6 +228,7 @@ export const itemStats = [
     },
     {
         name: "Corn Cob",
+        foodTime: 20 * 50,
         role: "food",
         lifespan: 20 * 60 * 10,
         conversion: "Rotten Plant",
@@ -304,7 +313,7 @@ export const itemStats = [
     {
         name: "Flint Scythe",
         role: "tool",
-        baseEndurance: 20 * 60,
+        baseEndurance: 20 * 60 * 3,
         baseEfficiency: 1,
         img: "flintscythe.png",
         desc: "Flint blade for cutting grasses",
@@ -312,7 +321,7 @@ export const itemStats = [
     {
         name: "Flint Shovel",
         role: "tool",
-        baseEndurance: 20 * 60 * 2,
+        baseEndurance: 20 * 60 * 3,
         baseEfficiency: 1,
         img: "flintshovel.png",
         desc: "Flint shaped into a shovel blade. Good for moving dirt",
@@ -408,6 +417,7 @@ export const itemStats = [
     {
         name: "Orange",
         role: "food",
+        foodTime: 20 * 30,
         lifespan: 20 * 60 * 6,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -442,6 +452,7 @@ export const itemStats = [
     {
         name: "Pear",
         role: "food",
+        foodTime: 20 * 30,
         lifespan: 20 * 60 * 5,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -468,6 +479,7 @@ export const itemStats = [
     {
         name: "Potato",
         role: "food",
+        foodTime: 20 * 60 * 2.5,
         lifespan: 20 * 60 * 7, // potatoes last a good long time
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -487,6 +499,7 @@ export const itemStats = [
     {
         name: "Pumpkin",
         role: "food",
+        foodTime: 20 * 90,
         lifespan: 20 * 60 * 8,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -574,6 +587,7 @@ export const itemStats = [
     {
         name: "Tomato",
         role: "food",
+        foodTime: 20 * 30,
         lifespan: 20 * 60 * 4,
         conversion: "Rotten Plant",
         conversionQty: 1,
@@ -593,6 +607,7 @@ export const itemStats = [
     {
         name: "Turnip",
         role: "food",
+        foodTime: 20 * 60,
         lifespan: 20 * 60 * 8,
         conversion: "Rotten Plant",
         conversionQty: 1,

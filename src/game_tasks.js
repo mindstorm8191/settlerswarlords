@@ -13,11 +13,11 @@ export const gameTasks = {
         return game.lastTaskId;
     },
 
-    createTask: (building, task, quantity = 1) => {
+    createTask: (building, task, quantity, codeSource) => {
         // Generates a new task, assigning it to the game object and to the respective building.
         //  building - what building this task is associated with
         //  task - class details to generate a task instance from
-        //  quantity - how many of this item to make. Not all tasks use a quantity amount, it will be ignored for those tasks
+        //  quantity - how many of this item to make. Not all tasks use a quantity amount, it will be ignored for those tasks. Defaults to 1
 
         // All tasks start without a worker assigned to it; it will be assigned later
         //console.log(task);
@@ -29,6 +29,8 @@ export const gameTasks = {
             targetx = building.x;
             targety = building.y;
         }
+
+        if (building.name === "Forage Post") console.log("Creating task " + task.name + " from " + codeSource);
 
         let newtask = {
             id: game.getNextTaskId(),
@@ -100,7 +102,7 @@ export const gameTasks = {
 
         // Start with removing the task from all tagged items. Fortunately the task has a direct link to the related items, so we can
         // just run through its list.
-        console.log("This task has " + task.itemsTagged.length + " items to de-tag (id=" + task.id + ")", task.itemsTagged);
+        //console.log("This task has " + task.itemsTagged.length + " items to de-tag (id=" + task.id + ")", task.itemsTagged);
         for (let i = 0; i < task.itemsTagged.length; i++) {
             if (task.itemsTagged[i] !== null) {
                 if (task.itemsTagged[i].inTask === task.id) {

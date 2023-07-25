@@ -428,25 +428,48 @@ function ListItems(props) {
         if(slot===-1) {
             // Show a picture with this item too, if we have one
             let stats = itemStats.find(stat=>stat.name===props.items[i].name);
-            if(typeof(stats)!=='undefined' && stats.img!=='') {
-                list.push({name: props.items[i].name, qty: 1, img:stats.img, desc:stats.desc, inTask:props.items[i].inTask});
-            }else{
-                list.push({name: props.items[i].name, qty: 1, img:'unknown.png', desc:'This item needs a description', inTask:props.items[i].inTask});
+            let maker = {name: props.items[i].name, qty: 1, img:'unknown.png', desc:'This item needs a description', inTask:props.items[i].inTask};
+            if(typeof(stats)!=='undefined') {
+                maker.desc = stats.desc;
+                if(stats.img!=='') maker.img = stats.img;
+                if(stats.role==='tool' && typeof(stats.baseEndurance)!=='undefined') {
+                    maker.maxEndurance = stats.baseEndurance;
+                    maker.endurance = props.items[i].endurance;
+                }
             }
+            list.push(maker);
         }else{
             list[slot].qty++;
             list[slot].inTask += props.items[i].inTask;
+            // The inTask portion is really only for debugging
+            if(typeof(props.items[i].endurance)!=='undefined') list[slot].endurance += props.items[i].endurance;
+            // we will multiply the maxEndurance by the quantity of items here
         }
     }
 
     return (
         <div style={props.style}>
-            {list.map((item,key)=>(
-                <p className="singleline" key={key} title={item.desc}>
-                    <img src={imageURL +"items/"+ item.img} alt={item.name} />
-                    {item.name} x{item.qty}, {item.inTask}
-                </p>
-            ))}
+            {list.map((item,key)=>{
+                if(typeof(item.endurance)!=='undefined') {
+                    return (
+                        <div key={key} style={{display:'flex'}}>
+                            <div>
+                                <img src={imageURL +"items/"+ item.img} alt={item.name} />
+                                <div style={{width:(parseFloat(item.endurance)/(item.maxEndurance*item.qty))*20, height:2, backgroundColor:'red'}} />
+                            </div>
+                            <div style={{height:'100%', justifyContent:'center'}}>
+                                {item.name} x{item.qty}, {item.inTask}
+                            </div>
+                        </div>
+                    );
+                }
+                return (
+                    <p className="singleline" key={key} title={item.desc}>
+                        <img src={imageURL +"items/"+ item.img} alt={item.name} />
+                        {item.name} x{item.qty}, {item.inTask}
+                    </p>
+                );
+            })}
         </div>
     );
 }

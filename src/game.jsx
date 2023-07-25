@@ -489,7 +489,7 @@ export const game = {
                 }
             }
         }
-        console.log('clearOldTasks corrected '+ count +' items');
+        //console.log('clearOldTasks corrected '+ count +' items');
     },
 
     ...gameTasks

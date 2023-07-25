@@ -1,6 +1,6 @@
 # Settlers and Warlords
 
-This game is a blend of an Idle game, a factory-builder and an MMO game. It is a conceptual expansion of a previous project of mine, DanIdle, accounting for land expansion, travel limitations, and managing neighboring civilizations (some hostile). Players will be encouraged to trade & negotiate with each other, instead of using all-out war for dominance. MMO player strength will be limited by challenges of holding large amounts of land.
+This game is a blend of a factory-builder game and an MMO game. It is a conceptual expansion of a previous project of mine, DanIdle, accounting for land expansion, travel limitations, and managing neighboring civilizations (some hostile). Players will be encouraged to trade & negotiate with each other, instead of using all-out war for dominance. MMO player strength will be limited by the challenges of holding large amounts of land.
 
 ![Game Map](img/homepage_gameshot.png)
 

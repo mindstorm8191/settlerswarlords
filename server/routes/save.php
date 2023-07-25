@@ -38,7 +38,8 @@
             ['name'=>'moveCounter', 'required'=>true, 'format'=>'float'],
             ['name'=>'tasks',       'required'=>true, 'format'=>'arrayOfInts'],
             ['name'=>'carrying',    'required'=>true, 'format'=>'array'],
-            ['name'=>'walkPath',    'required'=>true, 'format'=>'string']
+            ['name'=>'walkPath',    'required'=>true, 'format'=>'string'],
+            ['name'=>'foodTimer',   'required'=>true, 'format'=>'posint']
         ], 'server/routes/save.php->verify workers base');
         //JSEvery($wk['carrying'], function($items)) erm, we're not ready to manage items yet
     });
@@ -98,6 +99,7 @@
                 ]), 'server/routes/save.php->verify structures->Campfire');
             break;
 
+            case 'Forage Post':  // Despite managing food for workers, the structure of this isn't complicated
             case 'Rock Knapper':
             case 'Loggers Post':
             case 'Rope Maker':

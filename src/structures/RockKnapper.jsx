@@ -102,7 +102,7 @@ export function RockKnapper() {
                                 return;
                             }
                             tile.items.splice(slot,1);
-                            tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:1, endurance:20*60*5}));
+                            tile.items.push(game.createItem('Flint Hatchet', 'tool', {efficiency:1, endurance:20*60*3}));
                             tile.modified = true;
                         }
                     },{
@@ -126,7 +126,7 @@ export function RockKnapper() {
                             slot = tile.items.findIndex(i=>i.name==='Long Stick');
                             if(slot===-1) { console.log('Error: Could not find Long Stick at building. Small Rope has already been deleted'); }
                             tile.items.splice(slot, 1);
-                            tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*5}));
+                            tile.items.push(game.createItem('Flint Shovel', 'tool', {efficiency:1, endurance:20*60*3}));
                             tile.modified = true;
                         }
                     },{
@@ -171,7 +171,7 @@ export function RockKnapper() {
                             let tile = game.tiles.find(t=>t.x===b.x && t.y===b.y);
                             game.clearItems(tile, [{name: 'Long Stick', qty:1}, {name: 'Short Stick', qty:1}, {name:'Small Rope', qty:2}],
                                             'src/structures/RockKnapper.jsx->task Craft Flint Scythe');
-                            tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*8})); // 8 minutes
+                            tile.items.push(game.createItem('Flint Scythe', 'tool', {efficiency:1, endurance:20*60*3})); // 3 minutes
                             tile.modified = true;
                         }
                     },{

@@ -23,7 +23,8 @@
 
 Later objectives
 
-1.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
+1.  Update player movement. When players are moving diagonally, reduce movement a little bit in both directions so that diagonal movements are 1 speed, not 1.44 speed
+2.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
 
 Tasks complete (because it helps to see what you've already accomplished)
 

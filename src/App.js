@@ -98,6 +98,7 @@ function App() {
         });
         setMapTiles(tiles);
 
+        game.setup(setPlayerData, location, pack.username);
         game.start();
 
         setPage("Game");

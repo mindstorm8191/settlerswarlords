@@ -14,6 +14,7 @@
     DanDBList("DELETE FROM sw_event;", '', [], 'resetgame.php->clear all events');
     DanDBList("DELETE FROM sw_globals;", '', [], 'resetgame.php->clear all globals');
     DanDBList("DELETE FROM sw_knownmap;", '', [], 'resetgame.php->clear all known map tiles');
+    DanDBList("DELETE FROM sw_mapchunk;", '', [], 'resetgame.php->clear all map chunks');
     DanDBList("DELETE FROM sw_map;", '', [], 'resetgame.php->clear all map tiles');
     DanDBList("DELETE FROM sw_minimap;", '', [], 'resetgame.php->clear all mini-map tiles');
     DanDBList("DELETE FROM sw_player;", '', [], 'resetgame.php->clear all players');

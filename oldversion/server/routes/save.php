@@ -23,7 +23,8 @@
         ['name'=>'structures',    'required'=>true, 'format'=>'array'],
         ['name'=>'tasks',         'required'=>true, 'format'=>'array'],
         ['name'=>'unlockeditems', 'required'=>true, 'format'=>'arrayOfStrings'],
-        ['name'=>'mapTick',       'required'=>true, 'format'=>'posint']
+        ['name'=>'mapTick',       'required'=>true, 'format'=>'posint'],
+        ['name'=>'tutorialState', 'required'=>true, 'format'=>'int']
     ], 'server/routes/save.php->verify input level 1');
 
     // An array doesn't really verify anything, so we need to verify the worker data details now
@@ -166,6 +167,10 @@
               [json_encode($con['workers']), json_encode($con['structures']), json_encode($con['tasks']),
               json_encode($con['unlockeditems']), $con['mapTick'], $player['currentx'], $player['currenty']],
               'routes/save.php->save map content');
+
+    // We also need to apply the tutorial state to the user's record
+    DanDBList("UPDATE sw_player SET tutorialState=? WHERE id=?", 'ii', [$con['tutorialState'], $player['id']],
+              'routes/saves.php->save tutorial state for player');
 
     // With that done, the server can go back to... wait, what does a server do when it's not doing work???
     die(json_encode(['result'=>'success']));

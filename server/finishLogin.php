@@ -1,43 +1,30 @@
 <?php
     /*  finishLogin.php
-        Handles generating a message to send to the user, containing all the data needed to display the local map
+        Manages sending a user response when a user signs up, logs in or is auto-logged in
         For the game Settlers & Warlords
     */
 
     // This file is included where it is called. It ends the script when done
     // parameters needed:
-    // $playerid - ID of the player to show data for
-    // $playername - Name of the player, as displayed to the user
-    // $playerx - X coordinate of where the player is at
-    // $playery - Y coordinate of where the player is at
-    // $ajaxcode - ajax code that is passed to the client
+    // playerid
+    // playername
+    // location
+    // ajaxcode
 
-    require_once("globals.php");
-
-    // We were including UG resource info here, but I think that shouldn't be shared with the client side until workers are able to begin mining
-    $worldTile = DanDBList("SELECT id,biome,population,name,structures,workers,unlockeditems,tasks,foodCounter,localmaptick FROM sw_map WHERE x=? AND y=?;",
-                           'ii', [$playerx, $playery], 'server/finishLogin.php->get world map data')[0];
-    $localTiles = DanDBList("SELECT x,y,landtype,originalland,items,structureid FROM sw_minimap WHERE mapid=? ORDER BY y,x;", 'i',
-                            [$worldTile['id']], 'server/finishLogin.php->get local map tiles');
+    // Start by getting the map chunk that the player resides in - we at least need to provide them some surroundings when they spawn
+    $mapChunk = DanDBList("SELECT content FROM sw_mapchunk WHERE chunkx=0 AND chunky=0 AND chunkz=0;", '', [], 'server/routes/finishLogin.php->get map chunk')[0]['content'];
 
     die(json_encode([
         'result'=>'success',
         'userid'=>$playerid,
         'username'=>$playername,
         'userType'=>'player',
+        'location'=>$location,
         'ajaxcode'=>$ajaxcode,
+        //'localContent'=>json_decode(DanDBList("SELECT content FROM sw_mapchunk WHERE chunkx=0 AND chunky=0 AND chunkz=0;", '', [], 'server/routes/finishLogin.php->get map chunk')[0]['content'], 1)
         'localContent'=>[
-            'biome'=>$biomeData[$worldTile['biome']]['biome'],
-            'population'=>$worldTile['population']
-        ],
-        'localTiles'=>$localTiles,
-        'structures'=> json_decode($worldTile['structures'], true),
-        'workers'=> json_decode($worldTile['workers'], true),
-        'tasks'=> json_decode($worldTile['tasks'], true),
-        'unlockedItems'=> json_decode($worldTile['unlockeditems'], true),
-        'localmaptick'=>$worldTile['localmaptick']
+            'chunkcoords'=>[0,0,0],
+            'tiles'=>json_decode($mapChunk, 1)
+        ]
     ]));
-    // I think there are more variables to pass to the client, but they haven't been created yet!
 ?>
-
-

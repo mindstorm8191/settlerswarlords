@@ -39,6 +39,16 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 2.  Iron can be smelted directly from its ore, but will give Pig Iron. This will contain a lot of carbon and silicon impurities.
 3.  Pig Iron can be heated and hammered more to produce Wrought Iron. This may be a lengthy process.
 
+### Vacuum tube production
+
+1.  The wire setup is created and a glass 'dome' aka tube is made. Crafting these parts is straight-forward
+2.  A glass pipe is inserted into the tube and the tube is sealed, still full of air with the tube sticking out
+3.  The pipe is put onto a vacuum system to suck out as much air as possible
+4.  While sealed, the pipe is heated and that seals the tube
+5.  An iodizer inside the tube (such as clean copper) is then heated by way of induction. Oxidization collects the remaining gas atoms inside the tube, achieving a complete vacuum
+
+-   We don't have to know fully how the vacuum system works
+
 ### Foliage regrowth
 
 This one is a little different, as it's not directly controlled by the player

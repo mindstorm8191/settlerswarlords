@@ -85,7 +85,7 @@ export function AccountBox(props) {
         <div id="loginblock" >
             {isLoggedIn?(
                 <div>
-                    <p>Hello, {props.user}!</p>
+                    <p>Hello, {props.user.name}!</p>
                     <br />
                     <input type="button" value="Logout" onClick={handleLogout} />
                 </div>

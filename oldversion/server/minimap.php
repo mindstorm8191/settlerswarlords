@@ -166,25 +166,25 @@
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'cherry': // We will treat cherries as unit piles, not individual items. Also, fruit trees are too small to produce fallen logs
-                        $a = rand(5,10);
+                        $a = rand(3,6);
                         $wide['items'] = [['name'=>'Cherry Tree', 'amount'=>$a], ['name'=>'Cherries', 'amount'=>$a*rand(2,3)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'apple':
-                        $a = rand(5,10);
+                        $a = rand(2,6);
                         $wide['items'] = [['name'=>'Apple Tree', 'amount'=>$a], ['name'=>'Apple', 'amount'=>$a*rand(4,6)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'pear':
-                        $a = rand(4,8);
+                        $a = rand(3,7);
                         $wide['items'] = [['name'=>'Pear Tree', 'amount'=>$a], ['name'=>'Pear', 'amount'=>$a*rand(3,4)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
                     break;
                     case 'orange':
-                        $a = rand(5,12);
+                        $a = rand(2,5);
                         $wide['items'] = [['name'=>'Orange Tree', 'amount'=>$a], ['name'=>'Orange', 'amount'=>$a*rand(4,5)]];
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Branch', 'amount'=>rand(3,9)]);
                         if(rand(0,3)>0) array_push($wide['items'], ['name'=>'Fallen Stick', 'amount'=>rand(6,20)]);
@@ -248,6 +248,15 @@
                     // I don't know what else to fill the rest of the tiles with, so we'll just use blank item lists
                     default: $wide['items'] = []; break;
                 }
+                // To manage vegetation regrowth, the vegetation should eventually reach this level again
+                $wide['regrowth'] = [
+                    'nextUpdate'=>0,
+                    'mode'=>'none',
+                    'matchLevel'=>$wide['items'],
+                    'walkdamage'=>0
+                    // walk damage must be corrected before vegetation can keep regrowing
+                ];
+
                 return $wide;
             }, $long);
         }, $localTiles);
@@ -275,10 +284,11 @@
         // Now to save our content. A 41x41 list of tiles is a lot, so it's better if we do this in batches, like the world map
         foreach($localTiles as $long) {
             $adds = implode(',', array_map(function($tile) use ($worldTile) {
-                return '('. $worldTile['id'] .','. $tile['x'] .','. $tile['y'] .','. $tile['landType'] .",". $tile['landType'] .",'". json_encode($tile['items']) ."')";
+                return '('. $worldTile['id'] .','. $tile['x'] .','. $tile['y'] .','. $tile['landType'] .",". $tile['landType'] .",'".
+                    json_encode($tile['items']) ."','". json_encode($tile['regrowth']) ."')";
             }, $long));
 
-            $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, landtype, originalland, items) VALUES ". $adds .";");
+            $result = $db->query("INSERT INTO sw_minimap (mapid, x, y, landtype, originalland, items, regrowth) VALUES ". $adds .";");
             if(!$result) {
                 reporterror('server/minimap.php->ensureMinimap()->save content', 'Local Map save failed. Content='. $adds .', error='. $db->error);
                 ajaxreject('internal', 'There was an error when saving the local map');

@@ -5,8 +5,6 @@
         For the game Settlers & Warlords
     */
 
-    include_once('libs/common.php');
-
     // Start by managing CORS. All that is necessary is to permit certain sources to be used. This will be passed back in the client's
     // response, so the browser can accept it.
     if($_SERVER['HTTP_ORIGIN']=="http://localhost:3000") header('Access-Control-Allow-Origin: http://localhost:3000');

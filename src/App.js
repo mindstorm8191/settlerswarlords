@@ -1,101 +1,48 @@
 /*  Settlers & Warlords
-    An MMO slash idle game focused on development instead of all-out war
+    An MMO slash factory game focused on development instead of all-out war
 */
 
-/*
-    Rock Types
-    Intrusive Igneous - Comes from lava, cools slowly, originally cooling deep underground
-    Extrusive Igneous - Comes from lava, cools rapidly. May form smooth or jagged glass surfaces
-    Sedimentary - Produced from sand and dusts smashed together
-    Metamorphic - Comes from many rocks that are heated and crushed deep underground
+//...Brooks hospital room327
 
-    Copper refining methods
-    Froth Flotation (most commonly used)
-        Crush ore into fine powder
-        Mix with water & chemicals to create a fine slurry
-        Blow air into the slurry to create bubbles. The copper attaches to the bubbles and floats to the surface.
-        Skim off the top froth and allow to dry
-    Electrorefining (purify already-extracted copper)
-        Electrolysis; use pure copper on cathode, impure copper on anode. With current, impurities from anode plate onto the cathode
-    Bioleaching: bacteria produces acids that dissolve the copper
-
-    Zinc Sulfide: The secret to glow in the dark toys https://www.acs.org/molecule-of-the-week/archive/z/zinc-sulfide.html
-
-    Known bugs (with work-arounds)
-    1)  Whenever a task gets completed, if the building with that task is selected, React will still attempt to render that task from
-        the task list, despite the fact that it doesn't exist anymore. I have added a check within the loop to check if the task is
-        defined or not; it will display 'none' as the task, if so.
-    
-    buy a home @ $150K
-    spend $30K to convert into two homes
-    sell each for $100K
-    profit = $20K
-    maximum RTI is 6 months... does not acount for problems popping up
-
-
-*/
-
-// Lines count
-// src/app.js                           src/game_tasks.js                       src/structures/ClayFlormer.jsx          server/routes/autologin.php          server/routes/login.php              README.md                        notes/monetizationstrategies.md
-//     src/app.css                          src/worker.jsx                         src/structures/FarmersPost.jsx          server/config.php                    server/routes/logout.php             notes/techtree.md                notes/tasklist.md
-//        src/libs/DanCarousel.jsx              src/minimapTiles.jsx                   src/structures/HayDryer.jsx           server/libs/common.php                server/routes/save.php               notes/automationtree.md
-//            src/libs/ShowBlog.jsx                src/foodOptions.js                      src/structures/OpenDryer.jsx          server/libs/jsarray.php               server/routes/savetiles.php         notes/wartree.md
-//               src/libs/DanAjax.js                   src/structures/LeanTo.jsx              src/structures/HuntersPost.jsx         server/events.php                    server/routes/sendunits.php         notes/worldgen.md
-//                  src/libs/DanLog.js                    src/structures/ForagePost.jsx          src/structures/ButcherShop.jsx          server/getInput.php                 server/routes/signup.php            notes/worldhistory.md
-//                     src/Account.jsx                       src/structures/RockKnapper.jsx          src/structures/CampFire.jsx            server/finishLogin.php               server/libs/DanGlobal.php          notes/magicsystem.md
-//                         src/libs/DanInput.jsx                 src/structures/LoggersPost.jsx          src/structures/SewingShop.jsx         server/globals.php                   server/libs/clustermap.php         notes/undergroundbiomes.md
-//                            src/libs/DanCommon.js                  src/structures/RopeMaker.jsx           src/LocalMap.jsx                       server/libs/weightedRandom.php       server/minimap.php                notes/workercrafting.md
-//                               src/libs/ErrorOverlay.jsx              src/structures/DirtSource.jsx           src/libs/DraggableMap.jsx              server/routes/getblog.php            server/routes/worldmap.php       notes/futureprocesses.md
-//                                  src/game.jsx                            src/structures/WaterSource.jsx          src/WorldMap.jsx                      server/routes/log.php                resetgame.php                    notes/influences.md
-// 390+58+114+96+48+38+231+65+83+68+470+163+693+72+140+98+63+207+260+66+100+137+72+149+243+86+82+117+406+85+514+197+254+38+8+307+230+233+33+41+299+127+40+36+45+36+169+80+95+351+37+141+288+42+22+54+58+22+32+67+13+11+28+11+65+60+25+28
-// 3/16/23: 3397 lines
-// 3/23/23: 3998 lines
-// 3/30/23: 4030 lines
-// 4/24/23: 5427 lines
-// 5/07/23: 5644 lines
-// 6/01/23: 6180 lines
-// 6/10/23: 6667 lines
-// 6/17/23: 7105 lines
-// 6/24/23: 7528 lines
-// 7/01/23: 8018 lines
-// 7/14/23: 8835 lines
-
-import "./App.css";
 import React from "react";
+import "./App.css";
 
+import { DAX } from "./libs/DanAjax.js";
 import { DanCarousel } from "./libs/DanCarousel.jsx";
 import { ShowBlog } from "./libs/ShowBlog.jsx";
-import { DAX } from "./libs/DanAjax.js";
-import { DanLog } from "./libs/DanLog.js";
 
 import { AccountBox, RegisterForm } from "./Account.jsx";
-import { game } from "./game.jsx";
 import { LocalMap } from "./LocalMap.jsx";
-import { WorldMap } from "./WorldMap.jsx";
+import { game } from "./game.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
-// These variables are important for the transition from dev mode to production mode. During development mode, the React front end behaves
-// on it's own server. Therefore the back end functions as an API. In production mode, the React front end is on the same server as the
-// back end, so file paths are relative to the React application
+
+const chunksLoaded = []; // A flat list of chunk coordinates that have been loaded. This is for debugging purposes, to see what areas are being loaded
+
+function findBottom(a) {
+    // Returns the bottom index of an array. array.length assumes all arrays start on 0, and counts up from there. Our map array will run negative and positive
+    let i = 0;
+    while (typeof a[i] !== "undefined") {
+        i--;
+        if (i < -1000000000) {
+            // 1 billion is far enough, I think
+            console.log("Searched to -1,000,000,000, still not done? Something's fishy, we'll stop here.");
+            return i;
+        }
+    }
+    return i + 1;
+}
 
 function App() {
     const [page, setPage] = React.useState("HomePage");
-    const [userData, setUserData] = React.useState(null);
-    const [loginError, setLoginError] = React.useState("");
-    const [localTiles, setLocalTiles] = React.useState([]); // Holds all data about local tiles
-    const [worldMap, setWorldMap] = React.useState([]); // holds data about the world map
-    const [worldCoords, setWorldCoords] = React.useState({}); // Where on the world map the player is. This isn't shown directly to the player, but
-    // is needed to mark where the player is on the world map
-    const [mobileMode, setMobileMode] = React.useState(window.innerWidth >= 900 ? false : true);
-
-    const [localWorkers, setLocalWorkers] = React.useState([]);
+    const [playerData, setPlayerData] = React.useState(null);
+    const [mapTiles, setMapTiles] = React.useState([]);
+    const [loginError, setLoginError] = React.useState(""); // A simple message entry that is shared with Account
 
     // Manage startup processes, including auto-login
     React.useEffect(() => {
-        DanLog.setup(serverURL + "/routes/log.php");
-
-        if (typeof localStorage.getItem("userid") === "object") return; // Nothing is in localStorage right now; do nothing here
+        if (typeof localStorage.getItem("userid") === "object") return; // Nothing is currently in localStorage; do nothing here
         fetch(
             serverURL + "/routes/autologin.php",
             DAX.serverMessage({ userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") }, false)
@@ -107,202 +54,100 @@ function App() {
                     setLoginError(data.message);
                     return;
                 }
-                // From here, everything is handled the same as a normal login
                 onLogin(data);
             });
-
-        const handleResize = () => {
-            if (window.innerWidth <= 900) {
-                setMobileMode(true);
-                game.mobileModeEnabled = true;
-            } else {
-                setMobileMode(false);
-                game.mobileModeEnabled = false;
-            }
-            console.log("win-width: " + window.innerWidth + ", mode=" + game.mobileModeEnabled);
-        };
-        window.addEventListener("resize", handleResize);
-        return () => {
-            // This will remove the event listener when we're done with it... which I guess is when the app is closed.
-            // Which I guess isn't really necessary, but might as well leave it in
-            window.removeEventListener("resize", handleResize);
-        };
     }, []);
 
     function onLogin(pack) {
-        // Handles the response when a user logs in. The same response is received when a user first signs up
+        // Handles allowing the player to log in, and sending them to the game screen
 
-        if (pack === null) {
-            console.log("Logout successful!");
-            localStorage.clearItem("userid");
-            localStorage.clearItem("ajaxcode");
-            setPage("HomePage");
-            setUserData(null);
-            return;
-        }
-        console.log("Login successful!", pack);
+        //console.log(pack.location);
 
-        // Use localStorage to keep the user's ID & access code, so autoLogin can work
+        // Use the pack to set the player information
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        game.setup(pack, setLocalWorkers, setLocalTiles);
+        let location = JSON.parse(pack.location);
+        setPlayerData({
+            name: pack.username,
+            x: location[0],
+            y: location[1],
+            z: location[2],
+        });
 
-        setPage("LocalMap");
-        setUserData(pack.username);
+        // Our map chunks are sent in a compacted way, only providing its object type, not its location. We can determine its location based on where
+        // it is in this flat array. This will be limitedly helpful, and not ideal for combining with other chunks.
+        // We could add in the coordinates of each tile as we store the map, but then we are dealing with a flat list of tiles. Searching for any
+        // neighboring tiles will be horribly slow when dealing with a tile range of several hundred blocks.
+        // Instead, we will drop these tiles into a 3D array. This will allow us to pick out any tiles whenever we wish.
+        // This won't be ideal for displaying tiles, but we can filter down to the specific tiles we need easily enough.
+
+        let chunkLocation = pack.localContent.chunkcoords;
+        let tiles = [];
+        pack.localContent.tiles.forEach((t, i) => {
+            let x = i % 8;
+            let y = Math.floor(i / 8.0) % 8;
+            let z = Math.floor(i / 64.0);
+            if (typeof tiles[chunkLocation[0] * 8 + x] === "undefined") {
+                tiles[chunkLocation[0] * 8 + x] = [];
+            }
+            if (typeof tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y] === "undefined") {
+                tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y] = [];
+            }
+            tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y][chunkLocation[2] * 8 + z] = { show: t.t, health: t.h };
+        });
+        setMapTiles(tiles);
+
+        game.start();
+
+        setPage("Game");
     }
 
-    function onSave() {
-        // Manages saving the game to the server
-        // No return value
+    function addTiles(newChunkList) {
+        //function addTiles(oldTiles, newChunkList) {
+        // Allows new tiles to be added to the map.
+        // new ChunkList - data received from the server. It should be a list of chunk records, including chunk coordinates
+        // No return value. This will modify the tile map
 
-        // Normally we wouldn't provide a save button; the game would save regularly, like every minute. But we need to get content to save
-        // correctly first.
-
-        // Saving map tile data is more complex than the rest of the data, because there's so much of it. My first efforts to save the map
-        // took over 2 minutes to complete. We will solve this problem with multiple solutions
-        // 1) Only tiles modified will be saved to the database. This will take care of most issues right now, but may have limits in
-        //      late game activities
-        // 2) Tiles will be saved to the database in groups, currently at 50. This will prevent the server from getting overrun with
-        //      data to collect & save
-        // 3) The server will save all the tiles to the database in one call.
-
-        let sendTiles = game.tiles
-            .filter((t) => t.modified)
-            .map((t) => {
-                let u = { ...t };
-                // remove unneeded fields
-                delete u.modified;
-                delete u.image;
-                delete u.originalland; // we won't need to send this either, since it will never change
-
-                // items in tasks needs their task links converted to a task ID
-                u.items = u.items.map((i) => {
-                    if (i.inTask === 0) {
-                        return { ...i };
-                    }
-                    return { ...i, inTask: i.inTask };
-                });
-                return u;
-            });
-
-        // Set up a function to manage sending tiles, chunk at a time
-        function sendMoreTiles() {
-            let batch = sendTiles.splice(0, 50);
-            fetch(serverURL + "/routes/savetiles.php", DAX.serverMessage({ tiles: batch }, true))
-                .then((res) => DAX.manageResponseConversion(res))
-                .catch((err) => console.log(err))
-                .then((data) => {
-                    if (data.result !== "success") {
-                        console.log(data);
-                        return;
-                    }
-                    if (sendTiles.length === 0) {
-                        console.log("All done!");
-                        return;
-                    }
-                    sendMoreTiles();
-                });
+        // Normally, we would use the spread operator to create a copy of the array, so React treats it as a new object. But Spread doesn't
+        // account for negative index values, so it won't work with out map. We'll have to do this manually, instead
+        let tiles = [];
+        for (let x = findBottom(mapTiles); x < mapTiles.length; x++) {
+            tiles[x] = mapTiles[x];
         }
 
-        // Now we can send the actual save-game message. This manages everything except the tile content
-        let pack = {
-            workers: game.workers.map((w) => {
-                // All tasks attached to this worker must be converted to an id
-                // We must also avoid modifying the existing worker, so we will return a new object here
-                return { ...w, tasks: w.tasks.map((t) => t.id) };
-            }),
-            structures: game.structures.map((st) => {
-                return {
-                    id: st.id,
-                    name: st.name,
-                    x: st.x,
-                    y: st.y,
-                    activeTasks: st.activeTasks,
-                    //...st.onSave(),
-                    ...(typeof st.onSave !== "undefined" && st.onSave()),
-                };
-            }),
-            tasks: game.tasks.map((task) => {
-                console.log(task);
-                return {
-                    id: task.id,
-                    building: task.building === null ? 0 : task.building.id,
-                    name: task.task === null ? "none" : task.task.name,
-                    status: task.status,
-                    taskType: task.taskType,
-                    worker: task.worker === null ? 0 : typeof task.worker === "undefined" ? -1 : task.worker.id,
-                    targetx: task.targetx === null ? -1 : task.targetx,
-                    targety: task.targety === null ? -1 : task.targety,
-                    targetItem: task.targetItem, // used only in itemMove tasks
-                    recipeChoices: task.recipeChoices,
-                    quantity: task.quantity,
-                    itemsTagged: task.itemsTagged.map((item) => {
-                        // How do we find the same item from the same location?
-                        // The only valid solution is to store the item's location along with its name & other factors
-                        // That means we must first determine the location of this item; it could be with a worker, or on a tile
-                        // Start by searching the workers; that part will be faster
-                        let slot;
-                        let worker = game.workers.find((w) => {
-                            slot = w.carrying.findIndex((i) => i === item);
-                            return slot !== -1;
-                        });
-                        if (typeof worker !== "undefined") {
-                            // Got a hit on a worker
-                            return { place: "worker", id: worker.id, slot: slot };
-                        }
-                        // Now try the tiles
-                        let tile = game.tiles.find((t) => {
-                            slot = t.items.findIndex((i) => i === item);
-                            return slot !== -1;
-                        });
-                        if (typeof tile !== "undefined") {
-                            return { place: "tile", x: tile.x, y: tile.y, slot: slot };
-                        }
-                        // Didn't find it in workers, or tiles? Something is wrong
-                        console.log("Error in save(): could not locate item " + item.name + " anywhere");
-                        return { place: "lost" };
-                    }),
-                    progress: task.progress,
-                };
-            }),
-            unlockeditems: game.unlockedItems,
-            mapTick: game.mapTick,
-        };
-        //DanLog.add("src/App.js->onSave()->before first message", "load-save", { note: "ready to send:", ...pack });
-        fetch(serverURL + "/routes/save.php", DAX.serverMessage(pack, true))
-            .then((res) => DAX.manageResponseConversion(res))
-            .catch((err) => console.log(err))
-            .then((data) => {
-                if (data.result !== "success") {
-                    console.log(data);
-                    return;
+        console.log("Start: range from " + findBottom(tiles) + " to " + tiles.length);
+
+        // With the new chunks, start adding the tiles from each chunk
+        newChunkList.forEach((chunk) => {
+            // Each of these will still be in JSON format, so we will have to convert it
+            let chunkData = JSON.parse(chunk.content);
+            console.log(chunk.chunkx, chunk.chunky, chunk.chunkz);
+            chunkData.forEach((t, i) => {
+                let x = i % 8;
+                let y = Math.floor(i / 8.0) % 8;
+                let z = Math.floor(i / 64.0);
+                if (typeof tiles[chunk.chunkx * 8 + x] === "undefined") {
+                    tiles[chunk.chunkx * 8 + x] = [];
                 }
-                if (sendTiles.length === 0) {
-                    console.log("No tile data to send...");
-                    return;
+                if (typeof tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] === "undefined") {
+                    tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] = [];
                 }
-                sendMoreTiles();
+                tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y][chunk.chunkz * 8 + z] = { show: t.t, health: t.h };
             });
+        });
+        setMapTiles(tiles);
     }
 
     function PickPage() {
-        // Determines which page of content to display, based on what `page` is set to
+        // Determines which page of content should be displayed
+        // No parameters. This will read the page field of App() to determine what to display
+
         switch (page) {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
-            case "LocalMap":
-                return <LocalMap tiles={localTiles} workers={localWorkers} onSave={onSave} setPage={setPage} mobileMode={mobileMode} />;
-            case "WorldMap":
-                return (
-                    <WorldMap
-                        worldMap={worldMap}
-                        worldCoords={worldCoords}
-                        setWorldMap={setWorldMap}
-                        setWorldCoords={setWorldCoords}
-                        setPage={setPage}
-                    />
-                );
+            case "Game":
+                return <LocalMap mapTiles={mapTiles} changeMapTiles={addTiles} player={playerData} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }
@@ -311,8 +156,8 @@ function App() {
     return (
         <div className="body">
             <div style={{ backgroundImage: "url(" + imageURL + "banner.png)", backgroundRepeat: "repeat-x" }}>
+                <AccountBox user={playerData} onLogin={onLogin} errorText={loginError} setErrorText={setLoginError} />
                 <div id="titleblock">
-                    <AccountBox onLogin={onLogin} user={userData} errorText={loginError} setErrorText={setLoginError} />
                     <div id="titletext">
                         Settlers & <br />
                         Warlords
@@ -354,8 +199,8 @@ function HomePage(props) {
                 <DanCarousel style={{ maxWidth: 470 }} displayTime={8000} transitionTime={2000} showProgressBar={true}>
                     <>
                         <p>
-                            Settlers and Warlords is an online multiplayer game mixing Idle game concepts with Civilization-style strategy.
-                            Start from natural land with a few workers.
+                            Settlers and Warlords is an online multiplayer game mixing Factory-builder concepts with Civilization-style
+                            strategy. Start from natural land with a few workers.
                         </p>
                         <img src={imageURL + "homepage_basicland.png"} alt="basic land" />
                     </>

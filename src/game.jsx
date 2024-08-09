@@ -12,6 +12,16 @@ export const game = {
     playerDirections: {
         up:0,down:0,left:0,right:0
     },
+    playerUpdateFunc: null,
+    playerPos: [],
+    userName: '',
+
+    setup: (playerFunc, location, userName) => {
+        // Handles setting up various fields for the player's location to be updated
+        game.playerUpdateFunc = playerFunc;
+        game.playerPos = location;
+        game.userName = userName;
+    },
 
     start: ()=>{
         // A public function to get the game started, making the game ticks happen at regular intervals
@@ -26,6 +36,14 @@ export const game = {
         // Handles updating the world. This should run about once every 50 ticks, or 20 times a second
 
         if(game.runState===0) return; // Break the continuous cycle if the game should stop
+
+        //Manage player movement
+        if(game.playerDirections.up===1 && game.playerDirections.down!==1) game.playerPos[2]-=0.1; // move player up
+        if(game.playerDirections.down===1 && game.playerDirections.up!==1) game.playerPos[2]+=0.1; // move player down
+        if(game.playerDirections.left===1 && game.playerDirections.right!==1) game.playerPos[0]-=0.1; // move player left
+        if(game.playerDirections.right===1 && game.playerDirections.left!==1) game.playerPos[0]+=0.1; // move player right
+        if(game.playerUpdateFunc) game.playerUpdateFunc({name: game.userName, x:game.playerPos[0], y:game.playerPos[1], z:game.playerPos[2]});
+
 
         // Handle time management
         let newTime = new Date().valueOf();

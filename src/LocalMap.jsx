@@ -69,7 +69,7 @@ export function LocalMap(props) {
     const divRef = React.useRef();
     React.useEffect(()=>{
         // Manages updating the view screen of the game, to keep it with the player
-        console.log('reference:', divRef);
+        //console.log('reference:', divRef);
         if(divRef) {
             // we should be able to get the width of our viewing window via divRef.current.offsetWidth and divRef.current.offsetHeight
             // assuming a width of 1000 and a height of 600, the middle will be [500,300]
@@ -108,38 +108,23 @@ export function LocalMap(props) {
                 console.log("Type!", e);
                 // We want to allow the user to press both up & down, and for that to cancel each other out. When either key is released, the other key should
                 // continue to work. So we will need 4 inputs variables for this
-                //if(e.key==='w') 
+                if(e.key==='w') game.playerDirections.up = 1;
+                if(e.key==='s') game.playerDirections.down = 1;
+                if(e.key==='a') game.playerDirections.left = 1;
+                if(e.key==='d') game.playerDirections.right = 1;
             }}
             onKeyUp={(e) => {
-                console.log('Untype!', e);
+                if(e.key==='w') game.playerDirections.up = 0;
+                if(e.key==='s') game.playerDirections.down = 0;
+                if(e.key==='a') game.playerDirections.left = 0;
+                if(e.key==='d') game.playerDirections.right = 0;
             }}
             ref={divRef}
         >
             <div style={{position:'absolute', top:scrollSet[1], left:scrollSet[0]}} >
             {/*<div style={{position:'absolute', top:42*8, left:42*8}}>*/}
                 {showTiles.map((tile, key) => {
-                    if (tile.x === props.player.x && tile.y === props.player.y && tile.z === props.player.z) {
-                        // We have the player here. Show this tile in a different way
-                        return (
-                            <div
-                                style={{
-                                    display: "block",
-                                    position: "absolute",
-                                    left: tile.x * 42,
-                                    top: tile.z * 42,
-                                    width: 40,
-                                    height: 40,
-                                    backgroundImage: `url(${imageURL}localtiles/barleygrass.png)`,
-                                }}
-                                key={key}
-                                onKeyDown={(e) => {
-                                    console.log(e);
-                                }}
-                            >
-                                <img src={imageURL + "worker.png"} style={{ pointerEvents: "none", left:(props.player.x-Math.floor(props.player.x))*42, top:(props.player.z-Math.floor(props.player.z))*42 }} />
-                            </div>
-                        );
-                    }
+                    // We were showing the player here conditionally, but since the player can move freely, it doesn't work to render it inside tiles
                     return (
                         <div
                             style={{ display: "block", position: "absolute", left: tile.x * 42, top: tile.z * 42 }}
@@ -152,6 +137,9 @@ export function LocalMap(props) {
                         </div>
                     );
                 })}
+                
+                {/* With that done, place the player image on the map as well */}                
+                <img src={imageURL + "worker.png"} style={{display:'block', position:'absolute', pointerEvents:'none', left:props.player.x*42, top:props.player.z*42, zIndex:2}} />
             </div>
         </div>
     );

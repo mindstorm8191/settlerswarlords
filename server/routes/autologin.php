@@ -27,7 +27,7 @@
     // Now, set up to use the login script again
     $playerid = $player['id'];
     $playername = $player['name'];
-    $location = $player['location'];  // This is in a JSON string, but we can simply send it like that
+    $location = json_decode($player['location'], 1);
     $ajaxcode = $player['ajaxcode'];
     require_once("../finishLogin.php");
 ?>

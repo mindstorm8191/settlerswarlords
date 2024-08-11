@@ -20,15 +20,6 @@
         'userType'=>'player',
         'location'=>$location,
         'ajaxcode'=>$ajaxcode,
-        'localContent'=>loadChunk(
-            floor($location[0]/8.0),
-            floor($location[1]/8.0),
-            floor($location[2]/8.0))
-        //localContent will contain chunkx, chunky, chunkz, content
-        //'localContent'=>json_decode(DanDBList("SELECT content FROM sw_mapchunk WHERE chunkx=0 AND chunky=0 AND chunkz=0;", '', [], 'server/routes/finishLogin.php->get map chunk')[0]['content'], 1)
-//        'localContent'=>[
-  //          'chunkcoords'=>[0,0,0],
-    //        'tiles'=>json_decode($mapChunk, 1)
-      //  ]
+        'localContent'=>loadChunk(floor($location[0]/8.0), floor($location[1]/8.0), floor($location[2]/8.0))
     ]));
 ?>

@@ -1,25 +1,25 @@
 ## Task List for Settlers & Warlords
 
+1.  Update the map generation code to add floor type values. Characters should be able to walk around in tiles containing air and a not-air floor
 1.  Modify the client-side map loading code to gradually check larger and larger areas around the player. We want to load a lot of content, but focus on nearby portions first.
     -   Come up with a way to expand the search range by x and z values, not y.
     -   Figure out a way to load spaces that the player has built things on. Players will need their entire base areas to be fully running when they play
-2.  Keep thinking on how to enhance map generation
+1.  Keep thinking on how to enhance map generation
     -   We will probably need to generate biome content based on the chunk sizes we have now, and reference it as needed.
     -   This could be a two layer system. Large biomes affect tiles available in micro biomes.
     -   It'll be fine for now if micro biome sections come in 8x8 squares
     -   Work on placing unique forage on the tiles. Tile display will depend more on Flooring type than the whole block. We will need this as we unlock farming
     -   Along with tile forage values, we can consider adding bushes to the game, too
-3.  Get the player to start moving around with keyboard controls. Allow them to explore the world
-4.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
-5.  Add workers around the player. They'll be idle when the game begins
-6.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
-7.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
-8.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
-9.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
+1.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
+1.  Add workers around the player. They'll be idle when the game begins
+1.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
+1.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
+1.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
+1.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
     -   Pollution will rise only so high, but will spread out more than rise.
     -   We could have different properties to pollution, based on what is released into the air
     -   High pollution levels should slow plant growth, or kill it off if too high
-10. On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
+1.  On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
 
 Later objectives
 

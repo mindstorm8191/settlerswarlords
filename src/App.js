@@ -95,6 +95,7 @@ function App() {
             }
             tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y][pack.localContent.chunkz * 8 + z] = {
                 show: t.t,
+                floor: t.f,
                 health: t.h,
             };
         });
@@ -135,7 +136,7 @@ function App() {
                 if (typeof tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] === "undefined") {
                     tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] = [];
                 }
-                tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y][chunk.chunkz * 8 + z] = { show: t.t, health: t.h };
+                tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y][chunk.chunkz * 8 + z] = { show: t.t, floor: t.f, health: t.h };
             });
         });
         setMapTiles(tiles);

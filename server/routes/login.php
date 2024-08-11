@@ -37,7 +37,7 @@
     // We should be ready to finish the login process, but first, set the needed variables for the script
     $playerid = $player['id'];
     $playername = $player['name'];
-    $location = $player['location'];  // This is in a JSON string, but we can simply send it like that
+    $location = json_decode($player['location']);
     
     require_once("../finishLogin.php");
 ?>

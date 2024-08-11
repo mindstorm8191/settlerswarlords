@@ -32,7 +32,7 @@
     srand(time());
     $ajaxcode = rand(0, pow(2,31));
     $emailcode = rand(0, pow(2,31));
-    $location = json_encode([4,4,4]); // We are storing the player's location as JSON content, as we don't (normally) need to access it on the server side
+    $location = json_encode([4,4,6]); // We are storing the player's location as JSON content, as we don't (normally) need to access it on the server side
     // Note that positional data will be a floating point value, not an int.
     // We should be sending the user a verification email, but we don't have that option on Localhost
 
@@ -42,7 +42,10 @@
               ], 'server/routes/signup.php->add new player');
     $playerid = mysqli_insert_id($db);
     $playername = $con['username'];
-    
+
+    // Next, we need to generate a map tile for this player to be on. Fortunately, we have a function that can load content when players log in, and
+    // if no map chunk exists, one can be created on demand.
+    /*
     // Previously, this would be the time to check that the world exists, and generate it if not. But with 3D, we are handling map generation much differently.
     // For now, we need to make some land to 'put the player on'. We'll transfer this to its own function soon so we can generate more land using it
 
@@ -94,9 +97,11 @@
             }
         }
     }
+    
 
     // With our flat map we should be ready to save to the database
     DanDBList("INSERT INTO sw_mapchunk (chunkx,chunky,chunkz,content) VALUES (0,0,0,?);", 's', [json_encode($flatMap)], 'server/routes/signup.php->save map chunk');
+    */
 
     // That should be enough to complete our work here. To get the user to log in, we need to use the finishLogin script
     include_once("../finishLogin.php");

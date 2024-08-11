@@ -83,15 +83,111 @@ Additional biome types can be added as well; we may include mixed-class biomes, 
 -   Hot, wet, barren, blighted: Goblin territories
 -   Hot, wet, barren, normal: Steam-pitted scape
 -   Hot, wet, barren, enchanted: Magical fire towers
--   Hot, wet, normal, blighted: tainted lands
+-   Hot, wet, normal, blighted: tainted swamps
 -   Hot, wet, normal, normal: light jungle
 -   Hot, wet, normal, enchanted: Enchanted Jungle
 -   Hot, wet, lush, blighted: terribly tainted lands
--   Hot, wet, lush, normal: heavy jungle
--   Hot, wet, lush, enchanted:
+-   Hot, wet, lush, normal: Marshland
+-   Hot, wet, lush, enchanted: Temple of the Jungle
 -   Hot, damp, barren, blighted:
 -   Hot, damp, barren, normal:
 -   Hot, damp, barren, enchanted:
+-   Hot, damp, normal, blighted:
+-   Hot, damp, normal, normal:
+-   Hot, damp, normal, enchanted:
+-   Hot, damp, lush, blighted:
+-   Hot, damp, lush, normal:
+-   Hot, damp, lush, enchanted:
+-   Hot, half-dry, barren, blighted:
+-   Hot, half-dry, barren, normal:
+-   Hot, half-dry, barren, enchanted:
+-   Hot, half-dry, normal, blighted:
+-   Hot, half-dry, normal, normal: semi-desert
+-   Hot, half-dry, normal, enchanted:
+-   Hot, half-dry, lush, blighted:
+-   Hot, half-dry, lush, normal:
+-   Hot, half-dry, lush, enchanted:
+-   Hot, dry, barren, blighted: dangerous desert
+-   Hot, dry, barren, normal: dune-rich desert
+-   Hot, dry, barren, enchanted:
+-   Hot, dry, normal, blighted
+-   Hot, dry, normal, normal:
+-   Hot, dry, normal, enchanted:
+-   Hot, dry, lush, blighted:
+-   Hot, dry, lush, normal: Desert river
+-   Hot, dry, lush, enchanted: Oasis
+-   Medium, wet, barren, blighted:
+-   Medium, wet, barren, normal:
+-   Medium, wet, barren, enchanted:
+-   Medium, wet, normal, blighted:
+-   Medium, wet, normal, normal:
+-   Medium, wet, normal, enchanted:
+-   Medium, wet, lush, blighted:
+-   Medium, wet, lush, normal:
+-   Medium, wet, lush, enchanted:
+-   Medium, damp, barren, blighted:
+-   Medium, damp, barren, normal:
+-   Medium, damp, barren, enchanted:
+-   Medium, damp, normal, blighted:
+-   Medium, damp, normal, normal: grasslands
+-   Medium, damp, normal, enchanted:
+-   Medium, damp, lush, blighted:
+-   Medium, damp, lush, normal:
+-   Medium, damp, lush, enchanted:
+-   Medium, half-dry, barren, blighted:
+-   Medium, half-dry, barren, normal:
+-   Medium, half-dry, barren, enchanted:
+-   Medium, half-dry, normal, blighted:
+-   Medium, half-dry, normal, normal: semi-desert
+-   Medium, half-dry, normal, enchanted:
+-   Medium, half-dry, lush, blighted:
+-   Medium, half-dry, lush, normal:
+-   Medium, half-dry, lush, enchanted:
+-   Medium, dry, barren, blighted: dangerous desert
+-   Medium, dry, barren, normal: dune-rich desert
+-   Medium, dry, barren, enchanted:
+-   Medium, dry, normal, blighted
+-   Medium, dry, normal, normal:
+-   Medium, dry, normal, enchanted:
+-   Medium, dry, lush, blighted:
+-   Medium, dry, lush, normal: Desert river
+-   Medium, dry, lush, enchanted: Oasis
+-   Cold, wet, barren, blighted:
+-   Cold, wet, barren, normal:
+-   Cold, wet, barren, enchanted:
+-   Cold, wet, normal, blighted:
+-   Cold, wet, normal, normal:
+-   Cold, wet, normal, enchanted:
+-   Cold, wet, lush, blighted:
+-   Cold, wet, lush, normal:
+-   Cold, wet, lush, enchanted:
+-   Cold, damp, barren, blighted:
+-   Cold, damp, barren, normal:
+-   Cold, damp, barren, enchanted:
+-   Cold, damp, normal, blighted:
+-   Cold, damp, normal, normal:
+-   Cold, damp, normal, enchanted:
+-   Cold, damp, lush, blighted:
+-   Cold, damp, lush, normal:
+-   Cold, damp, lush, enchanted:
+-   Cold, half-dry, barren, blighted:
+-   Cold, half-dry, barren, normal:
+-   Cold, half-dry, barren, enchanted:
+-   Cold, half-dry, normal, blighted:
+-   Cold, half-dry, normal, normal: semi-desert
+-   Cold, half-dry, normal, enchanted:
+-   Cold, half-dry, lush, blighted:
+-   Cold, half-dry, lush, normal:
+-   Cold, half-dry, lush, enchanted:
+-   Cold, dry, barren, blighted: dangerous desert
+-   Cold, dry, barren, normal: dune-rich desert
+-   Cold, dry, barren, enchanted:
+-   Cold, dry, normal, blighted
+-   Cold, dry, normal, normal:
+-   Cold, dry, normal, enchanted:
+-   Cold, dry, lush, blighted:
+-   Cold, dry, lush, normal: Desert river
+-   Cold, dry, lush, enchanted: Oasis
 
 -   Blighted and Enchanted terrains will be less common than most
 

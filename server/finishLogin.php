@@ -11,8 +11,7 @@
     // location
     // ajaxcode
 
-    // Start by getting the map chunk that the player resides in - we at least need to provide them some surroundings when they spawn
-    $mapChunk = DanDBList("SELECT content FROM sw_mapchunk WHERE chunkx=0 AND chunky=0 AND chunkz=0;", '', [], 'server/routes/finishLogin.php->get map chunk')[0]['content'];
+    include_once('../generateMap.php');
 
     die(json_encode([
         'result'=>'success',
@@ -21,10 +20,15 @@
         'userType'=>'player',
         'location'=>$location,
         'ajaxcode'=>$ajaxcode,
+        'localContent'=>loadChunk(
+            floor($location[0]/8.0),
+            floor($location[1]/8.0),
+            floor($location[2]/8.0))
+        //localContent will contain chunkx, chunky, chunkz, content
         //'localContent'=>json_decode(DanDBList("SELECT content FROM sw_mapchunk WHERE chunkx=0 AND chunky=0 AND chunkz=0;", '', [], 'server/routes/finishLogin.php->get map chunk')[0]['content'], 1)
-        'localContent'=>[
-            'chunkcoords'=>[0,0,0],
-            'tiles'=>json_decode($mapChunk, 1)
-        ]
+//        'localContent'=>[
+  //          'chunkcoords'=>[0,0,0],
+    //        'tiles'=>json_decode($mapChunk, 1)
+      //  ]
     ]));
 ?>

@@ -6,6 +6,7 @@
 
     require_once("../config.php");
     require_once("../libs/common.php");
+    require_once("../generateMap.php");
     
     // Start with collecting the data
     require_once("../getInput.php");
@@ -34,8 +35,11 @@
             ajaxreject('badinput', 'Incorrectly formatted array');
         }
 
+        array_push($pack, loadChunk($con['chunkList'][$i][0], $con['chunkList'][$i][1], $con['chunkList'][$i][2]));
+
+        /*
         // Grab the target chunk from the database
-        reporterror('server/routes/loadmap.php->find existing chunk', 'chunk '. $i .' coords=['. $con['chunkList'][$i][0] .','. $con['chunkList'][$i][1] .','. $con['chunkList'][$i][2] .']');
+        //reporterror('server/routes/loadmap.php->find existing chunk', 'chunk '. $i .' coords=['. $con['chunkList'][$i][0] .','. $con['chunkList'][$i][1] .','. $con['chunkList'][$i][2] .']');
         $pick = DanDBList("SELECT * FROM sw_mapchunk WHERE chunkx=? AND chunky=? AND chunkz=?;", 'iii', [$con['chunkList'][$i][0], $con['chunkList'][$i][1], $con['chunkList'][$i][2]],
                           'server/routes/loadmap.php->fetch chunk');
         if(sizeof($pick)===0) {
@@ -90,6 +94,7 @@
         }else{
             array_push($pack, $pick[0]);
         }
+        */
     }
 
     // With our data package created, we can respond to the client

@@ -2,8 +2,6 @@
     An MMO slash factory game focused on development instead of all-out war
 */
 
-//...Brooks hospital room327
-
 import React from "react";
 import "./App.css";
 
@@ -67,12 +65,12 @@ function App() {
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        let location = JSON.parse(pack.location);
+        //let location = JSON.parse(pack.location);
         setPlayerData({
             name: pack.username,
-            x: location[0],
-            y: location[1],
-            z: location[2],
+            x: pack.location[0],
+            y: pack.location[1],
+            z: pack.location[2],
         });
 
         // Our map chunks are sent in a compacted way, only providing its object type, not its location. We can determine its location based on where
@@ -82,19 +80,23 @@ function App() {
         // Instead, we will drop these tiles into a 3D array. This will allow us to pick out any tiles whenever we wish.
         // This won't be ideal for displaying tiles, but we can filter down to the specific tiles we need easily enough.
 
-        let chunkLocation = pack.localContent.chunkcoords;
+        //let chunkLocation = pack.localContent.chunkcoords;
         let tiles = [];
-        pack.localContent.tiles.forEach((t, i) => {
+        let chunkData = JSON.parse(pack.localContent.content);
+        chunkData.forEach((t, i) => {
             let x = i % 8;
             let y = Math.floor(i / 8.0) % 8;
             let z = Math.floor(i / 64.0);
-            if (typeof tiles[chunkLocation[0] * 8 + x] === "undefined") {
-                tiles[chunkLocation[0] * 8 + x] = [];
+            if (typeof tiles[pack.localContent.chunkx * 8 + x] === "undefined") {
+                tiles[pack.localContent.chunkx * 8 + x] = [];
             }
-            if (typeof tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y] === "undefined") {
-                tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y] = [];
+            if (typeof tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y] === "undefined") {
+                tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y] = [];
             }
-            tiles[chunkLocation[0] * 8 + x][chunkLocation[1] * 8 + y][chunkLocation[2] * 8 + z] = { show: t.t, health: t.h };
+            tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y][pack.localContent.chunkz * 8 + z] = {
+                show: t.t,
+                health: t.h,
+            };
         });
         setMapTiles(tiles);
 

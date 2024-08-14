@@ -36,7 +36,17 @@
 
         $mapSizeX = $maxX-$minX;
         $mapSizeY = $maxY-$minY;
+        if($mapSizeX==0) {
+            reporterror('server/libs/clustermap.php->ClusterMap()->before points placement', 'Error - map provided is 0 tiles wide (from '. $minX .' to '. $maxX .'). Check parameters');
+            return [];
+        }
+        if($mapSizeY==0) {
+            reporterror('server/libs/clustermap.php->ClusterMap()->before points placement', 'Error - map provided is 0 tiles tall (from '. $minY .' to '. $maxY .'). Check parameters');
+            return [];
+        }
         $pointCount = floor(($mapSizeX * $mapSizeY) / $biomeDensity);
+        //reporterror('server/libs/clustermap.php->ClusterMap()->before points placement', '['. $minX .'-'. $maxX .']['. $minY .'-'. $maxY .']');
+        //reporterror('server/libs/clustermap.php->ClusterMap()->before points placement', 'for a map of ['. $mapSizeX .','. $mapSizeY .'] we have '. $pointCount .' points to start from');
 
         // Create a set of cluster points, to coordinate growing the clusters from
         $biomePoints = forrange(0, $pointCount-1, 1, function($i) use ($minX, $maxX, $minY, $maxY, $biomeGroup) {

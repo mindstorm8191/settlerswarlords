@@ -1,30 +1,29 @@
 ## Task List for Settlers & Warlords
 
-1.  Update the map generation code to add floor type values. Characters should be able to walk around in tiles containing air and a not-air floor
-1.  Modify the client-side map loading code to gradually check larger and larger areas around the player. We want to load a lot of content, but focus on nearby portions first.
-    -   Come up with a way to expand the search range by x and z values, not y.
-    -   Figure out a way to load spaces that the player has built things on. Players will need their entire base areas to be fully running when they play
-1.  Keep thinking on how to enhance map generation
+2.  Keep thinking on how to enhance map generation
     -   We will probably need to generate biome content based on the chunk sizes we have now, and reference it as needed.
     -   This could be a two layer system. Large biomes affect tiles available in micro biomes.
     -   It'll be fine for now if micro biome sections come in 8x8 squares
     -   Work on placing unique forage on the tiles. Tile display will depend more on Flooring type than the whole block. We will need this as we unlock farming
     -   Along with tile forage values, we can consider adding bushes to the game, too
-1.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
-1.  Add workers around the player. They'll be idle when the game begins
-1.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
-1.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
-1.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
-1.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
+3.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
+4.  Add workers around the player. They'll be idle when the game begins
+5.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
+6.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
+7.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
+8.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
     -   Pollution will rise only so high, but will spread out more than rise.
     -   We could have different properties to pollution, based on what is released into the air
     -   High pollution levels should slow plant growth, or kill it off if too high
-1.  On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
+9.  On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
 
 Later objectives
 
-1.  Update player movement. When players are moving diagonally, reduce movement a little bit in both directions so that diagonal movements are 1 speed, not 1.44 speed
-2.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
+1.  Modify the client-side map loading code to gradually check larger and larger areas around the player. We want to load a lot of content, but focus on nearby portions first.
+    -   Come up with a way to expand the search range by x and z values, not y.
+    -   Figure out a way to load spaces that the player has built things on. Players will need their entire base areas to be fully running when they play
+2.  Update player movement. When players are moving diagonally, reduce movement a little bit in both directions so that diagonal movements are 1 speed, not 1.44 speed
+3.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
 
 Tasks complete (because it helps to see what you've already accomplished)
 
@@ -32,6 +31,7 @@ Tasks complete (because it helps to see what you've already accomplished)
 2.  Put a player on the map
 3.  Set up a system to transfer a task list between the project and Notion, so I don't have multiple lists that don't match
 4.  Built the map loading code. Had troubles with sequential fetches losing previously-loaded content, but got it resolved
+5.  Update the map generation code to add floor type values. Characters should be able to walk around in tiles containing air and a not-air floor
 
 Old task list
 

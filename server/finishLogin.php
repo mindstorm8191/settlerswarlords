@@ -8,7 +8,7 @@
     // parameters needed:
     // playerid
     // playername
-    // location
+    // location. This should be an array of 3 ints (not as json content)
     // ajaxcode
 
     include_once('../generateMap.php');

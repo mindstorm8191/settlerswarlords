@@ -6,9 +6,7 @@
 
     require_once("../config.php");
     require_once("../libs/common.php");
-    require_once("../libs/DanGlobal.php");
-    require_once("../libs/clustermap.php");
-
+    
     // Start by collecting the data
     require_once("../getInput.php");
 

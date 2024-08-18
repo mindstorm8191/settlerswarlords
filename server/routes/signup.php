@@ -30,6 +30,21 @@
     srand(time());
     $ajaxcode = rand(0, pow(2,31));
     $emailcode = rand(0, pow(2,31));
+
+    // We need to pick a location for the player
+    // If the game map hasn't been generated yet (or this part of the map hasn't been made yet) this could be a challenge.
+    // Go ahead and load a section of the map (building it if needed), and find a suitable spot to place the player
+
+    // Player placement will be based on an ever-expanding spiral, to ensure all new players start with sufficient land before encountering other players
+    // All players will be put 200 tiles (not chunks) apart
+    // Next player locations will need to be remembered. We have a DanGlobals tool to hold long term data in the database.
+    // Start with checking if any content exists at all
+    $content = DanDBList("SELECT * from sw_mapchunk LIMIT 1;", '', [], 'server/routes/signup.php->check for existing content');
+    if(sizeof($content)===0) {
+        
+    }
+
+
     $location = [4,4,6]; // We are storing the player's location as JSON content, as we don't (normally) need to access it on the server side
     // Note that positional data will be a floating point value, not an int.
     // We should be sending the user a verification email, but we don't have that option on Localhost

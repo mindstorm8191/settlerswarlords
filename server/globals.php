@@ -233,15 +233,15 @@
     ];
 
     $localTileNames = [
-        //     0       1         2  
-            'air',   'dirt',  'rock',
-        //     3       4      5       6          7
+        //     0       1         2      3
+            'air',   'dirt',  'rock', 'treebranches',
+        //     4       5      6       7          8
             'wheat', 'oat', 'rye', 'barley', 'millet',
-        //     8        9       10       11        12      13       14      15         16       17       18       19         20         21         22         23
+        //     9        10       11       12        13      14      15      16         17       18       19       20         21         22         23         24
             'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorn', 'dogwood', 'locust', 'juniper',
-        //    24         25       26      27      28     29        30       31         32        33            34
+        //    25         26       27      28      29     30       31        32         33        34            35
             'gravel', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank',
-        //     35          36          37         38        39        40       41      42        43           44         45
+        //     36          37          38         39        40        41       42      43        44           45         46
             'carrots', 'potatoes', 'tomatoes', 'turnip', 'peanut', 'maize', 'beans', 'onion', 'broccoli', 'pumpkin', 'mushroom'
     ];
 

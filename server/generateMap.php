@@ -63,14 +63,34 @@
             $fullMap = forrange(0,7,1, function($z) {
                 return forrange(0,7,1, function($y) use ($z) {
                     return forrange(0,7,1, function($x) use ($y,$z) {
-                        if($y>4) return 'air';
-                        if($y<4) return 'dirt';
+                        if($y<4) return 'air';
+                        if($y>4) return 'dirt';
                         if($y==7) return 'bottomdirt';
                         return 'grassydirt';  // This will be our 'biome-dependent' tile type
                     });
                 });
             });
         }
+        // Let's now handle adding tree content to tiles above the ground
+        // Where-ever we find tree tiles, we will shift 2 tiles up and fill them with treebranch tiles (this will be the full tile type, not just the floor; the floor will still be air).
+        $forestBiomeMin = 9;
+        $forestBiomeMax = 24;
+        $hitCount = 0;
+        for($z=0; $z<8; $z++) {
+            for($y=0; $y<8; $y++) {
+                for($x=0; $x<8; $x++) {
+                    if($fullMap[$z][$y][$x]=='grassydirt') { // This tile floor is biome dependent... now check which biome type should be here
+                        if($biome[$z*8+$x]>=$forestBiomeMin && $biome[$z*8+$x]<=$forestBiomeMax) {
+                            // y-negative is always up
+                            $fullMap[$z][$y-1][$x] = 'treebranches';
+                            $fullMap[$z][$y-2][$x] = 'treebranches';
+                            $hitCount++;
+                        }
+                    }
+                }
+            }
+        }
+        reporterror('server/generateMap.php->loadChunk()->after trees addition', 'Added '. $hitCount .' tiles for trees');
         //$tileConversion = ['air','dirt','grassydirt','rock','water','fire','wood'];
         $flatMap = [];
         for($z=0; $z<=7; $z++) {
@@ -86,6 +106,7 @@
                         case 'dirt':       array_push($flatMap, ['t'=>1, 'f'=>1, 'h'=>100]); break;
                         case 'bottomdirt': array_push($flatMap, ['t'=>1, 'f'=>2, 'h'=>100]); break;
                         case 'rock':       array_push($flatMap, ['t'=>2, 'f'=>2, 'h'=>100]); break;
+                        case 'treebranches': array_push($flatMap, ['t'=>3, 'f'=>3, 'h'=>100]); break;
                         case 'grassydirt': array_push($flatMap, ['t'=>0, 'f'=>$biome[$z*8+$x], 'h'=>100]); break;
                     }
                 }

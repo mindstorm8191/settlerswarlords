@@ -1,12 +1,8 @@
 ## Task List for Settlers & Warlords
 
-2.  Keep thinking on how to enhance map generation
-    -   We will probably need to generate biome content based on the chunk sizes we have now, and reference it as needed.
-    -   This could be a two layer system. Large biomes affect tiles available in micro biomes.
-    -   It'll be fine for now if micro biome sections come in 8x8 squares
-    -   Work on placing unique forage on the tiles. Tile display will depend more on Flooring type than the whole block. We will need this as we unlock farming
-    -   Along with tile forage values, we can consider adding bushes to the game, too
-3.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
+1.  Get the world map to generate as players are created, so they have a place to exist in the world.
+2.  Get player locations to be decided on as they are created.
+3.  Get biome content to actually generate, instead of using 'plains' for everywhere.
 4.  Add workers around the player. They'll be idle when the game begins
 5.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
 6.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
@@ -32,6 +28,15 @@ Tasks complete (because it helps to see what you've already accomplished)
 3.  Set up a system to transfer a task list between the project and Notion, so I don't have multiple lists that don't match
 4.  Built the map loading code. Had troubles with sequential fetches losing previously-loaded content, but got it resolved
 5.  Update the map generation code to add floor type values. Characters should be able to walk around in tiles containing air and a not-air floor
+6.  Keep thinking on how to enhance map generation
+    -   We will probably need to generate biome content based on the chunk sizes we have now, and reference it as needed.
+    -   This could be a two layer system. Large biomes affect tiles available in micro biomes.
+    -   It'll be fine for now if micro biome sections come in 8x8 squares
+    -   Work on placing unique forage on the tiles. Tile display will depend more on Flooring type than the whole block. We will need this as we unlock farming
+    -   Along with tile forage values, we can consider adding bushes to the game, too
+7.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
+    -   2 tiles above tree floor will contain tree branch tiles
+    -   Edge of forest tiles will be brush and usually unwalkable. Insides will be forest flooring
 
 Old task list
 

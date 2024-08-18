@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { DAX } from "./libs/DanAjax.js";
+import "./App.css";
 
 import { serverURL, imageURL } from "./App.js";
 import { game } from "./game.jsx";
@@ -16,9 +17,14 @@ export function LocalMap(props) {
     //     player - object holding all relevant player data
     // prop fields - functions
     //     changeMapTiles - manages changes to the tiles displayed to this user
+    
 
     const [mapLoading, setMapLoading] = React.useState(0); // This will be set to whenever we are requesting more map content from the server. We
     // will show some kind of loading icon on the screen.
+
+    const [viewLayer, setViewLayer] = React.useState(0); // Determines how many layers from the player we are off by
+
+    const [sidePanel, setSidePanel] = React.useState('Hello world!');
 
     // As we load this React component, we need to set the game's handle so it can update the position in real time
     const [scrollSet, setScrollSet] = React.useState([]);
@@ -93,7 +99,7 @@ export function LocalMap(props) {
                 typeof props.mapTiles[x][props.player.y] !== "undefined" &&
                 typeof props.mapTiles[x][props.player.y][z] !== "undefined"
             ) {
-                showTiles.push({ ...props.mapTiles[x][props.player.y][z], x: x, y: 4, z: z });
+                showTiles.push({ ...props.mapTiles[x][props.player.y + viewLayer][z], x: x, y: 4, z: z });
             }
         }
     }
@@ -101,45 +107,65 @@ export function LocalMap(props) {
     // For now, just focus on displaying the 4th map layer, that should have grass tiles on it
     // We can't really use DraggableMap for the local map, as we will be bound to the player's location
     return (
-        <div
-            style={{ display: "block", position: "relative", overflow: "hidden", width: "100%", height: 700 }}
-            tabIndex={0}
-            onKeyDown={(e) => {
-                // We want to allow the user to press both up & down, and for that to cancel each other out. When either key is released, the other key should
-                // continue to work. So we will need 4 inputs variables for this
-                if(e.key==='w') game.playerDirections.up = 1;
-                if(e.key==='s') game.playerDirections.down = 1;
-                if(e.key==='a') game.playerDirections.left = 1;
-                if(e.key==='d') game.playerDirections.right = 1;
-            }}
-            onKeyUp={(e) => {
-                if(e.key==='w') game.playerDirections.up = 0;
-                if(e.key==='s') game.playerDirections.down = 0;
-                if(e.key==='a') game.playerDirections.left = 0;
-                if(e.key==='d') game.playerDirections.right = 0;
-            }}
-            ref={divRef}
-        >
-            <div style={{position:'absolute', top:scrollSet[1], left:scrollSet[0]}} >
-            {/*<div style={{position:'absolute', top:42*8, left:42*8}}>*/}
-                {showTiles.map((tile, key) => {
-                    //console.log(imageURL + "localtiles/"+ minimapTiles[tile.floor]);
-                    // We were showing the player here conditionally, but since the player can move freely, it doesn't work to render it inside tiles
-                    return (
-                        <div
-                            style={{ display: "block", position: "absolute", left: tile.x * 42, top: tile.z * 42 }}
-                            key={key}
-                            onKeyDown={(e) => {
-                                console.log(e);
-                            }}
-                        >
-                            <img src={imageURL + "localtiles/"+ minimapTiles[tile.floor].img} style={{ pointerEvents: "none" }} />
-                        </div>
-                    );
-                })}
-                
-                {/* With that done, place the player image on the map as well */}                
-                <img src={imageURL + "worker.png"} style={{display:'block', position:'absolute', pointerEvents:'none', left:props.player.x*42, top:props.player.z*42, zIndex:2}} />
+        <div>
+            <div style={{marginLeft:200, fontSize:20}}>Build</div>
+            <div style={{display:'flex', width:'100%'}}>
+                <div
+                    style={{ position: "relative", overflow: "hidden", width: "calc(100% - 300px)", height: 700 }}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        // We want to allow the user to press both up & down, and for that to cancel each other out. When either key is released, the other key should
+                        // continue to work. So we will need 4 inputs variables for this
+                        if(e.key==='w') game.playerDirections.up = 1;
+                        if(e.key==='s') game.playerDirections.down = 1;
+                        if(e.key==='a') game.playerDirections.left = 1;
+                        if(e.key==='d') game.playerDirections.right = 1;
+                    }}
+                    onKeyUp={(e) => {
+                        if(e.key==='w') game.playerDirections.up = 0;
+                        if(e.key==='s') game.playerDirections.down = 0;
+                        if(e.key==='a') game.playerDirections.left = 0;
+                        if(e.key==='d') game.playerDirections.right = 0;
+                    }}
+                    ref={divRef}
+                >
+                    <div style={{position:'absolute', top:scrollSet[1], left:scrollSet[0]}} >
+                    {/*<div style={{position:'absolute', top:42*8, left:42*8}}>*/}
+                        {showTiles.map((tile, key) => {
+                            //console.log(imageURL + "localtiles/"+ minimapTiles[tile.floor]);
+                            // We were showing the player here conditionally, but since the player can move freely, it doesn't work to render it inside tiles
+                            return (
+                                <div
+                                    style={{ display: "block", position: "absolute", left: tile.x * 42, top: tile.z * 42 }}
+                                    key={key}
+                                    onMouseOver={()=>{
+                                        setSidePanel('['+ tile.x +','+ tile.y +','+ tile.z +'] '+ minimapTiles[tile.floor].desc);
+                                    }}
+                                >
+                                    <img src={imageURL + "localtiles/"+ minimapTiles[tile.floor].img} style={{ pointerEvents: "none" }} />
+                                </div>
+                            );
+                        })}
+                        
+                        {/* With that done, place the player image on the map as well */}
+                        {(viewLayer===0?(
+                            <img src={imageURL + "worker.png"} style={{display:'block', position:'absolute', pointerEvents:'none', left:props.player.x*42, top:props.player.z*42, zIndex:2}} />
+                        ):(''))}
+                        
+                    </div>
+                    <div style={{position:'absolute', top:0, right:0}} >
+                        <img src={imageURL +'levelup.png'} onClick={()=>{let newLayer = viewLayer-1; setViewLayer(newLayer);}} />
+                        <br />
+                        <img src={imageURL +'levelplayer.png'} onClick={()=>{setViewLayer(0)}} />
+                        <br />
+                        <img src={imageURL +'leveldown.png'} onClick={()=>{let newLayer = viewLayer+1; setViewLayer(newLayer);}} />
+                    </div>
+                </div>
+                <div style={{width:300}} >
+                    {/* We need a side panel to show quick facts about tiles and structures on them. We also need a structure menu to show details of specific structures and allow
+                    players to modify its settings. */}
+                    {sidePanel}
+                </div>
             </div>
         </div>
     );
@@ -150,6 +176,7 @@ const minimapTiles = [
     { id: 0, name: 'Air', img: 'air.png', desc:'Open air. Nice to breathe, but not nice to stand on', walkLag: 2},
     { id: 1, name: 'Dirt', img: 'dirt.png', desc:'Exposed dirt', walkLag: 4},
     { id: 2, name: 'Rock', img: 'rock.png', desc: 'Exposed rock', walkLag: 3},
+    { id: 3, name: 'Tree Branches', img: 'treebranches.png', desc: 'Branches of trees in the air', walkLag: 0},
     { id: 3, name: "Wheat Grass", img: "wheatgrass.png", desc: "Wheat. Tasteful grains for a variety of uses", walkLag: 6 },
     { id: 4, name: "Oat Grass", img: "oatgrass.png", desc: "Oat. Hearty grains for many purposes", walkLag: 6 },
     { id: 5, name: "Rye Grass", img: "ryegrass.png", desc: "Rye. Makes a sour tasting bread", walkLag: 6 },

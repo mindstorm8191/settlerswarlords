@@ -2,7 +2,7 @@
 
 Players will need to rely on automation to simplify operations of common tasks, thus freeing themselves enough to advance onto more challenging tasks
 
-1. First power source will be from water wheels. This will provide only low level power for simple jobs, needing only planks and sticks. Players will be able to automate item movement - some of them unmovable by humans alone. But more load from this will slow down everything using it
+1. First power source will be from water wheels, or worker's manpower. This will provide only low level power for simple jobs, needing only planks and sticks. Players will be able to automate item movement - some of them unmovable by humans alone. But more load from this will slow down everything using it
 2. Wind mills will be available early on as well, but might not offer as much power production as water wheels. These will need to be placed in high locations, that have a lot of wind
 3. Livestock can be used as a power source as well. While it can only be as good as a water wheel, it can be set up anywhere. It can also scale better, too; if the user needs more power, just add more animals and harnesses
 4. Another potential power source would be from vertical turbines. These can be set up in towers, using multiple layers. A fire will be placed at the bottom, forcing hot air up through the tower, rotating the fan blades

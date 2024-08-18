@@ -2,6 +2,33 @@
     An MMO slash factory game focused on development instead of all-out war
 */
 
+// Lines count
+// src/app.js                           src/game.jsx                               src/structures/WaterSource.jsx             src/WorldMap.jsx                       server/libs/clustermap.php             server/minimap.php                  notes/workercrafting.md
+//     src/app.css                         src/game_tasks.jsx                          src/structures/ClayFormer.jsx              server/routes/autologin.php            server/routes/getblog.php              server/routes/worldmap.php         notes/futureprocesses.md
+//        src/libs/DanAjax.js                  src/worker.jsx                              src/structures/FarmersPost.jsx            server/config.php                      server/routes/loadmap.php               resetgame.php                     notes/influences.md notes/tasklist.md
+//           src/libs/DanCarousel.jsx              src/minimapTiles.jsx                        src/structures/HayDryer.jsx             server/libs/common.php                  server/routes/log.php                   README.md                          notes/monetizationstrategies.md
+//               src/libs/ShowBlog.jsx                 src/itemstats.js                            src/structures/OpenDryer.jsx            server/libs/jsarray.php                 server/routes/login.php                notes/techtree.md                  notes/researchprocess.md
+//                  src/libs/DanLog.js                     src/structures/LeanTo.jsx                   src/structures/HuntersPost.jsx          server/events.php                      server/routes/logout.php               notes/automationtree.md
+//                     src/Account.jsx                         src/structures/ForagePost.jsx               src/structures/ButcherShop.jsx          server/getInput.php                    server/routes/save.php                notes/wartree.md
+//                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx              src/structures/CampFire.jsx            server/finishLogin.php                  server/routes/savetiles.php          notes/worldgen.md
+//                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx             src/structures/SewingShop.jsx          server/generateMap.php                   server/routes/sendunits.php          notes/worldhistory.md
+//                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx               src/LocalMapRightPanel.jsx             server/globals.php                       server/routes/signup.php            notes/magicsystem.md
+//                                  src/LocalMap.jsx                           src/structures/DirtSource.jsx              src/libs/DraggableMap.jsx              server/libs/weightedRandom.php          server/libs/DanGlobal.php           notes/undergroundbiomes.md
+// 265+58+48+113+96+38+231+65+83+68+244+60+                                                                                       33+8+307+230+    35+25+202+301+127+151+40+47+    43+                63+37+        22+54+58+22+32+204+67+11+28+11+75+190+25+17+80
+// 3/16/23: 3397 lines
+// 3/23/23: 3998 lines
+// 3/30/23: 4030 lines
+// 4/24/23: 5427 lines
+// 5/07/23: 5644 lines
+// 6/01/23: 6180 lines
+// 6/10/23: 6667 lines
+// 6/17/23: 7105 lines
+// 6/24/23: 7528 lines
+// 7/01/23: 8018 lines
+// 7/14/23: 8835 lines
+// 7/25/23: 9757 lines
+// 8/17/24: 3914 lines (yes, this was a break of a whole year)
+
 import React from "react";
 import "./App.css";
 

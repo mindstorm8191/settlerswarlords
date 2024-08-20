@@ -15,12 +15,19 @@ export const game = {
     playerUpdateFunc: null,
     playerPos: [],
     userName: '',
+    workers: [],
 
-    setup: (playerFunc, location, userName) => {
+    setup: (playerFunc, location, userName, workers) => {
         // Handles setting up various fields for the player's location to be updated
         game.playerUpdateFunc = playerFunc;
         game.playerPos = location;
         game.userName = userName;
+//        game.workers = workers; // We will probably add more complexity to this, but for now we can at least have the workers
+        game.workers = workers.map(w => {
+            w.spot = JSON.parse(w.spot);
+            return w;
+        });
+        console.log('Set workers:', game.workers);
     },
 
     start: ()=>{

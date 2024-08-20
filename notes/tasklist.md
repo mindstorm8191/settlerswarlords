@@ -3,15 +3,14 @@
 1.  Get the world map to generate as players are created, so they have a place to exist in the world.
 2.  Get player locations to be decided on as they are created.
 3.  Get biome content to actually generate, instead of using 'plains' for everywhere.
-4.  Add workers around the player. They'll be idle when the game begins
-5.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
-6.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
-7.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
-8.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
+4.  Allow players to build a lean-to. These must be placed beside a tree trunk. We may decide to go with the menu based item selection that Factorio does
+5.  Add a Rock Knapper, and allow workers to complete work there. Remember that these should only allow one recipe to be completed in them.
+6.  Work on adding additional players to an existing game map. We will need to space them out sufficiently; maybe 40 chunks will do
+7.  Add additional fields to chunks, including pollution. Players won't be able to generate pollution until they can run fires. Trees will absorb pollution.
     -   Pollution will rise only so high, but will spread out more than rise.
     -   We could have different properties to pollution, based on what is released into the air
     -   High pollution levels should slow plant growth, or kill it off if too high
-9.  On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
+8.  On the server side, wrap the code that validates users into a common function. Use it to also check when a user's session has expired, so we can have them log in again.
 
 Later objectives
 
@@ -37,6 +36,7 @@ Tasks complete (because it helps to see what you've already accomplished)
 7.  Get trees to generate on the current map. Most trees will be 3 tiles tall and include wider areas for branches
     -   2 tiles above tree floor will contain tree branch tiles
     -   Edge of forest tiles will be brush and usually unwalkable. Insides will be forest flooring
+8.  Add workers around the player. They'll be idle when the game begins
 
 Old task list
 

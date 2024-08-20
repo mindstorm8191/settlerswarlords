@@ -86,13 +86,10 @@ function App() {
     function onLogin(pack) {
         // Handles allowing the player to log in, and sending them to the game screen
 
-        //console.log(pack.location);
-
         // Use the pack to set the player information
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
 
-        //let location = JSON.parse(pack.location);
         setPlayerData({
             name: pack.username,
             x: pack.location[0],
@@ -107,7 +104,6 @@ function App() {
         // Instead, we will drop these tiles into a 3D array. This will allow us to pick out any tiles whenever we wish.
         // This won't be ideal for displaying tiles, but we can filter down to the specific tiles we need easily enough.
 
-        //let chunkLocation = pack.localContent.chunkcoords;
         let tiles = [];
         let chunkData = JSON.parse(pack.localContent.content);
         chunkData.forEach((t, i) => {
@@ -128,7 +124,7 @@ function App() {
         });
         setMapTiles(tiles);
 
-        game.setup(setPlayerData, pack.location, pack.username);
+        game.setup(setPlayerData, pack.location, pack.username, pack.workers);
         game.start();
 
         setPage("Game");
@@ -147,13 +143,13 @@ function App() {
             tiles[x] = mapTiles[x];
         }
 
-        console.log("Start: range from " + findBottom(tiles) + " to " + tiles.length);
+        //console.log("Start: range from " + findBottom(tiles) + " to " + tiles.length);
 
         // With the new chunks, start adding the tiles from each chunk
         newChunkList.forEach((chunk) => {
             // Each of these will still be in JSON format, so we will have to convert it
             let chunkData = JSON.parse(chunk.content);
-            console.log(chunk.chunkx, chunk.chunky, chunk.chunkz);
+            //console.log(chunk.chunkx, chunk.chunky, chunk.chunkz);
             chunkData.forEach((t, i) => {
                 let x = i % 8;
                 let y = Math.floor(i / 8.0) % 8;

@@ -20,6 +20,7 @@
         'userType'=>'player',
         'location'=>$location,
         'ajaxcode'=>$ajaxcode,
-        'localContent'=>loadChunk(floor($location[0]/8.0), floor($location[1]/8.0), floor($location[2]/8.0))
+        'localContent'=>loadChunk(floor($location[0]/8.0), floor($location[1]/8.0), floor($location[2]/8.0)),
+        'workers'=>DanDBList('SELECT * FROM sw_worker WHERE playerid=?;', 'i', [$playerid], 'server/finishLogin.php->get workers')
     ]));
 ?>

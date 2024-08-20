@@ -56,7 +56,7 @@ export function LocalMap(props) {
             }
         }
 
-        console.log(chunksNeeded.length + " chunks left to load");
+        //console.log(chunksNeeded.length + " chunks left to load");
         if (chunksNeeded.length > 0) {
             if (chunksNeeded.length > 10) chunksNeeded.splice(10, chunksNeeded.length - 10); // limit the number of grabs to 10
             fetch(serverURL + "/routes/loadmap.php", DAX.serverMessage({ chunkList: chunksNeeded }, true))
@@ -103,6 +103,8 @@ export function LocalMap(props) {
             }
         }
     }
+
+    //console.log(game.workers[0].spot[0]);
 
     // For now, just focus on displaying the 4th map layer, that should have grass tiles on it
     // We can't really use DraggableMap for the local map, as we will be bound to the player's location
@@ -152,7 +154,13 @@ export function LocalMap(props) {
                             <img src={imageURL + "worker.png"} style={{display:'block', position:'absolute', pointerEvents:'none', left:props.player.x*42, top:props.player.z*42, zIndex:2}} />
                         ):(''))}
                         
+                        {game.workers.filter((w) => {
+                            return w.spot[1] === props.player.y + viewLayer;
+                        }).map((w,key)=>{
+                            return <img key={key} src={imageURL +'worker.png'} style={{display:'block', position:'absolute', pointerEvents:'none', left:w.spot[0]*42, top: w.spot[2]*42, zIndex:2}} />
+                        })}                        
                     </div>
+                    {/* Show some buttons to adjust the visible layer */}
                     <div style={{position:'absolute', top:0, right:0}} >
                         <img src={imageURL +'levelup.png'} onClick={()=>{let newLayer = viewLayer-1; setViewLayer(newLayer);}} />
                         <br />

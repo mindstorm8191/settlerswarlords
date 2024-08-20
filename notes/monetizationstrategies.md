@@ -6,7 +6,7 @@ The primary motivation for players to purchase bonuses will be to produce critic
 
 ### Option 1: purchaseable processes
 
-Players will be able to purchase processes from the game, which provides essential resources the player will need. The number of processes will be limited, and need to be designed first. How these processes work will not be shared
+Players will be able to purchase processes from the game, which provides essential resources the player will need. The number of processes will be limited, and need to be designed first. How these processes work will not be shared. They will look like a single warehouse building. Players can feed resources into it and get resources out, but cannot view inside the building.
 
 ### Option 2: player-based economy
 

@@ -31,8 +31,8 @@
             return forrange($minX, $maxX, 1, function($x) use ($y) {
                 return ['x'=>$x, 'y'=>$y, 'landType'=>-1];
                 // This generateClusterMap() is only responsible for determining the land types. Everything else can be appended to this later
-            });
-        });
+            }, 'server/libs/clustermap.php->ClusterMap()->build x');
+        }, 'server/libs/clustermap.php->ClusterMap()->build y');
 
         $mapSizeX = $maxX-$minX;
         $mapSizeY = $maxY-$minY;
@@ -60,7 +60,7 @@
                 'biome'=>$biome,
                 'captured'=>[['x'=>$genX, 'y'=>$genY]]  // This is a list of all the tiles that still need processing for this cluster
             ];
-        });
+        }, 'server/libs/clustermap.php->ClusterMap()->biome points');
         //reporterror('server/libs/clustermap.php->ClusterMap()->after biome points creation', json_encode($biomePoints));
 
         // Run through all the biome points and try to expand each one. Continue until all points can't expand

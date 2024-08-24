@@ -85,13 +85,13 @@
         }, 0)+1;
     }
 
-    function forrange($start, $end, $step, $callable) {
+    function forrange($start, $end, $step, $callable, $sourceSpot) {
         // Generates an array based on a range of values
         // $start - low end of range, inclusive
         // $end - high end of range, inclusive. Note that a range from 0 to 1 will give you two results
         // $step - separation of values
         // $callable - function called for the target value. This will receive one parameter, which is the value within the range
-
+        //reporterror($sourceSpot .'->forrange()', 'ends at '. $end);
         $outp = array();
         for($i=$start; $i<=$end; $i+=$step) {
             $outp[$i] = $callable($i);

@@ -6,6 +6,9 @@
 
     require_once("libs/weightedRandom.php");
 
+    $chunkWidth = 8;
+    $biomeTileSize = 8;
+
     
     $oreTypes = [
         'Coal', 'Banded Iron', 'Cassiterite', 'Chalcopyrite', 'Aluminum', 'Bauxite', 'Stibnite', 'Limonite', 'Magnetite',

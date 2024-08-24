@@ -7,7 +7,7 @@ import React from 'react';
 import { DAX } from "./libs/DanAjax.js";
 import "./App.css";
 
-import { serverURL, imageURL } from "./App.js";
+import { serverURL, imageURL, chunkSize } from "./App.js";
 import { game } from "./game.jsx";
 
 export function LocalMap(props) {
@@ -35,6 +35,7 @@ export function LocalMap(props) {
         // Since any tile within a chunk can effectively confirm that chunk is loaded, we should be able to avoid that problem simply by checking every 8 tiles
         // from the player's location.
         //expandTiles(props.mapTiles, 1);
+        
         let chunksNeeded = [];
         let range = 1;
         // Instead of finding each missing chunk and sending an individual request for it, we need to make a full list and request them all at once
@@ -45,9 +46,9 @@ export function LocalMap(props) {
                     // With boolean OR, Javascript will check each condition one at a time. It will accept the first answer that returns true and skip the
                     // rest; otherwise this check would fail!
                     if (
-                        typeof props.mapTiles[props.player.x + x * 8] === "undefined" ||
-                        typeof props.mapTiles[props.player.x + x * 8][props.player.y + y * 8] === "undefined" ||
-                        typeof props.mapTiles[props.player.x + x * 8][props.player.y + y * 8][props.player.z + z * 8] === "undefined"
+                        typeof props.mapTiles[props.player.x + x * chunkSize] === "undefined" ||
+                        typeof props.mapTiles[props.player.x + x * chunkSize][props.player.y + y * chunkSize] === "undefined" ||
+                        typeof props.mapTiles[props.player.x + x * chunkSize][props.player.y + y * chunkSize][props.player.z + z * chunkSize] === "undefined"
                     ) {
                         // Add this location to the list. Note we need the chunk coordinates, not the real coordinates
                         chunksNeeded.push([x, y, z]);
@@ -56,7 +57,7 @@ export function LocalMap(props) {
             }
         }
 
-        //console.log(chunksNeeded.length + " chunks left to load");
+        console.log(chunksNeeded.length + " chunks left to load");
         if (chunksNeeded.length > 0) {
             if (chunksNeeded.length > 10) chunksNeeded.splice(10, chunksNeeded.length - 10); // limit the number of grabs to 10
             fetch(serverURL + "/routes/loadmap.php", DAX.serverMessage({ chunkList: chunksNeeded }, true))

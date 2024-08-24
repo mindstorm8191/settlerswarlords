@@ -42,6 +42,7 @@ import { game } from "./game.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
+export const chunkSize = 8;
 
 const chunksLoaded = []; // A flat list of chunk coordinates that have been loaded. This is for debugging purposes, to see what areas are being loaded
 
@@ -107,16 +108,18 @@ function App() {
         let tiles = [];
         let chunkData = JSON.parse(pack.localContent.content);
         chunkData.forEach((t, i) => {
-            let x = i % 8;
-            let y = Math.floor(i / 8.0) % 8;
-            let z = Math.floor(i / 64.0);
-            if (typeof tiles[pack.localContent.chunkx * 8 + x] === "undefined") {
-                tiles[pack.localContent.chunkx * 8 + x] = [];
+            let x = i % chunkSize;
+            let y = Math.floor(i / chunkSize) % chunkSize;
+            let z = Math.floor(i / (chunkSize * chunkSize));
+            if (typeof tiles[pack.localContent.chunkx * chunkSize + x] === "undefined") {
+                tiles[pack.localContent.chunkx * chunkSize + x] = [];
             }
-            if (typeof tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y] === "undefined") {
-                tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y] = [];
+            if (typeof tiles[pack.localContent.chunkx * chunkSize + x][pack.localContent.chunky * chunkSize + y] === "undefined") {
+                tiles[pack.localContent.chunkx * chunkSize + x][pack.localContent.chunky * chunkSize + y] = [];
             }
-            tiles[pack.localContent.chunkx * 8 + x][pack.localContent.chunky * 8 + y][pack.localContent.chunkz * 8 + z] = {
+            tiles[pack.localContent.chunkx * chunkSize + x][pack.localContent.chunky * chunkSize + y][
+                pack.localContent.chunkz * chunkSize + z
+            ] = {
                 show: t.t,
                 floor: t.f,
                 health: t.h,
@@ -151,16 +154,20 @@ function App() {
             let chunkData = JSON.parse(chunk.content);
             //console.log(chunk.chunkx, chunk.chunky, chunk.chunkz);
             chunkData.forEach((t, i) => {
-                let x = i % 8;
-                let y = Math.floor(i / 8.0) % 8;
-                let z = Math.floor(i / 64.0);
-                if (typeof tiles[chunk.chunkx * 8 + x] === "undefined") {
-                    tiles[chunk.chunkx * 8 + x] = [];
+                let x = i % chunkSize;
+                let y = Math.floor(i / chunkSize) % chunkSize;
+                let z = Math.floor(i / (chunkSize * chunkSize));
+                if (typeof tiles[chunk.chunkx * chunkSize + x] === "undefined") {
+                    tiles[chunk.chunkx * chunkSize + x] = [];
                 }
-                if (typeof tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] === "undefined") {
-                    tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y] = [];
+                if (typeof tiles[chunk.chunkx * chunkSize + x][chunk.chunky * chunkSize + y] === "undefined") {
+                    tiles[chunk.chunkx * chunkSize + x][chunk.chunky * chunkSize + y] = [];
                 }
-                tiles[chunk.chunkx * 8 + x][chunk.chunky * 8 + y][chunk.chunkz * 8 + z] = { show: t.t, floor: t.f, health: t.h };
+                tiles[chunk.chunkx * chunkSize + x][chunk.chunky * chunkSize + y][chunk.chunkz * chunkSize + z] = {
+                    show: t.t,
+                    floor: t.f,
+                    health: t.h,
+                };
             });
         });
         setMapTiles(tiles);

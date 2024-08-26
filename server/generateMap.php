@@ -7,6 +7,7 @@
     require_once("libs/common.php");
     require_once("globals.php");
     require_once("libs/clustermap.php");
+    require_once("biomeBlock.php");
 
     // Map generation will be much more challenging this time around, not just because we're working in 3D. Previously, I could generate a 101x101 tile map of
     // clustered biomes, and it worked fine. This time, things are supposed to be seamless between biomes.
@@ -136,20 +137,18 @@
         global $biomeData, $localTileNames, $chunkWidth, $biomeTileSize;
         $biomeSize = $chunkWidth*$biomeTileSize;
 
-        // If we already have this data, go ahead and return it
-
-
+        // biome chunks are larger than world chunks (currently by a factor of 8). We will still hold coordinates for our biome chunks
+        $biomeChunkX = floor($chunkx/floatval($biomeTileSize));
+        $biomeChunkZ = floor($chunkz/floatval($biomeTileSize));
 
         // From here, we need to determine if there are any neighboring biome tiles that already have content. If so, we should pull that to 'complete' our map - it will
         // affect the edges of our current region
         $flatMap = [];
-        $existing = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii',
-                              [floor($chunkx/floatval($biomeTileSize)), floor($chunkz/floatval($biomeTileSize))],
+        $existing = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$biomeChunkX, $biomeChunkZ],
                               'server/generateMap.php->getBiomeTiles()->find existing section');
         if(sizeof($existing)===0) {
             // We didn't find any content. We will need to generate some now
-            reporterror('server/generateMap.php->getBiomeTiles()->check for existing', 'no existing tiles found');
-
+            
             // Start by determining which biome we should use to generate new tiles with
             $biomeType = getWideBiome(floor($chunkx/floatval($biomeTileSize)), floor($chunkz/floatval($biomeTileSize)));
 
@@ -169,22 +168,32 @@
                                [floor($chunkx/floatval($biomeTileSize)), floor($chunkz/floatval($biomeTileSize))+1],
                                'server/generateMap.php->getBiomeTiles()->get south neighbor');
             */
+            $existingNeighbors = mergeMapSections([
+                buildNeighborData($biomeChunkX, $biomeChunkZ-1),
+                buildNeighborData($biomeChunkX+1, $biomeChunkZ),
+                buildNeighborData($biomeChunkX, $biomeChunkZ+1),
+                buildNeighborData($biomeChunkX-1, $biomeChunkZ)
+            ]);
 
-            $mapSet = ClusterMap(0,$biomeSize-1,0,$biomeSize-1,$tileSet,40,[]);
-            // We'll be needing to update ClusterMap() to handle receiving existing tile data
-            //reporterror('server/generateMap.php->getBiomeTiles()->post clusterMap', 'sum of tiles='. sizeof($mapSet));
+            //$mapSet = ClusterMap(0,$biomeSize-1,0,$biomeSize-1,$tileSet,40,[]);
+            $worldStartX = $biomeTileSize * $chunkWidth * $biomeChunkX;
+            $worldStartZ = $biomeTileSize * $chunkWidth * $biomeChunkZ;
+            $mapSet = ClusterMap2($worldStartX, $worldStartX+$biomeTileSize*$chunkWidth, $worldStartZ, $worldStartZ+$biomeTileSize*$chunkWidth, $tileSet, 40, $existingNeighbors);
+            //reporterror('server/generateMap.php->getBiomeTiles()->after clusterMap... wait. We were using the wrong function this whole time!
+            //reporterror('sever/generateMap.php->getBiomeTiles()->after clusterMap2', 'Tile at ['. $worldStartX .','. $worldStartZ .'] is '. $mapSet->get($worldStartX, $worldStartZ)['landType']);
             // This is nice, but not in a good format. We need to convert it to a flat array of numbers. We will also need to convert our biome types to an int
             for($i=0; $i<$biomeSize*$biomeSize; $i++) {
-                $x = $i % $biomeSize;
-                $y = floor($i/floatval($biomeSize));
-                $biome = $mapSet[$x][$y]['landType'];
+                $x = $worldStartX + ($i % $biomeSize);
+                $y = $worldStartZ + floor($i/floatval($biomeSize));
+                //if($i==100) reporterror('server/generateMap.php->getBiomeTiles()->flatten map', 'Coords at slot '. $i .' is '. $x .','. $y);
+                $biome = $mapSet->get($x, $y)['landType'];
                 $flatMap[$i] = JSFindIndex($localTileNames, function($k) use ($biome) {
                     return $k===$biome;
                 });
             }
+
             // With this data flattened, save it to the database
-            DanDBList("INSERT INTO sw_biomemap (chunkx,chunkz,content) VALUES (?,?,?);", 'iis',
-                      [floor($chunkx/floatval($biomeTileSize)), floor($chunkz/floatval($biomeTileSize)), json_encode($flatMap)],
+            DanDBList("INSERT INTO sw_biomemap (chunkx,chunkz,content) VALUES (?,?,?);", 'iis', [$biomeChunkX, $biomeChunkZ, json_encode($flatMap)],
                       'server/generateMap.php->getBiomeTiles()->save new section');
         }else{
             $flatMap = json_decode($existing[0]['content']);
@@ -192,22 +201,14 @@
         
         // Now that we have saved the full biome data, we now need to isolate the data we need to return it
         $outMap = [];
-        // Modulus works differently when working with negative numbers. -5%4 will give us -1. Instead, we want to shift this so that it will give us 3
-        //if($chunkx>=0) { $offsetx = $chunkx % $biomeTileSize; } else { $offsetx = ((-$chunkx*$biomeTileSize) + $chunkx) % $biomeTileSize; }
-        //if($chunkz>=0) { $offsetz = $chunkz % $biomeTileSize; } else { $offsetz = ((-$chunkz*$biomeTileSize) + $chunkz) % $biomeTileSize; }
-        //$chunkx = 0
-        //$chunkz = 1
-        //biomeTileSize = 4; how many chunks wide & tall for each 'biome print'
-        //chunkWidth = 8; how wide, tall and deep each chunk is
-        //biomeSize = biomeTileSize * chunkWidth
         $offsetx = myModulus($chunkx, $biomeTileSize); // this function does modulus, but corrects for negative numbers, so -1%4 gives 3 instead of 1
         $offsetz = myModulus($chunkz, $biomeTileSize);
-        //$records = '';
+        $zShift = $chunkWidth*$biomeTileSize*$chunkWidth * $offsetz;
+        $zStep = $chunkWidth*$biomeTileSize;
+        $xShift = $chunkWidth * $offsetx;
+
         for($z=0; $z<$chunkWidth; $z++) {
             for($x=0; $x<$chunkWidth; $x++) {
-                $zShift = $chunkWidth*$biomeTileSize*$chunkWidth * $offsetz;
-                $zStep = $chunkWidth*$biomeTileSize;
-                $xShift = $chunkWidth * $offsetx;
                 $outMap[$z*$chunkWidth + $x] = $flatMap[$zShift + ($zStep*$z) +$xShift +$x];
             }
         }
@@ -215,7 +216,7 @@
         return $outMap;
     }
 
-    function buildNeigborData($targetx, $targetz) {
+    function buildNeighborData($targetx, $targetz) {
         // Collects biome content from the database, then converts it into a format that ClusterMap can make use of right away.
         // Returns a 2D array. If no content exists at the target location, this will return an empty array.
 
@@ -223,36 +224,58 @@
 
         $result = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$targetx, $targetz],
                             'server/generateMap.php->getBiomeTiles()->get north neighbor');
-        if(sizeof($result)==0) return [];
+        if(sizeof($result)==0) return 'none';
+        //reporterror('server/generateMap.php->buildNeighborData()', 'Process content of '. strlen($result[0]['content']) .' length'); - yes, we're finding content
         $flatMap = json_decode($result[0]['content'], true);
         $field = [];
+        
 
         // To use this effectively with ClusterMap, we need each tile to have an accurate world location.
         // We have a targetx & y value, but we will need to translate those based on the chunk size and biome chunk size
-        $shiftx = $chunkWidth * $biomeSize * $targetx;
-        $shiftz = $chunkWidth * $biomeSize * $targetz;
+        $shiftx = $chunkWidth * $biomeTileSize * $targetx;
+        $shiftz = $chunkWidth * $biomeTileSize * $targetz;
+        
+        $newMap = new biomeBlock;
         for($i=0; $i<sizeof($flatMap); $i++) {
-            $x = $i % ($chunkWidth * $biomeSize);
-            $y = floor($i / floatval($chunkWidth * $biomeSize));
-            if(!array_keys_exist($x, $field)) {
-                $field[$x] = [];
-            }
-            if(!array_keys_exist($y, $field[$x])) {
-                $field[$x][$y] = [];
-            }
-            $field[$x][$y] = ['x'=>$x, 'y'=>$y, 'landtype'=>$localTileNames[$flatMap[$i]]];
+            $x = $i % ($chunkWidth * $biomeTileSize);
+            $z = floor($i / floatval($chunkWidth * $biomeTileSize));
+            $newMap->set($shiftx+$x, $shiftz+$z, ['x'=>$shiftx+$x, 'y'=>$shiftz+$z, 'landType'=>$localTileNames[$flatMap[$i]]]);
+            if($i==4095) reporterror('server/generateMap.php->buildNeighborData()->loop', 'last hit='. $flatMap[$i]);
         }
-        return $field;
+        reporterror('server/generateMap.php->buildNeighborData()->finish', 'Source=size('. sizeof($flatMap) .'), got content range ['. $newMap->minx .'-'. $newMap->maxx .']['. $newMap->miny .'-'. $newMap->maxy .']. Sample:'. json_encode($newMap->get($newMap->minx, $newMap->miny)));
+        return $newMap;
     }
 
     function mergeMapSections($mapArray) {
         // Merges multiple map portions into a single section that can be passed to ClusterMap
         // $mapArray - list of array portions to merge. If any of these portions contain an empty array, they will be skipped
         // Returns the merged array
-        $field = [];
+
+        //reporterror('server/generateMap.php->mergeMapSections()', 'Data types: '. gettype($mapArray[0]) .','. gettype($mapArray[1]) .','. gettype($mapArray[2]) .','. gettype($mapArray[3]));
+
+        $field = new biomeBlock;
+        $firstHit = -1;
+        // Since we are merely merging the content, and the class manages the array bounds... this is actually very simple now
         for($u=0; $u<sizeof($mapArray); $u++) {
-            //for($i=)
+            // Start with determining if this array has any content
+            //if(is_array($mapArray[$u])) continue;
+            if($mapArray[$u]!='none') {
+                if($firstHit==-1) $firstHit=$u;
+                for($x=$mapArray[$u]->minx; $x<$mapArray[$u]->maxx; $x++) {
+                    for($y=$mapArray[$u]->miny; $y<$mapArray[$u]->maxy; $y++) {
+                        $field->set($x, $y, $mapArray[$u]->get($x, $y));
+                    }
+                }
+            }
         }
+        if($firstHit>-1) {
+            reporterror('server/generateMap.php->mergeMapSections()', 'Merged '. $firstHit);
+            reporterror('server/generateMap.php->mergeMapSections()',
+                        'Merged. Sample='. json_encode($field->get(
+                                                       $mapArray[$firstHit]->minx,
+                                                       -1)));//$mapArray[$firstHit]->miny)));
+        }
+        return $field;
     }
 
     function myModulus($value, $divider) {

@@ -137,15 +137,16 @@ export function LocalMap(props) {
                         {showTiles.map((tile, key) => {
                             //console.log(imageURL + "localtiles/"+ minimapTiles[tile.floor]);
                             // We were showing the player here conditionally, but since the player can move freely, it doesn't work to render it inside tiles
+                            let tileImage = (tile.floor===-1)?'snow.png':minimapTiles[tile.floor].img;
                             return (
                                 <div
                                     style={{ display: "block", position: "absolute", left: tile.x * 42, top: tile.z * 42 }}
                                     key={key}
                                     onMouseOver={()=>{
-                                        setSidePanel('['+ tile.x +','+ tile.y +','+ tile.z +'] '+ minimapTiles[tile.floor].desc);
+                                        setSidePanel('['+ tile.x +','+ tile.y +','+ tile.z +'] '+ (tile.floor===-1?'Broken':minimapTiles[tile.floor].desc));
                                     }}
                                 >
-                                    <img src={imageURL + "localtiles/"+ minimapTiles[tile.floor].img} style={{ pointerEvents: "none" }} />
+                                    <img src={imageURL + "localtiles/"+ tileImage} style={{ pointerEvents: "none" }} />
                                 </div>
                             );
                         })}

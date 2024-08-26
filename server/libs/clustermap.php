@@ -6,7 +6,248 @@
 
     // This uses multiple functions from jsarray to do its job
     require_once("jsarray.php");
+    require_once("../biomeBlock.php");
 
+    function ClusterMap2($minX, $maxX, $minY, $maxY, $biomeGroup, $biomeDensity, $existingMap) {
+        // Generates and returns a new map area, where land types are determined by cluster generation
+        // $minX, $maxX, $minY, $maxY - range of points, inclusively, that will be added to the map
+        // $biomeGroup - a WeightedRandom class instance containing each land type and the probability of seeing it. This affects the
+        //      number of tile types and how often they are seen, not how large they can be
+        // $biomeDensity - Determines roughly how large each cluster should be
+        // $existingMap - a biomeChunk class instance containing all surrounding tiles. We will use the edges of these sections to
+        //      extend the cluster in neighboring sections into this new one. If any or all sides are missing, they will be skipped.
+        // Returns a new biomeChunk instance containing ints for all the tile types. The neighboring chunk content will be removed
+
+        global $directionMap;
+        srand(time());  // Make sure we have set this
+
+        // The algorithm strategy here is simple. Start with a set of randomly placed points, each with a tile type. Each of these will keep
+        // a list of tiles already marked that also can be expanded from (starting from 1 tile). Each cycle, for each point we will select a
+        // tile from its list at random, and try to expand in any direction from it. For the list of tiles, when the selected tile cannot be
+        // expanded from (including being part of its own point), the point will abandon that tile. The point will be 'finished' (and
+        // removed) when there are no tiles left to expand from. Eventually, all points will exhaust their tiles list, and we'll have a
+        // completed map.
+
+        // Start with building a 2D array of map plots, with default data
+        $fullMap = new biomeBlock;
+        //reporterror('server/libs/clustermap.php->ClusterMap2()', 'values passed: ['. $minX .'-'. $maxX .']['. $minY .'-'. $maxY .']');
+        for($y=$minY; $y<=$maxY; $y++) {
+            for($x=$minX; $x<=$maxX; $x++) {
+                $fullMap->set($x, $y, ['x'=>$x, 'y'=>$y, 'landType'=>-1]);
+            }
+        }
+
+        // Next, calculate the number of individual clusters we need
+        $mapSizeX = $maxX-$minX;
+        $mapSizeY = $maxY-$minY;
+        if($mapSizeX==0) {
+            reporterror('server/libs/clustermap.php->ClusterMap2()->before points placement', 'Error - map provided is 0 tiles wide (from '. $minX .' to '. $maxX .'). Check parameters');
+            return [];
+        }
+        if($mapSizeY==0) {
+            reporterror('server/libs/clustermap.php->ClusterMap2()->before points placement', 'Error - map provided is 0 tiles tall (from '. $minY .' to '. $maxY .'). Check parameters');
+            return [];
+        }
+        $pointCount = floor(($mapSizeX * $mapSizeY) / $biomeDensity);
+
+        // Create a set of cluster points, to coordinate growing the clusters from
+        $biomePoints = forrange(0, $pointCount-1, 1, function($i) use ($minX, $maxX, $minY, $maxY, $biomeGroup) {
+            $genX = rand($minX, $maxX);
+            $genY = rand($minY, $maxY);
+            $biome = $biomeGroup->cyclePull();
+            //$fullMap->set($genX, $genY, ['x'=>$genX, 'y'=>$genY, 'landType'=>$biome]);
+            return [
+                'x'=>$genX,
+                'y'=>$genY,
+                'biome'=>$biome,
+                'captured'=>[['x'=>$genX, 'y'=>$genY]]  // This is a list of all the tiles that still need processing for this cluster
+            ];
+        }, 'server/libs/clustermap.php->ClusterMap2()->biome points');
+
+        // Next, factor in neighboring content. We will add additional biome points for all sides, trying to center them based on the
+        // extent of each 'face'
+        reporterror('server/libs/clustermap.php->ClusterMap2()->before existing additions', 'existing map has range ['. $existingMap->minx .'-'. $existingMap->maxx .']['. $existingMap->miny .'-'. $existingMap->maxy .']');
+        $oldSize = sizeof($biomePoints);
+        if(!is_array($existingMap)) {
+            if(!is_null($existingMap->minx)) {
+                // For each side, first check if we have any content in that direction
+                if($existingMap->miny < $minY) {  // Top side!
+                    $lastPoint = 0;
+                    $lastColorMatch = $existingMap->get($minX, $minY-1)['landType'];
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'top: '. $existingMap->get($minX, $minY-1)['landType']);
+                    for($x=$minX; $x<=$maxX; $x++) {
+                        if(gettype($lastColorMatch)!=='string') {
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. $x .','. ($minY-1) .']. value='. json_encode($existingMap->get($x,$minY-1)));
+                            $lastColorMatch = $existingMap->get($x, $minY-1)['landType'];
+                        }
+                        if($existingMap->get($x, $minY-1)['landType']==$lastColorMatch) {
+                            // No change; extend existing range
+                            //$spans++;
+                        }else{
+                            // This is a new tile type. Apply a new biome point just south of here
+                            $range = ($x-1)-$lastPoint;
+                            $midPoint = $lastPoint + floor($range/2.0);
+                            array_push($biomePoints, [
+                                'x'=>$midPoint,
+                                'y'=>$minY,
+                                'biome'=>$lastColorMatch,
+                                'captured'=>[['x'=>$midPoint, 'y'=>$minY]]
+                            ]);
+                            // reset the important variables
+                            $lastPoint = $x;
+                            $lastColorMatch = $existingMap->get($x, $minY-1)['landType'];
+                        }
+                    }
+                    // Add an additional point for the last section. There will always be at least one biome point added for an existing side
+                    $range = $maxX-$lastPoint;
+                    $midPoint = $lastPoint + floor($range/2.0);
+                    array_push($biomePoints, [
+                        'x'=>$midPoint,
+                        'y'=>$minY,
+                        'biome'=>$lastColorMatch,
+                        'captured'=>[['x'=>$midPoint, 'y'=>$minY]]
+                    ]);
+                }
+                if($existingMap->maxx > $maxX) { // right side!
+                    $lastPoint = 0;
+                    $lastColorMatch = $existingMap->get($maxX+1, $minY)['landType'];
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'right: '. $existingMap->get($maxX+1, $minY)['landType']);
+                    for($y=$minY; $y<=$maxY; $y++) {
+                        if(gettype($lastColorMatch)!=='string') {
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($maxX+1) .','. $y .']. value='. json_encode($existingMap->get($maxX+1,$y)));
+                            $lastColorMatch = $existingMap->get($maxX+1, $y)['landType'];
+                        }
+                        if($existingMap->get($maxX+1, $y)['landType']!=$lastColorMatch) {
+                            // We'll condense the math from now on
+                            $midPoint = $lastPoint + floor((($y-1)-$lastPoint)/2);
+                            array_push($biomePoints, [
+                                'x'=>$maxX,
+                                'y'=>$midPoint,
+                                'biome'=>$lastColorMatch,
+                                'captured'=>[['x'=>$maxX, 'y'=>$midPoint]]
+                            ]);
+                            $lastPoint = $y;
+                            $lastColorMatch = $existingMap->get($maxX+1, $y)['landType'];
+                        }
+                    }
+                    $midPoint = $lastPoint + floor(($maxY-$lastPoint)/2);
+                    array_push($biomePoints, [
+                        'x'=>$maxX,
+                        'y'=>$midPoint,
+                        'biome'=>$lastColorMatch,
+                        'captured'=>[['x'=>$maxX, 'y'=>$midPoint]]
+                    ]);
+                }
+                if($existingMap->maxy > $maxY) { // bottom side!
+                    $lastPoint = 0;
+                    $lastColorMatch = $existingMap->get($minX, $maxY+1)['landType'];
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'bottom: '. $existingMap->get($minX, $maxY+1)['landType']);
+                    for($x=$minX; $x<=$maxX; $x++) {
+                        if(gettype($lastColorMatch)!=='string') {
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. $x .','. ($maxY+1) .']. value='. json_encode($existingMap->get($x,$maxY+1)));
+                            $lastColorMatch = $existingMap->get($x, $maxY+1)['landType'];
+                        }
+                        if($existingMap->get($x, $maxY+1)['landType']!=$lastColorMatch) {
+                            $midPoint = $lastPoint + floor((($x-1)-$lastPoint)/2);
+                            array_push($biomePoints, [
+                                'x'=>$midPoint,
+                                'y'=>$maxY,
+                                'biome'=>$lastColorMatch,
+                                'captured'=>[['x'=>$midPoint, 'y'=>$maxY]]
+                            ]);
+                            $lastPoint = $x;
+                            $lastColorMatch = $existingMap->get($x, $maxY+1)['landType'];
+                        }
+                    }
+                    $midPoint = $lastPoint + floor(($maxX-$lastPoint)/2);
+                    array_push($biomePoints, [
+                        'x'=>$midPoint,
+                        'y'=>$maxY,
+                        'biome'=>$lastColorMatch,
+                        'captured'=>[['x'=>$midPoint, 'y'=>$maxY]]
+                    ]);
+                }
+                if($existingMap->minx < $maxX) { // left side!
+                    $lastPoint = 0;
+                    $lastColorMatch = $existingMap->get($minX-1, $minY)['landType'];
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'left: '. $existingMap->get($minX-1, $minY)['landType']);
+                    for($y=$minY; $y<=$maxY; $y++) {
+                        if(gettype($lastColorMatch)!=='string') {
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($minX-1) .','. $y .']. value='. json_encode($existingMap->get($minX-1,$y)));
+                            $lastColorMatch = $existingMap->get($minX-1, $y)['landType'];
+                        }
+                        if($existingMap->get($minX-1, $y)['landType']!=$lastColorMatch) {
+                            $midPoint = $lastPoint + floor((($y-1)-$lastPoint)/2);
+                            array_push($biomePoints, [
+                                'x'=>$minX,
+                                'y'=>$midPoint,
+                                'biome'=>$lastColorMatch,
+                                'captured'=>[['x'=>$minX, 'y'=>$midPoint]]
+                            ]);
+                            $lastPoint = $y;
+                            $lastColorMatch = $existingMap->get($minX-1, $y)['landType'];
+                        }
+                    }
+                    $midPoint = $lastPoint +floor(($maxY-$lastPoint)/2);
+                    array_push($biomePoints, [
+                        'x'=>$minX,
+                        'y'=>$midPoint,
+                        'biome'=>$lastColorMatch,
+                        'captured'=>[['x'=>$minX, 'y'=>$midPoint]]
+                    ]);
+                }
+            }
+        }
+
+        reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points was '. $oldSize .', is now '. sizeof($biomePoints));
+        reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points: '. $biomePoints[0]['biome'] .' to '. $biomePoints[sizeof($biomePoints)-1]['biome']);
+        // With each biome point decided now, we need to mark each of these tiles on the final map as the picked tile type
+        for($i=0; $i<sizeof($biomePoints); $i++) {
+            if(gettype($biomePoints[$i]['biome'])!=='string')
+                reporterror('server/libs/clustermap.php->ClusterMap2()->paste to map', 'Error: land type of biomePoint['. $i .'] is of type '. gettype($biomePoints[$i]['biome']));
+            $fullMap->append($biomePoints[$i]['x'], $biomePoints[$i]['y'], 'landType', $biomePoints[$i]['biome']);
+        }
+
+        // Now we're ready to run the primary loop
+        while(sizeof($biomePoints)>0) {
+            foreach($biomePoints as &$group) { // group gets modified here, so we must pass by reference
+                $targetSlot = rand(0,sizeof($group['captured'])-1);
+                $target = $group['captured'][$targetSlot];
+                $choices = $directionMap[rand(0,sizeof($directionMap)-1)];
+                $flagged = 0;
+                for($dir=0; $dir<4; $dir++) {
+                    $spotX = $target['x'] + $choices[$dir]['x'];
+                    $spotY = $target['y'] + $choices[$dir]['y'];
+
+                    // Keep within the map's boundaries
+                    if(within($spotX, $minX, $maxX, true) && within($spotY, $minY, $maxY, true)) {
+                        if($flagged==0) {
+                            if($fullMap->get($spotX, $spotY)['landType']==-1) {
+                                // This is a good spot to expand this cluster to. Mark this as this tile's land type, and add this
+                                // location to the list of captured locations. We will keep this location entry, as other blocks
+                                // around it might be able to be captured as well
+                                $fullMap->append($spotX, $spotY, 'landType', $group['biome']);
+                                array_push($group['captured'], ['x'=>$spotX, 'y'=>$spotY]);
+                                $flagged = 1;
+                                break;
+                            }
+                        }
+                    }
+                }
+                // If we go through all 4 directions without any hits, this location needs to be removed
+                if($flagged==0) array_splice($group['captured'], $targetSlot, 1);
+            }
+
+            // With this cycle of the primary loop complete, find any clusters that have no more captured tiles. They need to be removed
+            $biomePoints = array_filter($biomePoints, function($ele) {
+                if(sizeof($ele['captured'])>0) return true;
+                return false;
+            });
+        }
+        return $fullMap;
+    }
+
+    // We're keeping this old function in case the new one never works
     function ClusterMap($minX, $maxX, $minY, $maxY, $biomeGroup, $biomeDensity, $existingMap) {
         // Generates and returns a new cluster map
         // $minX, $maxX, $minY, $maxY - range of points that will be added to the map

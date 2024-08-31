@@ -167,18 +167,20 @@
             $south = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii',
                                [floor($chunkx/floatval($biomeTileSize)), floor($chunkz/floatval($biomeTileSize))+1],
                                'server/generateMap.php->getBiomeTiles()->get south neighbor');
-            */
+            
             $existingNeighbors = mergeMapSections([
                 buildNeighborData($biomeChunkX, $biomeChunkZ-1),
                 buildNeighborData($biomeChunkX+1, $biomeChunkZ),
                 buildNeighborData($biomeChunkX, $biomeChunkZ+1),
                 buildNeighborData($biomeChunkX-1, $biomeChunkZ)
             ]);
+            */
 
             //$mapSet = ClusterMap(0,$biomeSize-1,0,$biomeSize-1,$tileSet,40,[]);
             $worldStartX = $biomeTileSize * $chunkWidth * $biomeChunkX;
             $worldStartZ = $biomeTileSize * $chunkWidth * $biomeChunkZ;
-            $mapSet = ClusterMap2($worldStartX, $worldStartX+$biomeTileSize*$chunkWidth, $worldStartZ, $worldStartZ+$biomeTileSize*$chunkWidth, $tileSet, 40, $existingNeighbors);
+            //reporterror('server/generateMap.php->getBiomeTiles()->pre ClusterMap', 'Create chunk starting from ['. $worldStartX .','. $worldStartZ .']');
+            $mapSet = ClusterMap2($worldStartX, $worldStartX+$biomeTileSize*$chunkWidth-1, $worldStartZ, $worldStartZ+$biomeTileSize*$chunkWidth-1, $tileSet, 40, []);
             //reporterror('server/generateMap.php->getBiomeTiles()->after clusterMap... wait. We were using the wrong function this whole time!
             //reporterror('sever/generateMap.php->getBiomeTiles()->after clusterMap2', 'Tile at ['. $worldStartX .','. $worldStartZ .'] is '. $mapSet->get($worldStartX, $worldStartZ)['landType']);
             // This is nice, but not in a good format. We need to convert it to a flat array of numbers. We will also need to convert our biome types to an int
@@ -234,13 +236,14 @@
         // We have a targetx & y value, but we will need to translate those based on the chunk size and biome chunk size
         $shiftx = $chunkWidth * $biomeTileSize * $targetx;
         $shiftz = $chunkWidth * $biomeTileSize * $targetz;
+        reporterror('server/generateMap.php->buileNeighborData()->pre-loop', 'from target=['. $targetx .','. $targetz .'], shift=['. $shiftx .','. $shiftz .']');
         
         $newMap = new biomeBlock;
         for($i=0; $i<sizeof($flatMap); $i++) {
             $x = $i % ($chunkWidth * $biomeTileSize);
             $z = floor($i / floatval($chunkWidth * $biomeTileSize));
             $newMap->set($shiftx+$x, $shiftz+$z, ['x'=>$shiftx+$x, 'y'=>$shiftz+$z, 'landType'=>$localTileNames[$flatMap[$i]]]);
-            if($i==4095) reporterror('server/generateMap.php->buildNeighborData()->loop', 'last hit='. $flatMap[$i]);
+            if($i==4095) reporterror('server/generateMap.php->buildNeighborData()->loop', 'last hit='. $flatMap[$i] .' at ['. ($shiftx+$x) .','. ($shiftz+$z) .']');
         }
         reporterror('server/generateMap.php->buildNeighborData()->finish', 'Source=size('. sizeof($flatMap) .'), got content range ['. $newMap->minx .'-'. $newMap->maxx .']['. $newMap->miny .'-'. $newMap->maxy .']. Sample:'. json_encode($newMap->get($newMap->minx, $newMap->miny)));
         return $newMap;

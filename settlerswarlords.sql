@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Jul 01, 2023 at 01:35 PM
+-- Generation Time: Aug 31, 2024 at 12:37 AM
 -- Server version: 8.0.21
 -- PHP Version: 7.3.21
 
@@ -24,6 +24,19 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sw_biomemap`
+--
+
+DROP TABLE IF EXISTS `sw_biomemap`;
+CREATE TABLE IF NOT EXISTS `sw_biomemap` (
+  `chunkx` int NOT NULL,
+  `chunkz` int NOT NULL,
+  `content` text NOT NULL COMMENT 'A list of ints=land type, slot=map position'
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='biome content to apply to individual tiles';
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sw_blog`
 --
 
@@ -34,7 +47,7 @@ CREATE TABLE IF NOT EXISTS `sw_blog` (
   `title` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
   `content` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=10 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
+) ENGINE=MyISAM AUTO_INCREMENT=14 DEFAULT CHARSET=ascii COLLATE=ascii_bin;
 
 --
 -- Dumping data for table `sw_blog`
@@ -48,7 +61,11 @@ INSERT INTO `sw_blog` (`id`, `onday`, `title`, `content`) VALUES
 (6, '2023-04-10', 'In the thick of it', '<p>I have been working on the new version of this game for a few weeks now, adding new features where I can, and have started working on implementing the new task system. At this point, all this is proving difficult! But I think I can still make it work.</p>\r\n<p>There\'s a few aspects that is making this part difficult.</p>\r\n<ol>\r\n<li>One, some tasks have to be performed where specific items are located (such as cutting down a tree, which happens at the tree). Ideally, this location would be decided after we know everything else is ready (thus getting a shortest path for the worker), but when would that be? I have decided to pick a work location first... for now. But generally it is easy to get lost on what needs done first, last, etc.\r\n<li>Secondly, I am planning on certain crafting recipes to allow different items to be used, but at variable quantities. For example, I could use one of one type of item, or 3 of another type, to get the same result. This is doubly-hard because I will need to pick from one of the options, and then be able to select all the items of that - or craft more if there isn\'t enough. But which one should get crafted?\r\n</ol>\r\n<p>I still think this is possible, but it\'ll take time. I\'ll just keep at it</p>'),
 (7, '2023-05-06', 'Task management system working as planned', '<p>Finally! After like a month of working on this, I think my task management system is going to work as I had planned it.</p>\r\n<p>Completing this system was very challenging. At one point I had to determine which recipe to use from a tasks\' options, before even knowing what items were on the map to pick from - and even before knowing where to complete the task at. I didn\'t want to make the task structure even more complex, as I never know when the parameters might change (especially after saving & reloading the game).</p>\r\n<p>I opted to go with a temporary data structure; I literally create it only to decide what recipes to use (tag items as part of this task) before dropping the data again. But it was enough to organize what I needed done, and make a determination on the recipe. Not every aspect about this has been tested yet (edge-case testing can be challenging), and the code goes for the simplest solution in some places (instead of the most ideal), but I think that any issues that arise can be addressed.</p>\r\n<p>What this means for the rest of the game is that I can finally push forward, start adding new features, and grow the tech tree. Creating new tasks for buildings is much simpler this time around, and since it all uses the same code base, there\'s much less chance of bugs to resolve. Here\'s hoping I can make some good progress this time!</p>'),
 (8, '2023-06-28', 'Expanding in multiple directions', '<p>Progress on developing Setters & Warlords is still going steadily, even if I haven\'t blogged about it.</p>\r\n<p>After getting the task management system working, I decided to switch directions and start working on exploring the world map. Players <i>can</i> explore the world map now... but that\'s about it - it needs a lot more work put into it. I need to figure out pathfinding, server-side. I then switched to adding more tech progression. After struggling with the Hay Dryer for a while, we now have thatch tiles and can build a covered drying space, our first serious structure.</p>\r\n<p>Development at this point can branch out in a dozen different directions, primarily because the game\'s tech tree does too. It\'s an exciting time, but also challenging: Which direction do I need to work on next? It will take a while to put work into each direction, but I plan to complete it all eventually.</p>'),
-(9, '2023-07-01', 'Big changes', '<p>If you have seen this game in the past, you\'re already noticing big changes here. I have been working on an update for several months now, with lots of useful changes, and I think it\'s time to update the online version</p>\r\n<p>For existing players, that unfortunately means that your existing games are gone. (Don\'t worry! This version is better!) I expect that future updates will require resetting the game more times, as new features are added to the world. I am debating about what point a player\'s play-time should warrant trying to update the world, instead of a full world reset... but that can be answered later</p>\r\n<p>This version includes big changes to how workers manage tasks... but there are still some bugs to work out. Workers will easily be able to craft pre-req items to craft the item they need, but there is a bug when crafting multiple items at once. There\'s another bug causing workers to simply quit working, and that is proving harder to track down.</p>\r\n<p>But so far, everything is working as planned, and tech progression now allows you to build an Open Dryer. It\'s a structure requiring thatch roof tiles along with many other things. But you can build it! And then you can... oh. That\'s as far as the tech has gotten so far.</p>\r\n<p>As always, there is lots more planned in this game. I hope to work on hunting next, and make food consumption a requirement for workers. We\'ll see where I can take this project next!</p>');
+(9, '2023-07-01', 'Big changes', '<p>If you have seen this game in the past, you\'re already noticing big changes here. I have been working on an update for several months now, with lots of useful changes, and I think it\'s time to update the online version</p>\r\n<p>For existing players, that unfortunately means that your existing games are gone. (Don\'t worry! This version is better!) I expect that future updates will require resetting the game more times, as new features are added to the world. I am debating about what point a player\'s play-time should warrant trying to update the world, instead of a full world reset... but that can be answered later</p>\r\n<p>This version includes big changes to how workers manage tasks... but there are still some bugs to work out. Workers will easily be able to craft pre-req items to craft the item they need, but there is a bug when crafting multiple items at once. There\'s another bug causing workers to simply quit working, and that is proving harder to track down.</p>\r\n<p>But so far, everything is working as planned, and tech progression now allows you to build an Open Dryer. It\'s a structure requiring thatch roof tiles along with many other things. But you can build it! And then you can... oh. That\'s as far as the tech has gotten so far.</p>\r\n<p>As always, there is lots more planned in this game. I hope to work on hunting next, and make food consumption a requirement for workers. We\'ll see where I can take this project next!</p>'),
+(10, '2023-07-02', 'Changes already', '<p>Here I have only posted this project yesterday, and am already trying to make major changes. Well, maybe it\'s minor for half of my users. After getting everything to work on PC, I tried the game on mobile. That neat trick of letting users drag structures onto the map just doesn\'t work on mobile devices. Hence, mobile users can have a nice look around the map, but can\'t actually begin playing.</p>\r\n<p>There are two cursor interfaces which web developers have to work with: mouse and Touch. The Touch interface is a bit more challenging to work with; I had loads of trouble when getting it set up with my DraggableMap library. And I can\'t test this on my home PC.</p>\r\n<p>So this will be a process of making changes, uploading, then seeing if it all works. It only takes a minute or so to upload, but the whole site will be down while I do. I hope you\'ll be patient with this process.</p>'),
+(11, '2023-08-15', 'Gathering more influences', '<p>I have come to realize that this game is a factory builder game, much like Factorio. I decided to buy Factorio a few weeks ago, and have been playing it... a lot, and in turn not working on this project. It is quite fun! Settlers & Warlords is very similar in concept (or, at least the concepts I plan to implement). But I also see many limitations in Factorio, which I hope to avoid.</p>\r\n<p>Factorio has shown a lot of aspects that I can include in my game. I know I need to be careful about over-doing the scope of this game, but one aspect I need to implement is seamless maps, so that production chains can be as large as the player wishes. I am not yet sure how to implement that, given the nature of my game.</p>\r\n<p>Do I recommend you play Factorio? Yes - especially since my game is no-where near finished. Let\'s hope that this game of mine eventually gets there</p>'),
+(12, '2023-09-23', 'Beginning, again', '<p>And I\'m back!</p>\r\n<p>I am still playing Factorio heavily, but I think I\'ve decided what direction I want to take my own game, and am increasingly driven to stop playing Factorio so I can start working on this. I\'m starting to realize that a map with fast zoom and pan capabilities will be essential to the success of this game. Panning is simple enough, but zooming is another challenge. Given the fact that I want this game to go full 3D as well, I\'ve decided to add React-Three/Fiber into the mix.</p>\r\n<p>Adding a tool such as React-Three/Fiber is no simple task; so yes, I\'m restarting the code, yet again. I am going to need to rethink how maps are generated, since we\'ll be working in 3D now, and using a smaller grid size (trees will no longer be clustered onto a single tile). But I think it\'ll all be worth it in the end</p>'),
+(13, '2024-07-30', 'No advantages for 3D', '<p>I\'m back, again. Yes, it\'s been some 8 months or more since I worked on this project. I have been playing Factorio; specifically, a Factorio mod called Pyanodon\'s mod. One of the critiques I had with normal Factorio was that all the production processes were very simple; basic circuits required nothing but iron plates and copper wire, for example. Pyanodon\'s mod adds thousands of new items & fluids for you to manage, giving you a  clear need to build a megabase. It\'s not for the faint of heart, but it\'s very fun to play.</p>\r\n<p>As for Settlers & Warlords, I have been debating on how to present the 3D world to the player. I realised that ultimately, any 3D interface would make life much harder to manage for any players using mobile devices, and keeping this game accessible to non-PC owners is important to me. I still plan to create a fully 3D world, but I believe the best solution is to do what Dwarf Fortress did, and show vertical movement as layers. With the extra complexities involved in using 3D graphics, it\'ll be better off if I went back to a 2D display. I think it\'ll be for the best.</p>\r\n<p>Among other changes, I plan to make this game quite a bit more like Factorio; structures will be dedicated to one job each, and the world map will expand indefinitely. So I guess we\'ll see how things go this time around!</p>');
 
 -- --------------------------------------------------------
 
@@ -63,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `codelocation` text NOT NULL COMMENT 'where the error occurred at',
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=224 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=39658 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -132,49 +149,17 @@ CREATE TABLE IF NOT EXISTS `sw_log` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `sw_map`
+-- Table structure for table `sw_mapchunk`
 --
 
-DROP TABLE IF EXISTS `sw_map`;
-CREATE TABLE IF NOT EXISTS `sw_map` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `x` int NOT NULL,
-  `y` int NOT NULL,
-  `biome` int NOT NULL,
-  `ugresource` int NOT NULL,
-  `ugamount` float NOT NULL COMMENT 'how much ore is here. between 0.5 and 2.0',
-  `civilization` int NOT NULL DEFAULT '-1' COMMENT 'ID of civilization type, or -1 if none',
-  `civlevel` float NOT NULL DEFAULT '0' COMMENT 'strength of civilization here',
-  `owner` int DEFAULT '0' COMMENT 'which player inhabits this land',
-  `population` int NOT NULL DEFAULT '0',
-  `name` varchar(50) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'Unique name given by the land owner',
-  `structures` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'JSON of all running blocks in the map',
-  `workers` text NOT NULL COMMENT 'JSON of all workers here',
-  `unlockeditems` text NOT NULL COMMENT 'List of all items unlocked here',
-  `tasks` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'details of all tasks in this area',
-  `foodCounter` double NOT NULL DEFAULT '180' COMMENT 'counter on food production (this may be expanded later)',
-  `localmaptick` int NOT NULL DEFAULT '0' COMMENT 'Tick value to track local map updates',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `coords` (`x`,`y`)
-) ENGINE=MyISAM AUTO_INCREMENT=2446489 DEFAULT CHARSET=ascii COMMENT='world map';
-
--- --------------------------------------------------------
-
---
--- Table structure for table `sw_minimap`
---
-
-DROP TABLE IF EXISTS `sw_minimap`;
-CREATE TABLE IF NOT EXISTS `sw_minimap` (
-  `mapid` int NOT NULL COMMENT 'ID to the upper-level map',
-  `x` int NOT NULL,
-  `y` int NOT NULL,
-  `landtype` int NOT NULL COMMENT 'type of land',
-  `structureid` int NOT NULL DEFAULT '0' COMMENT 'id of what structure is here',
-  `originalland` int NOT NULL COMMENT 'What this land naturally is. Nature will slowly work back to this land type',
-  `items` text NOT NULL,
-  PRIMARY KEY (`mapid`,`x`,`y`)
-) ENGINE=InnoDB DEFAULT CHARSET=ascii;
+DROP TABLE IF EXISTS `sw_mapchunk`;
+CREATE TABLE IF NOT EXISTS `sw_mapchunk` (
+  `chunkx` int NOT NULL COMMENT 'x,y,z coordinates of this, in chunk increments',
+  `chunky` int NOT NULL,
+  `chunkz` int NOT NULL,
+  `pollution` int NOT NULL DEFAULT '0' COMMENT 'Level of pollution. Integer values only.',
+  `content` text NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
 
@@ -192,12 +177,12 @@ CREATE TABLE IF NOT EXISTS `sw_player` (
   `ajaxcode` int NOT NULL COMMENT 'used to verify messages sent via ajax',
   `ipaddress` varchar(45) NOT NULL COMMENT 'verifies messages are coming from proper source',
   `lastlogin` datetime NOT NULL COMMENT 'last time user logged in. Does not get reset with autologin',
-  `currentx` int NOT NULL COMMENT 'current coordinates of "king" player piece',
-  `currenty` int NOT NULL,
+  `location` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'Current world coordinates of this player',
   `userType` int NOT NULL DEFAULT '0' COMMENT 'Type of user. 0=player, 1=mod',
+  `tutorialState` int NOT NULL DEFAULT '0' COMMENT 'What state the in-game tutorial is in',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=277 DEFAULT CHARSET=ascii COMMENT='all users';
+) ENGINE=InnoDB AUTO_INCREMENT=411 DEFAULT CHARSET=ascii COMMENT='all users';
 
 -- --------------------------------------------------------
 
@@ -233,6 +218,22 @@ CREATE TABLE IF NOT EXISTS `sw_usertracker` (
   `errorcount` int NOT NULL,
   `blocktrigger` int NOT NULL DEFAULT '0'
 ) ENGINE=MyISAM DEFAULT CHARSET=ascii;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `sw_worker`
+--
+
+DROP TABLE IF EXISTS `sw_worker`;
+CREATE TABLE IF NOT EXISTS `sw_worker` (
+  `id` int NOT NULL AUTO_INCREMENT COMMENT 'Each worker will have a unique id',
+  `playerid` int NOT NULL COMMENT 'Which player can control this worker',
+  `name` varchar(50) NOT NULL COMMENT 'Name of this worker. They should be unique, but...',
+  `spot` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'JSON of a 3D location',
+  `health` int NOT NULL DEFAULT '100',
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM AUTO_INCREMENT=357 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each worker in the game that players control';
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

@@ -28,6 +28,8 @@ export function LocalMap(props) {
 
     // As we load this React component, we need to set the game's handle so it can update the position in real time
     const [scrollSet, setScrollSet] = React.useState([]);
+
+    const [buildMenuState, setBuildMenuState] = React.useState(0);
     
     React.useEffect(() => {
         // On load, check the map's range, and ensure there are enough tiles around the player already loaded
@@ -111,7 +113,7 @@ export function LocalMap(props) {
     // We can't really use DraggableMap for the local map, as we will be bound to the player's location
     return (
         <div>
-            <div style={{marginLeft:200, fontSize:20}}>Build</div>
+            <div className='fakelink' style={{marginLeft:200, fontSize:20}} onClick={()=>setBuildMenuState(1)}>Build</div>
             <div style={{display:'flex', width:'100%'}}>
                 <div
                     style={{ position: "relative", overflow: "hidden", width: "calc(100% - 300px)", height: 700 }}
@@ -170,6 +172,13 @@ export function LocalMap(props) {
                         <br />
                         <img src={imageURL +'leveldown.png'} onClick={()=>{let newLayer = viewLayer+1; setViewLayer(newLayer);}} />
                     </div>
+
+                    {/* Also show a build menu, if it is set to show */}
+                    {buildMenuState==0?(''):(
+                        <div style={{position:'absolute', top:50, left:50, backgroundColor:'slate', minWidth:100, height:100}}>
+                            <img src={imageURL +'structures/leanto.png'} alt="lean-to" />
+                        </div>
+                    )}
                 </div>
                 <div style={{width:300}} >
                     {/* We need a side panel to show quick facts about tiles and structures on them. We also need a structure menu to show details of specific structures and allow

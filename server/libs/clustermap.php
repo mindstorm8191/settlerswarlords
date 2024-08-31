@@ -63,11 +63,148 @@
                 'captured'=>[['x'=>$genX, 'y'=>$genY]]  // This is a list of all the tiles that still need processing for this cluster
             ];
         }, 'server/libs/clustermap.php->ClusterMap2()->biome points');
+        $oldSize = sizeof($biomePoints);
+        
+        // Next, factor in neighboring content. Our previous strategy of getting this from a function parameter wasn't working; we'll try
+        // a 'direct insertion' approach this time.
+        // Translate our coordinates to biome chunk coordinates
+        global $chunkWidth, $biomeTileSize, $localTileNames;
+        $biomeChunkX = floor($minX / floatval($chunkWidth * $biomeTileSize));
+        $biomeChunkY = floor($minY / floatval($chunkWidth * $biomeTileSize));
+        // North side!
+        $nb = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$biomeChunkX, $biomeChunkY-1],
+                        'server/libs/clustermap.php->ClusterMap2()->get north neighbors');
+        if(sizeof($nb)!=0) {
+            $nb = json_decode($nb[0]['content']);
+            // Content is laid out in a flat array. So our target content will be the last 64 tiles of the array
+            $lastPoint = 0;
+            $zOffset = $chunkWidth * $biomeTileSize * (($chunkWidth * $biomeTileSize)-1);
+            $lastColorMatch = $nb[$zOffset+0]; // Note that this will give us an integer. We will need to translate it to a local tile name as we create the biome point
+            for($x=1; $x<$chunkWidth*$biomeTileSize; $x++) {
+                if($nb[$zOffset+$x]!=$lastColorMatch) {
+                    $midPoint = $lastPoint + floor((($x-1)-$lastPoint)/2.0);
+                    array_push($biomePoints, [
+                        'x'=>$minX + $midPoint, // while placing this, we will need to translate for world map coordinates
+                        'y'=>$minY,
+                        'biome'=>$localTileNames[$lastColorMatch],
+                        'captured'=>[['x'=>$minX + $midPoint, 'y'=>$minY]]
+                    ]);
+                    $lastPoint = $x;
+                    $lastColorMatch = $nb[$zOffset+$x];
+                }
+            }
+            // Don't forget to include the last section
+            $midPoint = $lastPoint + floor(($maxX-$lastPoint)/2.0);
+            reporterror('server/libs/clustermap.php->ClusterMap2()->north side', 'final midPoint='. $midPoint .' to be '. $lastColorMatch .' aka '. $localTileNames[$lastColorMatch]);
+            array_push($biomePoints, [
+                'x'=>$minX + $midPoint,
+                'y'=>$minY,
+                'biome'=>$localTileNames[$lastColorMatch],
+                'captured'=>[['x'=>$minX + $midPoint, 'y'=>$minY]]
+            ]);
+        }
 
+        // East side!
+        $nb = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$biomeChunkX+1, $biomeChunkY],
+                        'server/libs/clustermap.php->ClusterMap2()->get east neighbors');
+        if(sizeof($nb)!=0) {
+            $nb = json_decode($nb[0]['content']);
+            // target content here is the first value of each column
+            $yStep = $chunkWidth * $biomeTileSize;
+            $lastPoint = 0;
+            $lastColorMatch = $nb[0];
+            for($y=1; $y<$chunkWidth*$biomeTileSize; $y++) {
+                if($nb[$y*$yStep]!=$lastColorMatch) {
+                    $midPoint = $lastPoint + floor((($y-1)-$lastPoint)/2.0);
+                    array_push($biomePoints, [
+                        'x'=>$maxX,
+                        'y'=>$minY + $midPoint,
+                        'biome'=>$localTileNames[$lastColorMatch],
+                        'captured'=>[['x'=>$maxX, 'y'=>$minY + $midPoint]]
+                    ]);
+                }
+                $lastPoint = $y;
+                $lastColorMatch = $nb[$y*$yStep];
+            }
+            $midPoint = $lastPoint + floor(($maxY-$lastPoint)/2.0);
+            reporterror('server/libs/clustermap.php->ClusterMap2()->east side', 'final midPoint='. $midPoint .' to be '. $lastColorMatch .' aka '. $localTileNames[$lastColorMatch]);
+            array_push($biomePoints, [
+                'x'=>$maxX,
+                'y'=>$minY + $midPoint,
+                'biome'=> $localTileNames[$lastColorMatch],
+                'captured'=>[['x'=>$maxX, 'y'=>$minY + $midPoint]]
+            ]);
+        }
+
+        // South side!
+        $nb = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$biomeChunkX, $biomeChunkY+1],
+                        'server/libs/clustermap.php->ClusterMap2()->get south neighbor');
+        if(sizeof($nb)!=0) {
+            $nb = json_decode($nb[0]['content']);
+            // target content here is across the top - the first slots of the array
+            $lastPoint = 0;
+            $lastColorMatch = $nb[0];
+            for($x=1; $x<$chunkWidth*$biomeTileSize; $x++) {
+                if($nb[$x]!=$lastColorMatch) {
+                    $midPoint = $lastPoint + floor((($x-1)-$lastPoint)/2.0);
+                    array_push($biomePoints, [
+                        'x'=>$minX + $midPoint,
+                        'y'=>$maxY,
+                        'biome'=>$localTileNames[$lastColorMatch],
+                        'captured'=>[['x'=>$minX+$midPoint, 'y'=>$maxY]]
+                    ]);
+                }
+                $lastPoint = $x;
+                $lastColorMatch = $nb[$x];
+            }
+            $midPoint = $lastPoint + floor(($maxX-$lastPoint)/2.0);
+            reporterror('server/libs/clustermap.php->ClusterMap2()->south side', 'final midPoint='. $midPoint .' to be '. $lastColorMatch .' aka '. $localTileNames[$lastColorMatch]);
+            array_push($biomePoints, [
+                'x'=>$minX + $midPoint,
+                'y'=>$maxY,
+                'biome'=>$localTileNames[$lastColorMatch],
+                'captured'=>[['x'=>$minX + $midPoint, 'y'=>$maxY]]
+            ]);
+        }
+
+        // West side!
+        $nb = DanDBList("SELECT content FROM sw_biomemap WHERE chunkx=? AND chunkz=?;", 'ii', [$biomeChunkX-1, $biomeChunkY],
+                        'server/libs/clustermap.hpp->ClusterMap2()->get west neighbor');
+        if(sizeof($nb)!=0) {
+            $nb = json_decode($nb[0]['content']);
+            // target content is the last column of each row
+            $xShift = $chunkWidth * $biomeTileSize -1;
+            $yStep = $chunkWidth * $biomeTileSize;
+            $lastPoint = 0;
+            $lastColorMatch = $nb[$xShift];
+            for($y=1; $y<$chunkWidth*$biomeTileSize; $y++) {
+                if($nb[$y*$yStep+$xShift]!=$lastColorMatch) {
+                    $midPoint = $lastPoint + floor((($y-1)-$lastPoint)/2.0);
+                    array_push($biomePoints, [
+                        'x'=>$minX,
+                        'y'=>$minY +$midPoint,
+                        'biome'=>$localTileNames[$lastColorMatch],
+                        'captured'=>[['x'=>$minX, 'y'=>$minY+$midPoint]]
+                    ]);
+                }
+                $lastPoint = $x;
+                $lastColorMatch = $nb[$y*$yStep+$xShift];
+            }
+            $midPoint = $lastPoint + floor(($maxY-$lastPoint)/2.0);
+            reporterror('server/libs/clustermap.php->ClusterMap2()->west side', 'final midPoint='. $midPoint .' to be '. $lastColorMatch .' aka '. $localTileNames[$lastColorMatch]);
+            array_push($biomePoints, [
+                'x'=>$minX,
+                'y'=>$minY +$midPoint,
+                'biome'=>$localTileNames[$lastColorMatch],
+                'captured'=>[['x'=>$minX, 'y'=>$minY+$midPoint]]
+            ]);
+        }
+
+        /*
         // Next, factor in neighboring content. We will add additional biome points for all sides, trying to center them based on the
         // extent of each 'face'
+        reporterror('server/libs/clustermap.php->ClusterMap2()->before existing', 'Building map for ['. $minX .'-'. $maxX .']['. $minY .'-'. $maxY .']');
         reporterror('server/libs/clustermap.php->ClusterMap2()->before existing additions', 'existing map has range ['. $existingMap->minx .'-'. $existingMap->maxx .']['. $existingMap->miny .'-'. $existingMap->maxy .']');
-        $oldSize = sizeof($biomePoints);
         if(!is_array($existingMap)) {
             if(!is_null($existingMap->minx)) {
                 // For each side, first check if we have any content in that direction
@@ -111,10 +248,10 @@
                 if($existingMap->maxx > $maxX) { // right side!
                     $lastPoint = 0;
                     $lastColorMatch = $existingMap->get($maxX+1, $minY)['landType'];
-                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'right: '. $existingMap->get($maxX+1, $minY)['landType']);
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->right side', 'right: '. $existingMap->get($maxX+1, $minY)['landType']);
                     for($y=$minY; $y<=$maxY; $y++) {
                         if(gettype($lastColorMatch)!=='string') {
-                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($maxX+1) .','. $y .']. value='. json_encode($existingMap->get($maxX+1,$y)));
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->right side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($maxX+1) .','. $y .']. value='. json_encode($existingMap->get($maxX+1,$y)));
                             $lastColorMatch = $existingMap->get($maxX+1, $y)['landType'];
                         }
                         if($existingMap->get($maxX+1, $y)['landType']!=$lastColorMatch) {
@@ -141,10 +278,10 @@
                 if($existingMap->maxy > $maxY) { // bottom side!
                     $lastPoint = 0;
                     $lastColorMatch = $existingMap->get($minX, $maxY+1)['landType'];
-                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'bottom: '. $existingMap->get($minX, $maxY+1)['landType']);
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->bottom side', 'bottom: '. $existingMap->get($minX, $maxY+1)['landType']);
                     for($x=$minX; $x<=$maxX; $x++) {
                         if(gettype($lastColorMatch)!=='string') {
-                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. $x .','. ($maxY+1) .']. value='. json_encode($existingMap->get($x,$maxY+1)));
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->bottom side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. $x .','. ($maxY+1) .']. value='. json_encode($existingMap->get($x,$maxY+1)));
                             $lastColorMatch = $existingMap->get($x, $maxY+1)['landType'];
                         }
                         if($existingMap->get($x, $maxY+1)['landType']!=$lastColorMatch) {
@@ -167,13 +304,13 @@
                         'captured'=>[['x'=>$midPoint, 'y'=>$maxY]]
                     ]);
                 }
-                if($existingMap->minx < $maxX) { // left side!
+                if($existingMap->minx < $minX) { // left side!
                     $lastPoint = 0;
                     $lastColorMatch = $existingMap->get($minX-1, $minY)['landType'];
-                    reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'left: '. $existingMap->get($minX-1, $minY)['landType']);
+                    reporterror('server/libs/clustermap.php->ClusterMap2()->left side', 'left: '. $existingMap->get($minX-1, $minY)['landType']);
                     for($y=$minY; $y<=$maxY; $y++) {
                         if(gettype($lastColorMatch)!=='string') {
-                            reporterror('server/libs/clustermap.php->ClusterMap2()->top side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($minX-1) .','. $y .']. value='. json_encode($existingMap->get($minX-1,$y)));
+                            reporterror('server/libs/clustermap.php->ClusterMap2()->left side', 'Error: invalid colorMatch (type='. gettype($lastColorMatch) .') from ['. ($minX-1) .','. $y .']. value='. json_encode($existingMap->get($minX-1,$y)));
                             $lastColorMatch = $existingMap->get($minX-1, $y)['landType'];
                         }
                         if($existingMap->get($minX-1, $y)['landType']!=$lastColorMatch) {
@@ -198,6 +335,7 @@
                 }
             }
         }
+        */
 
         reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points was '. $oldSize .', is now '. sizeof($biomePoints));
         reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points: '. $biomePoints[0]['biome'] .' to '. $biomePoints[sizeof($biomePoints)-1]['biome']);

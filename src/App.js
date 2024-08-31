@@ -3,7 +3,7 @@
 */
 
 // Lines count
-// src/app.js                           src/game.jsx                               src/structures/WaterSource.jsx             src/WorldMap.jsx                       server/libs/clustermap.php             server/minimap.php                  notes/workercrafting.md
+// src/app.js                           src/game.jsx                               src/structures/WaterSource.jsx             src/WorldMap.jsx                       server/libs/clustermap.php              server/minimap.php                 notes/workercrafting.md
 //     src/app.css                         src/game_tasks.jsx                          src/structures/ClayFormer.jsx              server/routes/autologin.php            server/routes/getblog.php              server/routes/worldmap.php         notes/futureprocesses.md
 //        src/libs/DanAjax.js                  src/worker.jsx                              src/structures/FarmersPost.jsx            server/config.php                      server/routes/loadmap.php               resetgame.php                     notes/influences.md notes/tasklist.md
 //           src/libs/DanCarousel.jsx              src/minimapTiles.jsx                        src/structures/HayDryer.jsx             server/libs/common.php                  server/routes/log.php                   README.md                          notes/monetizationstrategies.md
@@ -13,8 +13,8 @@
 //                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx              src/structures/CampFire.jsx            server/finishLogin.php                  server/routes/savetiles.php          notes/worldgen.md
 //                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx             src/structures/SewingShop.jsx          server/generateMap.php                   server/routes/sendunits.php          notes/worldhistory.md
 //                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx               src/LocalMapRightPanel.jsx             server/globals.php                       server/routes/signup.php            notes/magicsystem.md
-//                                  src/LocalMap.jsx                           src/structures/DirtSource.jsx              src/libs/DraggableMap.jsx              server/libs/weightedRandom.php          server/libs/DanGlobal.php           notes/undergroundbiomes.md
-// 265+58+48+113+96+38+231+65+83+68+244+60+                                                                                       33+8+307+230+    35+25+202+301+127+151+40+47+    43+                63+37+        22+54+58+22+32+204+67+11+28+11+75+190+25+17+80
+//                                  src/LocalMap.jsx                           src/structures/DirtSource.jsx              src/libs/DraggableMap.jsx              server/libs/weightedRandom.php           server/libs/DanGlobal.php          notes/undergroundbiomes.md
+// 270+58+48+113+96+38+231+65+83+68+254+67+                                                                                       33+8+307+230+    35+26+305+304+127+530+40+47+    43+                166+37+       22+60+58+27+32+204+13+11+28+11+75+190+25+17+83
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -28,6 +28,7 @@
 // 7/14/23: 8835 lines
 // 7/25/23: 9757 lines
 // 8/17/24: 3914 lines (yes, this was a break of a whole year)
+// 8/27/24: 4485 lines
 
 import React from "react";
 import "./App.css";

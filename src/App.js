@@ -3,18 +3,18 @@
 */
 
 // Lines count
-// src/app.js                           src/game.jsx                               src/structures/WaterSource.jsx             src/WorldMap.jsx                       server/libs/clustermap.php              server/minimap.php                 notes/workercrafting.md
-//     src/app.css                         src/game_tasks.jsx                          src/structures/ClayFormer.jsx              server/routes/autologin.php            server/routes/getblog.php              server/routes/worldmap.php         notes/futureprocesses.md
-//        src/libs/DanAjax.js                  src/worker.jsx                              src/structures/FarmersPost.jsx            server/config.php                      server/routes/loadmap.php               resetgame.php                     notes/influences.md notes/tasklist.md
-//           src/libs/DanCarousel.jsx              src/minimapTiles.jsx                        src/structures/HayDryer.jsx             server/libs/common.php                  server/routes/log.php                   README.md                          notes/monetizationstrategies.md
-//               src/libs/ShowBlog.jsx                 src/itemstats.js                            src/structures/OpenDryer.jsx            server/libs/jsarray.php                 server/routes/login.php                notes/techtree.md                  notes/researchprocess.md
-//                  src/libs/DanLog.js                     src/structures/LeanTo.jsx                   src/structures/HuntersPost.jsx          server/events.php                      server/routes/logout.php               notes/automationtree.md
-//                     src/Account.jsx                         src/structures/ForagePost.jsx               src/structures/ButcherShop.jsx          server/getInput.php                    server/routes/save.php                notes/wartree.md
-//                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx              src/structures/CampFire.jsx            server/finishLogin.php                  server/routes/savetiles.php          notes/worldgen.md
-//                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx             src/structures/SewingShop.jsx          server/generateMap.php                   server/routes/sendunits.php          notes/worldhistory.md
-//                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx               src/LocalMapRightPanel.jsx             server/globals.php                       server/routes/signup.php            notes/magicsystem.md
-//                                  src/LocalMap.jsx                           src/structures/DirtSource.jsx              src/libs/DraggableMap.jsx              server/libs/weightedRandom.php           server/libs/DanGlobal.php          notes/undergroundbiomes.md
-// 270+58+48+113+96+38+231+65+83+68+254+67+                                                                                       33+8+307+230+    35+26+305+304+127+530+40+47+    43+                166+37+       22+60+58+27+32+204+13+11+28+11+75+190+25+17+83
+// src/app.js                           src/game_tasks.jsx                         src/structures/FarmersPost.jsx              server/routes/autologin.php            server/routes/getblog.php              server/routes/worldmap.php         notes/futureprocesses.md
+//     src/app.css                         src/worker.jsx                              src/structures/HayDryer.jsx                server/config.php                      server/routes/loadmap.php               resetgame.php                     notes/influences.md
+//        src/libs/DanAjax.js                  src/itemstats.js                            src/structures/OpenDryer.jsx             server/common.php                       server/routes/log.php                   README.md                          notes/monetizationstrategies.md
+//           src/libs/DanCarousel.jsx              src/structures/LeanTo.jsx                   src/structures/HuntersPost.jsx           server/libs/jsarray.php                 server/routes/login.php                notes/techtree.md                  notes/researchprocess.md
+//               src/libs/ShowBlog.jsx                 src/structures/ForagePost.jsx               src/structures/ButcherShop.jsx           server/events.php                      server/routes/logout.php               notes/automationtree.md            notes/tasklist.md
+//                  src/libs/DanLog.js                     src/structures/RockKnapper.jsx              src/structures/CampFire.jsx              server/getInput.php                    server/routes/save.php                notes/wartree.md
+//                     src/Account.jsx                         src/structures/LoggersPost.jsx              src/structures/SewingShop.jsx           server/finishLogin.php                  server/routes/savetiles.php          notes/worldgen.md
+//                         src/libs/DanInput.jsx                   src/structures/RopeMaker.jsx                src/structures/CampFire.jsx            server/generateMap.php                   server/routes/sendunits.php          notes/worldhistory.md
+//                            src/libs/DanCommon.js                    src/structures/DirtSource.jsx               src/GameDisplay.jsx                    server/globals.php                       server/routes/signup.php            notes/magicsytem.md
+//                               src/libs/ErrorOverlay.jsx                 src/structures/WaterSource.jsx              src/minimapTiles.jsx                   server/libs/weightedRandom.php           server/libs/DanGlobal.php          notes/undergroundbiomes.md
+//                                  src/game.jsx                               src/structures/ClayFormer.jsx               src/WorldMap.jsx                       server/libs/clustermap.php              server/minimap.php                 notes/workercrafting.md
+// 299+63+48+113+96+38+231+65+83+68+134+           85+     111+                                                    415+368+    33+8+307+230+    35+26+358+512+127+534+40+47+    43+31+             166+37+       22+60+60+27+32+204+13+11+28+11+75+190+25+17+84
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -29,8 +29,15 @@
 // 7/25/23: 9757 lines
 // 8/17/24: 3914 lines (yes, this was a break of a whole year)
 // 8/27/24: 4485 lines
+// 11/26/24: 5232 lines
+// 12/02/24: 5548 lines
 
 import React from "react";
+import * as Three from "three";
+import { Canvas, useThree, useFrame, useLoader } from "@react-three/fiber";
+//import { useGLTF } from "@react-three/drei";
+import { TextureLoader } from "three/src/loaders/TextureLoader";
+
 import "./App.css";
 
 import { DAX } from "./libs/DanAjax.js";
@@ -38,11 +45,16 @@ import { DanCarousel } from "./libs/DanCarousel.jsx";
 import { ShowBlog } from "./libs/ShowBlog.jsx";
 
 import { AccountBox, RegisterForm } from "./Account.jsx";
-import { LocalMap } from "./LocalMap.jsx";
 import { game } from "./game.jsx";
+import { ShowGame } from "./GameDisplay.jsx";
 
 export const serverURL = process.env.NODE_ENV === "production" ? "server/" : "http://localhost:80/settlerswarlords/server/";
 export const imageURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/img/";
+export const textureURL = process.env.NODE_ENV === "production" ? "img/" : "http://localhost:80/settlerswarlords/getmedia.php?file=";
+// These variables are important for the transition from dev mode to production mode. During development mode, the React front end behaves
+// on it's own server. Therefore the back end functions as an API. In production mode, the React front end is on the same server as the
+// back end, so file paths are relative to the React application
+
 export const chunkSize = 8;
 
 const chunksLoaded = []; // A flat list of chunk coordinates that have been loaded. This is for debugging purposes, to see what areas are being loaded
@@ -88,6 +100,16 @@ function App() {
     function onLogin(pack) {
         // Handles allowing the player to log in, and sending them to the game screen
 
+        if (pack === null) {
+            // Receiving null means the player is trying to log out
+            localStorage.removeItem("userid");
+            localStorage.removeItem("ajaxcode");
+            setPage("HomePage");
+            setMapTiles([]);
+            setPlayerData(null);
+            return;
+        }
+
         // Use the pack to set the player information
         localStorage.setItem("userid", pack.userid);
         localStorage.setItem("ajaxcode", pack.ajaxcode);
@@ -108,6 +130,7 @@ function App() {
 
         let tiles = [];
         let chunkData = JSON.parse(pack.localContent.content);
+
         chunkData.forEach((t, i) => {
             let x = i % chunkSize;
             let y = Math.floor(i / chunkSize) % chunkSize;
@@ -124,11 +147,14 @@ function App() {
                 show: t.t,
                 floor: t.f,
                 health: t.h,
+                items: t.i,
             };
         });
         setMapTiles(tiles);
 
-        game.setup(setPlayerData, pack.location, pack.username, pack.workers);
+        // Worker content is passed directly from the server database to game.setup().
+
+        game.setup(tiles, setPlayerData, pack.location, pack.username, pack.workers);
         game.start();
 
         setPage("Game");
@@ -168,10 +194,12 @@ function App() {
                     show: t.t,
                     floor: t.f,
                     health: t.h,
+                    items: t.i,
                 };
             });
         });
         setMapTiles(tiles);
+        game.tiles = tiles;
     }
 
     function PickPage() {
@@ -182,7 +210,8 @@ function App() {
             case "HomePage":
                 return <HomePage onLogin={onLogin} />;
             case "Game":
-                return <LocalMap mapTiles={mapTiles} changeMapTiles={addTiles} player={playerData} />;
+                //return <LocalMap mapTiles={mapTiles} changeMapTiles={addTiles} player={playerData} />;
+                return <ShowGame mapTiles={mapTiles} changeMapTiles={addTiles} player={playerData} />;
             default:
                 return <>Error: Page type {page} has not been handled yet</>;
         }

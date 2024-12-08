@@ -87,8 +87,8 @@
                 ['name'=>'wood elemental', 'amount'=>4],
                 ['name'=>'fairie camp', 'amount'=>4],
                 ['name'=>'wisp altar', 'amount'=>2],
-                ['name'=>'ice horrors',      'amount'=>1],
-                ['name'=>'ork tribe',        'amount'=>1]
+                ['name'=>'ice horrors', 'amount'=>1],
+                ['name'=>'ork tribe', 'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
                 ['name'=>'oak',   'amount'=>5],
@@ -236,16 +236,224 @@
     ];
 
     $localTileNames = [
-        //     0       1         2      3
-            'air',   'dirt',  'rock', 'treebranches',
-        //     4       5      6       7          8
-            'wheat', 'oat', 'rye', 'barley', 'millet',
-        //     9        10       11       12        13      14      15      16         17       18       19       20         21         22         23         24
+        //     0       1         2      3               4               5
+            'air',   'dirt',  'rock', 'bent grass', 'switch grass', 'treebranches',
+        //     6       7      8       9          10        11
+            'wheat', 'oat', 'rye', 'barley', 'millet', 'leaffloor',
+        //     12        13     14       15        16      17      18      19         20        21       22      23         24         25         26         27
             'maple', 'birch', 'oak', 'mahogany', 'pine', 'cedar', 'fir', 'hemlock', 'cherry', 'apple', 'pear', 'orange', 'hawthorn', 'dogwood', 'locust', 'juniper',
-        //    25         26       27      28      29     30       31        32         33        34            35
-            'gravel', 'sands', 'water', 'lava', 'ice', 'snow', 'stream', 'wetland', 'cliff', 'creekwash', 'creekbank',
-        //     36          37          38         39        40        41       42      43        44           45         46
-            'carrots', 'potatoes', 'tomatoes', 'turnip', 'peanut', 'maize', 'beans', 'onion', 'broccoli', 'pumpkin', 'mushroom'
+        //    28       29         30         31      32     33         34        35         36        37            38
+            'rock', 'sands', 'stillwater', 'lava', 'ice', 'snow', 'creekwater', 'swampland', 'cliff', 'creekrubble', 'creekbank',
+        //     39          40          41         42        43        44       45      46        47           48         49
+            'carrots', 'potatoes', 'tomatoes', 'turnip', 'peanut', 'maize', 'beans', 'onion', 'broccoli', 'pumpkin', 'mushroom',
+        //    50             51          52
+            'emptygrass', 'farmland', 'gravel'
+    ];
+
+    $treePlacements = [
+        [
+            'name'=>'maple',
+            'id'=>12,
+            'trunks'=> new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>5]  // average 5 trunks per 20 tiles
+            ]),
+            'stickspertrunk'=>20,
+            'logspertrunk'=>15
+        ],[
+            'name'=>'birch',
+            'id'=>13,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>3],
+                ['name'=>'1', 'amount'=>16],
+                ['name'=>'2', 'amount'=>6]  // for every 6 out of 25 tiles, there will be two birch trunks
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>1
+        ],[
+            'name'=>'oak',
+            'id'=>14,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>10],
+                ['name'=>'1', 'amount'=>5]  // average 5 trunks per 15 tiles
+            ]),
+            'stickspertrunk'=>16,
+            'logspertrunk'=>12
+        ],[
+            'name'=>'mahogany',
+            'id'=>15,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>1]   // average 1 trunk per 16 tiles
+            ]),
+            'stickspertrunk'=>20,
+            'logspertrunk'=>8
+        ],[
+            'name'=>'pine',
+            'id'=>16,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>10],
+                ['name'=>'1', 'amount'=>10] // average 50-50 chance of a trunk
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>8
+        ],[
+            'name'=>'cedar',
+            'id'=>17,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>10],
+                ['name'=>'1', 'amount'=>5]
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>6
+        ],[
+            'name'=>'fir',
+            'id'=>18,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>5]
+            ]),
+            'stickspertrunk'=>4,
+            'logspertrunk'=>4
+        ],[
+            'name'=>'hemlock',
+            'id'=>19,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>14],
+                ['name'=>'1', 'amount'=>2]
+            ]),
+            'stickspertrunk'=>15,
+            'logspertrunk'=>7
+        ],[
+            'name'=>'cherry',
+            'id'=>20,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>5],
+                ['name'=>'1', 'amount'=>10], // average 1 out of 3 tiles
+            ]),
+            'stickspertrunk'=>8,
+            'logspertrunk'=>0
+        ],[
+            'name'=>'apple',
+            'id'=>21,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>5],
+                ['name'=>'1', 'amount'=>12]
+            ]),
+            'stickspertrunk'=>12,
+            'logspertrunk'=>1
+        ],[
+            'name'=>'pear',
+            'id'=>22,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>5],
+                ['name'=>'1', 'amount'=>8]
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>0
+        ],[
+            'name'=>'orange',
+            'id'=>23,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>5],
+                ['name'=>'1', 'amount'=>14]
+            ]),
+            'stickspertrunk'=>10,
+            'logspertrunk'=>1
+        ],[
+            'name'=>'hawthorn',
+            'id'=>24,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>1]    // average 1 out of 16 tiles
+            ]),
+            'stickspertrunk'=>12,
+            'logspertrunk'=>4
+        ],[
+            'name'=>'dogwood',
+            'id'=>25,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>5]
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>0
+        ],[
+            'name'=>'locust',
+            'id'=>26,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>15],
+                ['name'=>'1', 'amount'=>1]
+            ]),
+            'stickspertrunk'=>24,
+            'logspertrunk'=>10
+        ],[
+            'name'=>'juniper',
+            'id'=>27,
+            'trunks'=>new WeightedRandom([
+                ['name'=>'0', 'amount'=>17],
+                ['name'=>'1', 'amount'=>1]
+            ]),
+            'stickspertrunk'=>6,
+            'logspertrunk'=>3
+        ]
+    ];
+
+    // I wanted to mix the vegetables in with the tree types, but... these will be managed entirely differently.
+    $vegetableSpread = new WeightedRandom([
+        ['name'=>'empty', 'amount'=>2500],
+        ['name'=>'carrots', 'amount'=>5],
+        ['name'=>'potatoes', 'amount'=>7],
+        ['name'=>'tomatoes', 'amount'=>6],
+        ['name'=>'turnip', 'amount'=>5],
+        ['name'=>'peanut', 'amount'=>7],
+        ['name'=>'maize', 'amount'=>8],
+        ['name'=>'beans', 'amount'=>8],
+        ['name'=>'onion', 'amount'=>6],
+        ['name'=>'broccoli', 'amount'=>7],
+        ['name'=>'pumpkin', 'amount'=>4],
+        ['name'=>'mushroom', 'amount'=>9]
+    ]);
+
+    $itemsInTiles = [
+        [
+            'id'=>0,
+            'name'=>'air',
+            'items'=>[]
+        ],[
+            'id'=>1,
+            'name'=>'dirt',
+            'items'=>[] // maybe we could put some amounts of gravel or rock here... or other organic things. I dunno
+        ],[
+            'id'=>2,
+            'name'=>'rock',
+            'items'=>[]
+        ],[
+            'id'=>3,
+            'name'=>'bent grass',
+            'items'=>[['name'=>'bent grass seed', 'min'=>1, 'max'=>4]]
+        ],[
+            'id'=>4,
+            'name'=>'switch grass',
+            'items'=>[['name'=>'switch grass seed', 'min'=>1, 'max'=>4]]
+        ],[
+            'id'=>5,
+            'name'=>'treebranches',
+            'items'=>[
+                ['name'=>'leaves', 'min'=>5, 'max'=>15],
+                ['name'=>'dead log', 'min'=>0, 'max'=>1], // this will result in a 50/50 chance of any tile having one log. Not ideal... but we'll worry about better odds later
+                ['name'=>'medium firewood', 'min'=>1, 'max'=>3]
+            ]
+        ],[
+            'id'=>6,
+            'name'=>'wheat',
+            'items'=>[
+                ['name'=>'wheat grass', 'min'=>2, 'max'=>7],
+                ['name'=>'wheat seed', 'min'=>4, 'max'=>10]
+            ]
+        ],[
+            'id'=>7
+        ]
     ];
 
     $civData = [

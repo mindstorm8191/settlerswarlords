@@ -10,6 +10,8 @@ import "./App.css";
 import { serverURL, imageURL, chunkSize } from "./App.js";
 import { game } from "./game.jsx";
 
+let errorTimeout = null;
+
 export function LocalMap(props) {
     // Manages displaying the game
     // prop fields - data
@@ -30,6 +32,11 @@ export function LocalMap(props) {
     const [scrollSet, setScrollSet] = React.useState([]);
 
     const [buildMenuState, setBuildMenuState] = React.useState(0);
+    //const [buildPlacer, setBuildPlacer] = React.useState(''); // Name of the building to place down
+    //const [buildPlacerImage, setBuildPlacerImage] = React.useState('');
+    const [dragStructure, setDragStructure] = React.useState(null); // We will try to contain our drag content in a single object
+
+    const [errorText, setErrorText] = React.useState('');
     
     React.useEffect(() => {
         // On load, check the map's range, and ensure there are enough tiles around the player already loaded
@@ -90,7 +97,14 @@ export function LocalMap(props) {
         }
     }, [props.player]);
 
-    
+    function ShowError(errorText) {
+        setErrorText(errorText);
+        clearTimeout(errorTimeout);
+        errorTimeout = setTimeout(()=>{
+            errorTimeout = null;
+            setErrorText('');
+        }, 8000);
+    }
 
     // Before we can generate a map, we need to pick out the tiles of the map to display
     let showTiles = [];
@@ -112,7 +126,25 @@ export function LocalMap(props) {
     // For now, just focus on displaying the 4th map layer, that should have grass tiles on it
     // We can't really use DraggableMap for the local map, as we will be bound to the player's location
     return (
-        <div>
+        <div
+            onMouseMove={(event)=>{
+                if(!(dragStructure===null)) {
+                    setDragStructure({...dragStructure, x:event.clientX, y:event.clientY-170});
+                }
+            }}
+            onClick={(event)=>{
+                event.stopPropagation();
+                if(event.nativeEvent.button===2) {
+                    if(!(dragStructure===null)) {
+                        console.log('Clear selection!');
+                        event.preventDefault();
+                    }
+                }
+                if(event.nativeEvent.button===0) {
+                    console.log('Left click');
+                }
+            }}
+        >
             <div className='fakelink' style={{marginLeft:200, fontSize:20}} onClick={()=>setBuildMenuState(1)}>Build</div>
             <div style={{display:'flex', width:'100%'}}>
                 <div
@@ -147,6 +179,24 @@ export function LocalMap(props) {
                                     onMouseOver={()=>{
                                         setSidePanel('['+ tile.x +','+ tile.y +','+ tile.z +'] '+ (tile.floor===-1?'Broken':minimapTiles[tile.floor].desc));
                                     }}
+                                    onClick={(event)=>{
+                                        event.preventDefault();
+                                        if(event.nativeEvent.button===0 && !(dragStructure===null)) {
+                                            console.log('Place building!');
+                                            console.log(tile);
+                                            let leanto = {
+                                                name: 'Lean To',
+                                                status: 'building',
+                                                progress: 0
+                                            };
+                                            // We can't simply attach the structure to the tile here, as it won't stick after this .map() finishes
+                                            game.structures.push(leanto);
+                                            ShowError('Lean-to must be placed on a tile with trees');
+                                        }
+                                        if(event.nativeEvent.button===2) {
+                                            console.log('Right-click on tile');
+                                        }
+                                    }}
                                 >
                                     <img src={imageURL + "localtiles/"+ tileImage} style={{ pointerEvents: "none" }} />
                                 </div>
@@ -165,7 +215,10 @@ export function LocalMap(props) {
                         })}                        
                     </div>
                     {/* Show some buttons to adjust the visible layer */}
-                    <div style={{position:'absolute', top:0, right:0}} >
+                    <div style={{position:'absolute', top:0, right:0, textAlign:'right'}} >
+                        {!(dragStructure===null)?(
+                            <img src={imageURL +'levelup.png'} onClick={()=>{setDragStructure(null)}} />
+                        ):('')}
                         <img src={imageURL +'levelup.png'} onClick={()=>{let newLayer = viewLayer-1; setViewLayer(newLayer);}} />
                         <br />
                         <img src={imageURL +'levelplayer.png'} onClick={()=>{setViewLayer(0)}} />
@@ -174,9 +227,38 @@ export function LocalMap(props) {
                     </div>
 
                     {/* Also show a build menu, if it is set to show */}
-                    {buildMenuState==0?(''):(
+                    {buildMenuState!==0?(
                         <div style={{position:'absolute', top:50, left:50, backgroundColor:'slate', minWidth:100, height:100}}>
-                            <img src={imageURL +'structures/leanto.png'} alt="lean-to" />
+                            <img
+                                className='fakelink'
+                                src={imageURL +'structures/leanto.png'}
+                                alt="lean-to"
+                                onMouseOver={()=>setSidePanel('Lean-to: A basic housing unit')}
+                                onClick={(event)=>{
+                                    if(event.nativeEvent.button===0) {
+                                        setBuildMenuState(0);
+                                        setDragStructure({image: imageURL+'structures/leanto.png', x:event.clientX, y:event.clientY})
+                                        console.log('start building move');
+                                        event.preventDefault();
+                                    }
+                                    if(event.nativeEvent.button===2) {
+                                        console.log('right click');
+                                        event.stopPropagation();
+                                        event.preventDefault();
+                                    }
+                                    //setBuildPlacer("leanto");
+                                    //setBuildPlacerImage(imageURL +'structures/leanto.png');
+                                }} />
+                        </div>
+                    ):('')}
+                    {!(dragStructure===null)?(
+                        <div style={{display:'block', position:'absolute', top:dragStructure.y-20, left:dragStructure.x-20, width:40, height:40, pointerEvents:'none'}}>
+                            <img src={dragStructure.image} alt="plce building" draggable="false" style={{pointerEvents:'none'}} />
+                        </div>
+                    ):('')}
+                    {errorText===''?(''):(
+                        <div style={{display:'block', position:'absolute', backgroundColor:'pink', zIndex:1, padding:5, bottom:0, right:0}}>
+                            {errorText}
                         </div>
                     )}
                 </div>

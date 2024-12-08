@@ -20,3 +20,5 @@
     DanDBList("DELETE FROM sw_traveler;", '', [], 'resetgame.php->clear all travelers');
     echo('All is done');
 ?>
+
+

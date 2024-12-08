@@ -56,3 +56,5 @@ Settlers & Warlords is expected to have a complex tech tree, even before being a
 34. New Bronze tools will provide better ways to cut wood, making products from wood cost less time and wood, and creating more wood based items
 35. As bronze production grows, weapons and armor can be equipped with it. Later bronze can provide low pressure steam production, for a variety of new machines.
 36. Eventually players will be able to smelt iron using charcoal or coal, producing steel. This will require better abilities in alloy production control, along with enough automated power to keep air flowing through a Smelter the whole time
+
+After playing Factorio (and Py's mod) for some time, I think this game would be better off to have two game modes: easy and hard. I will continue developing plans for hard mode, following the above tech path. Easy mode will simplify the tech tree by a great deal, and be easier for players to get into the game and advance through it.

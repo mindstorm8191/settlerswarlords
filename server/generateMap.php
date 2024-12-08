@@ -29,14 +29,18 @@
         // $chunkx, $chunky, $chunkz - chunk coordinates to collect data from
 
         global $chunkWidth;
+        global $localTileNames;
+        global $treePlacements;
+        global $vegetableSpread;
 
-        // Grab the target chunk from the database
+        // Grab the target chunk from the database. If it does exist, return that
         //reporterror('server/generateMap.php->loadChunk()->input', 'load chunk at coords=['. $chunkx .','. $chunky .','. $chunkz .']');
         $pick = DanDBList("SELECT * FROM sw_mapchunk WHERE chunkx=? AND chunky=? AND chunkz=?;", 'iii', [$chunkx, $chunky, $chunkz], 'server/routes/loadmap.php->fetch chunk');
         if(sizeof($pick)>0) {
             return $pick[0];
         }
-
+        // Oh dear, we didn't find the target chunk... probably because it doesn't exist yet. No matter, we'll generate it now
+        
         // As we generate tiles, we need to determine what biome this should be. It will affect what 'surface' tiles are displayed, and also what trees generate
         // Biome generation will occur on two levels; a wide-area biome and small-area biome.
         // The wide area will determine what group of tiles can generate there. Each 'tile' of this map will cover a 4x4 group of clusters
@@ -44,8 +48,8 @@
         $biome = getBiomeTiles($chunkx, $chunkz);
         // This should give us a flat array of tile types to apply to the floor of every surface tile
         
-        // Oh dear, we didn't find the target chunk... probably because it doesn't exist yet. No matter, we'll generate it now
-        // what we generate will be based on the chunk's vertical location
+        // what we generate will be based on the chunk's vertical location. Later, we will have to factor in a world height map... but that's difficult. For
+        // now we'll use a totally flat map
         if($chunky<0) {
             $fullMap = forrange(0,$chunkWidth-1,1, function($z) {
                 global $chunkWidth;
@@ -83,33 +87,54 @@
         //reporterror('server/generateMap.php->loadChunk()->after initial chunk build', 'last tile='. $fullMap[6][6][6]);
         // Let's now handle adding tree content to tiles above the ground
         // Where-ever we find tree tiles, we will shift 2 tiles up and fill them with treebranch tiles (this will be the full tile type, not just the floor; the floor will still be air).
-        $forestBiomeMin = 9;
-        $forestBiomeMax = 24;
+
+        // As we do this, we also want to add tree trunks to the bottom layer. The number of tree trunks will depend on the type of tree being placed. I don't want to place
+        // tree trunks based on a random number - it won't generate fair levels unless it is on a large scale. Instead, we will use a WeightedRandom class, one for each type of
+        // tree; this will be in globals.php
+        $forestBiomeMin = 12;
+        $forestBiomeMax = 27;
+        $grassBiomeMin = 6;
+        $grassBiomeMax = 10;
         $hitCount = 0;
         for($z=0; $z<$chunkWidth; $z++) {
             for($y=0; $y<$chunkWidth; $y++) {
                 for($x=0; $x<$chunkWidth; $x++) {
                     if($fullMap[$z][$y][$x]=='grassydirt') { // This tile floor is biome dependent... now check which biome type should be here
-                        if($biome[$z*$chunkWidth+$x]>=$forestBiomeMin && $biome[$z*$chunkWidth+$x]<=$forestBiomeMax) {
+                        $pickedBiome = $biome[$z*$chunkWidth+$x];
+                        if($pickedBiome>=$forestBiomeMin && $pickedBiome<=$forestBiomeMax) {
+                            $treeStats = JSFind($treePlacements, function($t) use ($pickedBiome) {
+                                if($t['id']===$pickedBiome) return true;
+                                return false;
+                            });
+                            $hasTrunk = $treeStats['trunks']->cyclepull();
+                            if($hasTrunk==='1' || $hasTrunk==='2') {
+                                $fullMap[$z][$y][$x] = 'treetrunk'; // from here we will determine what object is placed based on the biome selected
+                            }else{
+                                $fullMap[$z][$y][$x] = 'leaffloor';
+                            }
                             // y-negative is always up
                             $fullMap[$z][$y-1][$x] = 'treebranches';
                             $fullMap[$z][$y-2][$x] = 'treebranches';
                             $hitCount++;
                         }
+                        // While here, let's manage grasslands, too. We want every few tiles to contain a vegetable instead
+                        if($pickedBiome>=$grassBiomeMin && $pickedBiome<=$grassBiomeMax) {
+                            $selected = $vegetableSpread->cyclepull();
+                            if($selected !== 'empty') {  // any time we get 'empty' we leave the grass as is
+                                $fullMap[$z][$y][$x] = $selected;
+                            }
+                        }
                     }
                 }
             }
         }
-        reporterror('server/generateMap.php->loadChunk()->after trees addition', 'Added '. $hitCount .' tiles for trees');
-        //$tileConversion = ['air','dirt','grassydirt','rock','water','fire','wood'];
+        //reporterror('server/generateMap.php->loadChunk()->after trees addition', 'Added '. $hitCount .' tiles for trees');
+        
+        // Convert the map to a flat array, to store it in the database. We can compute each tiles' location based on its array position
         $flatMap = [];
         for($z=0; $z<=$chunkWidth-1; $z++) {
             for($y=0; $y<=$chunkWidth-1; $y++) {
                 for($x=0; $x<=$chunkWidth-1; $x++) {
-                    /*$slot = JSFindIndex($tileConversion, function($i) use ($fullMap, $x, $y, $z) {
-                        return $i===$fullMap[$z][$y][$x];
-                    });
-                    array_push($flatMap, ['t'=>$slot, 'h'=>100]);*/
                     switch($fullMap[$z][$y][$x]) {
                         case 'air':        array_push($flatMap, ['t'=>0, 'f'=>0, 'h'=>100]); break;
                         //case 'grassydirt': array_push($flatMap, ['t'=>0, 'f'=>1, 'h'=>100]); break;
@@ -117,7 +142,56 @@
                         case 'bottomdirt': array_push($flatMap, ['t'=>1, 'f'=>2, 'h'=>100]); break;
                         case 'rock':       array_push($flatMap, ['t'=>2, 'f'=>2, 'h'=>100]); break;
                         case 'treebranches': array_push($flatMap, ['t'=>3, 'f'=>3, 'h'=>100]); break;
-                        case 'grassydirt': array_push($flatMap, ['t'=>0, 'f'=>$biome[$z*$chunkWidth+$x], 'h'=>100]); break;
+                        case 'leaffloor':    array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100]); break;
+                        case 'treetrunk':
+                                // Tree trunks are going to hold the logs and sticks. We will attach all the tree related parts to the trunks. The surrounding
+                                // forest floor will hold fallen sticks and logs
+                                $p = $biome[$z*$chunkWidth+$x];
+                                $treeSlot = JSFindIndex($treePlacements, function($r) use ($p) {
+                                    // $p here should be a tile ID
+                                    return $r['id']===$p;
+                                });
+                                if($treeSlot===-1) {
+                                    array_push($flatMap, ['t'=>$biome[$z*$chunkWidth+$x], 'f'=>$biome[$z*$chunkWidth+$x], 'h'=>100]);
+                                }else{
+                                    array_push($flatMap, [
+                                        't'=>$biome[$z*$chunkWidth+$x],
+                                        'f'=>$biome[$z*$chunkWidth+$x],
+                                        'h'=>100,
+                                        'i'=>[
+                                            ['name'=>'long stick', 'amt'=>$treePlacements[$treeSlot]['stickspertrunk']],
+                                            ['name'=>'log', 'amt'=>$treePlacements[$treeSlot]['logspertrunk']]
+                                        ]
+                                    ]);
+                                }
+                            break;
+                        case 'grassydirt':
+                            // Depending on the biome chosen, we may have additional items to place here
+                            $p = $biome[$z*$chunkWidth+$x];
+                            switch($p) {
+                                case 6: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'wheat seeds', 'amt'=>7], ['name'=>'wheat grass', 'amt'=>10]]]); break;
+                                case 7: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'oat seeds', 'amt'=>8], ['name'=>'oat grass', 'amt'=>5]]]); break;
+                                case 8: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'rye seeds', 'amt'=>5], ['name'=>'rye grass', 'amt'=>6]]]); break;
+                                case 9: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'barley seeds', 'amt'=>6], ['name'=>'barley grass', 'amt'=>7]]]); break;
+                                case 10: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'millet seeds', 'amt'=>7], ['name'=>'millet grass', 'amt'=>9]]]); break;
+                                default: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100]); break;
+                            }
+                        break;
+                        default:
+                            // This should handle any vegetable types we have
+                            $vegetable = $fullMap[$z][$y][$x];
+                            $vegetableSlot = JSFindIndex($localTileNames, function($r) use ($vegetable) {
+                                return $r === $vegetable;
+                            });
+                            if($vegetableSlot===-1) {
+                                // We didn't find the correct vegetable
+                                reporterror('server/generateMap.php->loadChunk()->convert to flat map', 'Error: vegetable type '. $fullMap[$z][$y][$x] .' not found. pos=['. $x .','. $y .','. $z .']');
+                                // We still have to push something here. Just use the normal grass value
+                                array_push($flatMap, ['t'=>0, 'f'=>$biome[$z*$chunkWidth+$x], 'h'=>100]);
+                            }else{
+                                array_push($flatMap, ['t'=>0, 'f'=>$vegetableSlot, 'h'=>100]);
+                            }
+                            break;
                     }
                 }
             }
@@ -303,3 +377,5 @@
         return 'grassland';
     }
 ?>
+
+

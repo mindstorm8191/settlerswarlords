@@ -18,8 +18,9 @@ Later objectives
 1.  Modify the client-side map loading code to gradually check larger and larger areas around the player. We want to load a lot of content, but focus on nearby portions first.
     -   Come up with a way to expand the search range by x and z values, not y.
     -   Figure out a way to load spaces that the player has built things on. Players will need their entire base areas to be fully running when they play
-2.  Update player movement. When players are moving diagonally, reduce movement a little bit in both directions so that diagonal movements are 1 speed, not 1.44 speed
-3.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
+2.  Provide a Status message when viewing a structure. We want to show why a structure isn't working, or show that it is working when it is
+3.  Update player movement. When players are moving diagonally, reduce movement a little bit in both directions so that diagonal movements are 1 speed, not 1.44 speed
+4.  Set up a mini-banner of some kind, so we can use more of the screen space for content. The normal banner will show before users log in, then we can switch after
 
 Tasks complete (because it helps to see what you've already accomplished)
 

@@ -24,3 +24,5 @@
         'workers'=>DanDBList('SELECT * FROM sw_worker WHERE playerid=?;', 'i', [$playerid], 'server/finishLogin.php->get workers')
     ]));
 ?>
+
+

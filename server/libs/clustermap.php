@@ -91,6 +91,10 @@
                     ]);
                     $lastPoint = $x;
                     $lastColorMatch = $nb[$zOffset+$x];
+                    if($lastColorMatch===-1) {
+                        reporterror('server/libs/clustermap.php->ClusterMap2()->get neighbors north side',
+                                    'Error: Got colorMatch of -1. Chunk at ['. $biomeChunkX .','. ($biomeChunkY-1) .'], offset '. $zOffset .' + $x='. $x);
+                    }
                 }
             }
             // Don't forget to include the last section

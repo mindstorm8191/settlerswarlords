@@ -38,3 +38,5 @@
                              'i', [$con['blogid']], 'server/routes/getblog.php->get specific blog content')[0]['content']
     ]));
 ?>
+
+

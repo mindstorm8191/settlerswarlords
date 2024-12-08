@@ -80,4 +80,15 @@ export const DanCommon = {
         }
         return false;
     },
+
+    myModulus(value, divider) {
+        // Returns the modulus of the provided value
+        // Regular modulus works differently for negative numbers. -5%4 will give you -1. This can throw off scaling when trying to grid things. Instead, we want -5%4 to
+        // give us 3.
+        // If this receives a positive number, it will perform modulus like normal
+        if (value <= 0) {
+            return (-value * divider + value) % divider;
+        }
+        return value % divider;
+    },
 };

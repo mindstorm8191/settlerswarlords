@@ -73,3 +73,14 @@ This one is a little different, as it's not directly controlled by the player
 -   Collection cannot be too tedious, or players will not enjoy doing it. Automation of this process will help greatly
 -   Crafting needs to be engaging
 -   Usage has to be important. Players don't want to spend an hour collecting & crafting boring decorations. There needs to be real benefits to completing the target crafting
+
+### Ice skates
+
+-   Ice skates can be a simple way to travel quickly over frozen lakes - much faster than walking through snow on the banks
+-   Ice skates can be made primitively using bones... they probably won't last long though. Iron ones should be easy to produce as well
+-   Additional ice skate based equipment could be made as well, such as carts, to ferry resources over long distances on frozen lakes
+-   We should give suggestions to users to produce ice skates for these roles
+
+### Other finds
+
+-   This should be some kind of ghost phantom monster https://imgur.com/gallery/thats-embarrassing-dyhYyRB

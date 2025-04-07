@@ -58,7 +58,7 @@
                 ['name'=>'maple', 'amount'=>3],
                 ['name'=>'locust','amount'=>1],
                 ['name'=>'apple', 'amount'=>1],
-                ['name'=>'water', 'amount'=>2],
+                ['name'=>'stillwater', 'amount'=>2],
                 ['name'=>'rock',  'amount'=>2]
             ]),
             'rarePlants'=> new WeightedRandom([
@@ -106,7 +106,7 @@
                 ['name'=>'rye',   'amount'=>1],
                 ['name'=>'barley','amount'=>1],
                 ['name'=>'millet','amount'=>1],
-                ['name'=>'water', 'amount'=>5],
+                ['name'=>'stillwater', 'amount'=>5],
                 ['name'=>'rock', 'amount'=>2]
             ]),
             'rarePlants'=> new WeightedRandom([
@@ -143,7 +143,7 @@
                 ['name'=>'rye',   'amount'=>3],
                 ['name'=>'barley','amount'=>3],
                 ['name'=>'millet','amount'=>3],
-                ['name'=>'water', 'amount'=>5]
+                ['name'=>'stillwater', 'amount'=>5]
             ])
         ],[
             'biome'=>'swamp',
@@ -161,7 +161,7 @@
                 ['name'=>'ork tribe',        'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water', 'amount'=>100],
+                ['name'=>'stillwater', 'amount'=>100],
                 ['name'=>'wheat', 'amount'=>12],
                 ['name'=>'oat',   'amount'=>12],
                 ['name'=>'rye',   'amount'=>12],
@@ -188,7 +188,7 @@
                 ['name'=>'angry whale',        'amount'=>3]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water', 'amount'=>23],
+                ['name'=>'stillwater', 'amount'=>23],
                 ['name'=>'rock', 'amount'=>2]
             ])
         ],[
@@ -204,7 +204,7 @@
                 ['name'=>'ork tribe',       'amount'=>1]
             ]),
             'localTiles'=> new WeightedRandom([
-                ['name'=>'water',    'amount'=>30],
+                ['name'=>'stillwater',    'amount'=>30],
                 ['name'=>'maple',    'amount'=>5],
                 ['name'=>'oak',      'amount'=>10],
                 ['name'=>'birch',    'amount'=>20],
@@ -441,7 +441,7 @@
             'name'=>'treebranches',
             'items'=>[
                 ['name'=>'leaves', 'min'=>5, 'max'=>15],
-                ['name'=>'dead log', 'min'=>0, 'max'=>1], // this will result in a 50/50 chance of any tile having one log. Not ideal... but we'll worry about better odds later
+                ['name'=>'rotten log', 'min'=>0, 'max'=>1], // this will result in a 50/50 chance of any tile having one log. Not ideal... but we'll worry about better odds later
                 ['name'=>'medium firewood', 'min'=>1, 'max'=>3]
             ]
         ],[

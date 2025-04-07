@@ -279,11 +279,22 @@
 
                 case 'arrayOfInts':
                     // Here, we have an array, but all the data is only integers. I think we can manage it this time
-                    return [danescape($key), array_map(function($mele) use ($key) {
+                    return [danescape($key), array_map(function($mele) use ($key, $callfrom) {
                         if(!validInt($mele)) {
                             reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. $key .' is not an array of ints. IP='.
                                         $_SERVER['REMOTE_ADDR']);
                             ajaxreject('badinput', 'Input error: parameter '. $key .' must be an array of ints');
+                        }
+                        return $mele;
+                    }, $ele)];
+                
+                case 'arrayOfFloats':
+                    // This is an array, but all data is only floating point numbers.
+                    return [danescape($key), array_map(function($mele) use ($key, $callfrom) {
+                        if(!validFloat($mele)) {
+                            reporterror($callfrom .'->verifyInput()', 'Input error: Parameter '. $key .' is not an array of floats. IP='.
+                                        $_SERVER['REMOTE_ADDR']);
+                            ajaxreject('badinput', 'Input error: parameter '. $key .' must be an array of floats');
                         }
                         return $mele;
                     }, $ele)];

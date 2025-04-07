@@ -82,6 +82,10 @@
             $lastColorMatch = $nb[$zOffset+0]; // Note that this will give us an integer. We will need to translate it to a local tile name as we create the biome point
             for($x=1; $x<$chunkWidth*$biomeTileSize; $x++) {
                 if($nb[$zOffset+$x]!=$lastColorMatch) {
+                    if($lastColorMatch===-1) {
+                        reporterror('server/libs/clustermap.php->ClusterMap2()->get neighbors north side pre-work',
+                                    'Error: Got colorMatch of -1. Chunk at ['. $biomeChunkX .','. ($biomeChunkY-1) .'], offset '. $zOffset .' + $x='. $x);
+                    }
                     $midPoint = $lastPoint + floor((($x-1)-$lastPoint)/2.0);
                     array_push($biomePoints, [
                         'x'=>$minX + $midPoint, // while placing this, we will need to translate for world map coordinates
@@ -92,7 +96,7 @@
                     $lastPoint = $x;
                     $lastColorMatch = $nb[$zOffset+$x];
                     if($lastColorMatch===-1) {
-                        reporterror('server/libs/clustermap.php->ClusterMap2()->get neighbors north side',
+                        reporterror('server/libs/clustermap.php->ClusterMap2()->get neighbors north side post-work',
                                     'Error: Got colorMatch of -1. Chunk at ['. $biomeChunkX .','. ($biomeChunkY-1) .'], offset '. $zOffset .' + $x='. $x);
                     }
                 }
@@ -341,8 +345,8 @@
         }
         */
 
-        reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points was '. $oldSize .', is now '. sizeof($biomePoints));
-        reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points: '. $biomePoints[0]['biome'] .' to '. $biomePoints[sizeof($biomePoints)-1]['biome']);
+        //reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points was '. $oldSize .', is now '. sizeof($biomePoints));
+        //reporterror('server/libs/clustermap.php->ClusterMap2()->pre main loop', 'biome points: '. $biomePoints[0]['biome'] .' to '. $biomePoints[sizeof($biomePoints)-1]['biome']);
         // With each biome point decided now, we need to mark each of these tiles on the final map as the picked tile type
         for($i=0; $i<sizeof($biomePoints); $i++) {
             if(gettype($biomePoints[$i]['biome'])!=='string')

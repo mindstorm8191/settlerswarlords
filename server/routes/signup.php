@@ -67,6 +67,8 @@
     createWorker($playerid, $location[0], $location[1], $location[2]-1);
     createWorker($playerid, $location[0]+1, $location[1], $location[2]);
     createWorker($playerid, $location[0], $location[1], $location[2]+1);
+    // Since we are now managing workers by attaching them to the player record, we need to do this another way
+
 
     // Next, we need to generate a map tile for this player to be on. Fortunately, we have a function that can load content when players log in, and
     // if no map chunk exists, one can be created on demand.
@@ -154,6 +156,8 @@
     function createWorker($ownerid, $x, $y, $z) {
         // Creates a new worker, assigning it a location in the world
 
+        global $db;
+
         // Workers will all need unique IDs... this will be managed by the database now
         //$lastId = getGlobal('lastWorkerId');
         //if(is_null($lastId)) $lastId = 0;
@@ -161,7 +165,9 @@
 
         // Also save this worker to the database. Workers used to be attached to specific map zones. But with chunks we can't really do that, so we're going to
         // use a worker table for that.
-        DanDBList("INSERT INTO sw_worker (playerid, spot) VALUES (?,?);", 'is', [$ownerid, json_encode([$x,$y,$z], 1)], 'server/routes/signup.php->createWorker()->save');
+        DanDBList("INSERT INTO sw_worker (playerid, spot, carrying, travelPath) VALUES (?,?,'[]', '');", 'is', [$ownerid, json_encode([$x,$y,$z], 1)],
+                  'server/routes/signup.php->createWorker()->save');
+        return mysqli_insert_id($db);
     }
 ?>
 

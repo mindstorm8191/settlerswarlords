@@ -18,6 +18,7 @@
     DanDBList("DELETE FROM sw_biomemap;", '', [], 'resetgame.php->clear all lower biome data');
     DanDBList("DELETE FROM sw_player;", '', [], 'resetgame.php->clear all players');
     DanDBList("DELETE FROM sw_traveler;", '', [], 'resetgame.php->clear all travelers');
+    DanDBList("DELETE FROM sw_worker;", '', [], 'resetgame.php->clear all workers');
     echo('All is done');
 ?>
 

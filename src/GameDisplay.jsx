@@ -70,64 +70,18 @@ export function ShowGame(props) {
     // mapTiles - 3D array of tiles as collected from the server
     // player - details about the player, including their location. This will be used to determine camera position
 
-    const [fetchMode, setFetchMode] = React.useState(true);
-
-    React.useEffect(() => {
-        // On load, we need to check the map's current range, to ensure there are enough tiles loaded that surround the player.
-        // This can actually be a bit challenging; we need to group all map tiles into their respective chunks, to determine which set of chunks need loading
-        // But, since any tile within a chunk can confirm or deny a chunk is loaded, we only have to look at a single tile for each chunk
-
-        let chunksNeeded = [];
-        let range = 1;
-        for (let x = -range; x <= range; x++) {
-            for (let y = -1; y <= 1; y++) {
-                for (let z = -range; z <= range; z++) {
-                    // Use Javascript tricks to check each slot of the array. Once one condition fails, it'll skip checking the rest
-                    if (
-                        typeof props.mapTiles[props.player.x + x * chunkSize] === "undefined" ||
-                        typeof props.mapTiles[props.player.x + x * chunkSize][props.player.y + y * chunkSize] === "undefined" ||
-                        typeof props.mapTiles[props.player.x + x * chunkSize][props.player.y + y * chunkSize][
-                            props.player.z + z * chunkSize
-                        ] === "undefined"
-                    ) {
-                        chunksNeeded.push([x, y, z]); // Note this stores based on chunk coords, not tile coords
-                    }
-                }
-            }
-        }
-        if (fetchMode === true) {
-            //console.log("Get " + chunksNeeded.length + " more chunks");
-            if (chunksNeeded.length > 0) {
-                setFetchMode(false); // Unfortunately, this trigger is always loading. To keep this script from constantly requesting map tiles, we need to
-                // set a flag. This gets cleared after we receive new content
-                if (chunksNeeded.length > 10) chunksNeeded.splice(10, chunksNeeded.length - 10); // Limit our fetch to 10 chunks
-                fetch(serverURL + "/routes/loadmap.php", DAX.serverMessage({ chunkList: chunksNeeded }, true))
-                    .then((res) => DAX.manageResponseConversion(res))
-                    .catch((err) => console.log(err))
-                    .then((data) => {
-                        if (data.result !== "success") {
-                            console.log("There was an error requesting map chunks", data);
-                            return;
-                        }
-                        props.changeMapTiles(data.chunks);
-                        setFetchMode(true);
-                    });
-            }
-        } else {
-            //console.log("Wait for chunks to load, waiting for " + chunksNeeded.length + " more chunks");
-        }
-    }, [props.mapTiles, props.player]);
+    /* Game is now responsible for storing all map tiles, and as such, also responsible for loading new tile content */
 
     // Before we can show a map, we need to pick out the tiles needed to be displayed
     let showTiles = [];
     for (let x = Math.floor(props.player.x) - 10; x <= Math.floor(props.player.x) + 10; x++) {
         for (let z = Math.floor(props.player.z) - 10; z <= Math.floor(props.player.z) + 10; z++) {
             if (
-                typeof props.mapTiles[x] !== "undefined" &&
-                typeof props.mapTiles[x][props.player.y] !== "undefined" &&
-                typeof props.mapTiles[x][props.player.y][z] !== "undefined"
+                typeof game.tiles[x] !== "undefined" &&
+                typeof game.tiles[x][props.player.y] !== "undefined" &&
+                typeof game.tiles[x][props.player.y][z] !== "undefined"
             ) {
-                showTiles.push({ ...props.mapTiles[x][props.player.y][z], x: x, y: props.player.y, z: z });
+                showTiles.push({ ...game.tiles[x][props.player.y][z], x: x, y: props.player.y, z: z });
             }
         }
     }
@@ -140,8 +94,9 @@ function GameDisplay(props) {
     // This component will be in charge of displaying the correct tiles, while Game() will manage what tiles should be fed to the display
     // prop fields - data
     //     showTiles - flat list of tiles to be displayed, ideally centered around the player
+    //     player - a player object, holding the player's position
 
-    const [lightMode, setLightMode] = React.useState("night");
+    const [lightMode, setLightMode] = React.useState("day");
     const [buildSelected, setBuildSelected] = React.useState(null);
     const [tileSelected, setTileSelected] = React.useState(null);
 
@@ -151,24 +106,65 @@ function GameDisplay(props) {
     });
     */
 
+    function CameraDolly(props) {
+        // React-Three hooks can only be used inside a <Canvas />.
+
+        useFrame(({camera}) => {
+            camera.position.x = game.playerPos[0];
+            camera.position.z = game.playerPos[2];
+        });
+        return null;
+    }
+
     return (
-        <div key={10} id="canvas-container" style={{ position: "relative", height: "calc(100vh - 185px)" }}>
+        <div
+            key={10}
+            id="canvas-container"
+            style={{ position: "relative", height: "calc(100vh - 185px)" }}
+            tabIndex="0"
+            onKeyDown={(event)=>{
+                if(event.key==='w' || event.key==='ArrowUp') {
+                    game.playerDirections.down = -1;
+                }
+                if(event.key==='s' || event.key==='ArrowDown') {
+                    game.playerDirections.down = 1;
+                }
+                if(event.key==='a' || event.key==='ArrowLeft') {
+                    game.playerDirections.right = -1;
+                }
+                if(event.key==='d' || event.key==='ArrowRight') {
+                    game.playerDirections.right = 1;
+                }
+                //console.log(event.key +' down');
+            }}
+            onKeyUp={(event) => {
+                if(event.key==='w' || event.key==='s' || event.key==='ArrowUp' || event.key==='ArrowDown') {
+                    game.playerDirections.down = 0;
+                }
+                if(event.key==='a' || event.key==='d' || event.key==='ArrowLeft' || event.key==='ArrowRight') {
+                    game.playerDirections.right = 0;
+                }
+                //console.log(event.key +' up');
+            }}
+        >
             <Canvas
                 style={{
                     position: "relative",
                     backgroundColor: "#101010",
                 }}
-                camera={{ position: [0, 12, 0], rotation: [-Math.PI / 2.0, 0, 0] }}
+                camera={{ position: [props.player.x, 12, props.player.z], rotation: [-Math.PI / 2.0, 0, 0] }}
+                // We are leaving the camera's starting position based on the player's location
             >
+                <CameraDolly />
                 {/* For daylight, I want to have a point light that circles the player, and fades in & out at the horizon. We'll have to work toward that, though */}
-                <pointLight position={[5, 2, -1]} intensity={10} distance={10} color={"#FFFFBB"} />
+                <pointLight position={[+5, 2, -1]} intensity={10} distance={10} color={"#FFFFBB"} />
 
                 {lightMode === "night" ? (
                     <>
                         <ambientLight color={"#000000"} />
                     </>
                 ) : (
-                    <pointLight position={[5, 20, -1]} intensity={400} distance={100} color={"white"} />
+                    <pointLight position={[game.playerPos[0]+5, 20, game.playerPos[2]-1]} intensity={400} distance={100} color={"white"} />
                 )}
 
                 {/* Render the map. We will mainly focus on ground tiles here, but some may contain blocks on top as well */}
@@ -219,14 +215,35 @@ function GameDisplay(props) {
                         />
                     );
                 })}
+                {/* Now we need to display the worker icon */}
+                <mesh position={[props.player.x,0,props.player.z]} scale={[0.3,0.3,0.3]}>
+                    <capsuleGeometry args={[1,1,4,8]} />
+                    <meshPhongMaterial color={"red"} />
+                </mesh>
+
                 {/* Don't forget to display the workers */}
                 {game.workers
                     .filter((w) => {
                         return w.spot[1] === props.player.y;
                     })
                     .map((w, key) => {
+                        // Now, compute the worker's offset position based on the path they are following
+                        let xOff = 0;
+                        let yOff = 0;
+                        let walkLag = 100;  // If we don't find the correct tile, set walkLag to really high
+                        if(w.stepProgress>0) {
+                            let tile = game.tiles[w.spot[0]][w.spot[1]][w.spot[2]];
+                            let facts = minimapTiles.find(u=>u.id===tile.floor);
+                            if(typeof(facts)!=='undefined') {
+                                walkLag = facts.walkLag;
+                            }
+                            // Extract the directional value from their current direction
+                            let direction = parseInt(w.path[0]);
+                            xOff = ((direction % 3) - 1) * w.stepProgress;
+                            yOff = (Math.floor(direction / 3.0) - 1) * w.stepProgress;
+                        }
                         return (
-                            <mesh position={[w.spot[0], 1, w.spot[2]]} scale={[0.3, 0.3, 0.3]}>
+                            <mesh position={[w.spot[0] + (xOff/walkLag), 0, w.spot[2] + (yOff/walkLag)]} scale={[0.3, 0.3, 0.3]}>
                                 <capsuleGeometry args={[1, 1, 4, 8]} />
                                 <meshPhongMaterial color={"yellow"} />
                             </mesh>
@@ -240,10 +257,12 @@ function GameDisplay(props) {
                         return s.position[1] === props.player.y;
                     })
                     .map((s, key) => {
-                        return s.render();
+                        const RenderMesh = s.Render;
+                        return (<RenderMesh />);
                     })}
             </Canvas>
             <div style={{ position: "absolute", bottom: 0, right: 0, backgroundColor: "lightgrey", padding: 5, fontWeight: "bold" }}>
+                Player position: {game.playerPos[0]} x {game.playerPos[2]}<br />
                 <span
                     style={{ marginRight: 15, cursor: "pointer", textDecoration: "underline" }}
                     onClick={() => {
@@ -261,7 +280,7 @@ function GameDisplay(props) {
             {/* Create a space where players can select a building to put down */}
             <div style={{ position: "absolute", top: 0, left: 0, backgroundColor: "grey", padding: 5 }}>
                 {/*<img src={imageURL + "structures/leanto.png"} alt={"lean to"} style={{ cursor: "pointer" }} />*/}
-                {game.structureTypes.map((st, key) => {
+                {game.structureTypes.filter(st=>st.locked===0).map((st, key) => {
                     return (
                         <div
                             style={{ border: "2px solid " + (st === buildSelected ? "red" : "black"), margin: 1, cursor: "pointer" }}
@@ -277,6 +296,10 @@ function GameDisplay(props) {
                         </div>
                     );
                 })}
+            </div>
+            {/* Include a Save button */}
+            <div onClick={()=>game.save()} className="fakelink" style={{position:'absolute', top:0, left:100, backgroundColor:'white', padding:5}}>
+                Save
             </div>
         </div>
     );
@@ -311,7 +334,7 @@ function RightPanel(props) {
         return false;
     });
     if (typeof building !== "undefined") {
-        const SidePanel = building.rightPanel;
+        const SidePanel = building.RightPanel;
         return (
             <div style={{ position: "absolute", top: 0, right: 0, width: 300, backgroundColor: "white", padding: 5, maxWidth: 300 }}>
                 <div style={{ fontWeight: "bold" }}>{building.name}</div>
@@ -325,7 +348,7 @@ function RightPanel(props) {
                 {building.recipe===null?(
                     <>
                         <div style={{fontWeight:'bold'}}>Select Recipe</div>
-                        {building.recipes.map((r,key)=>{
+                        {building.recipes.filter(r=>r.canAssign()).map((r,key)=>{
                             return (
                                 <div
                                     key={key}
@@ -413,3 +436,5 @@ function ListItems(props) {
         })}
     </div>);
 }
+
+

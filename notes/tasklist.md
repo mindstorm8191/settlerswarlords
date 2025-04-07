@@ -24,8 +24,6 @@ Later objectives
 
 Tasks complete (because it helps to see what you've already accomplished)
 
-1.  Modify the front-end map management system to use a 3D tiles array, instead of a flat list of tiles
-2.  Put a player on the map
 3.  Set up a system to transfer a task list between the project and Notion, so I don't have multiple lists that don't match
 4.  Built the map loading code. Had troubles with sequential fetches losing previously-loaded content, but got it resolved
 5.  Update the map generation code to add floor type values. Characters should be able to walk around in tiles containing air and a not-air floor

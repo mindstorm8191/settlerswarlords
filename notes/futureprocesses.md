@@ -39,15 +39,64 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 2.  Iron can be smelted directly from its ore, but will give Pig Iron. This will contain a lot of carbon and silicon impurities.
 3.  Pig Iron can be heated and hammered more to produce Wrought Iron. This may be a lengthy process.
 
+### Bread Making
+
+-   Sugar: this can be acquired from multiple sources: honey can be added directly, or Figs, Grapes and Dates can be cooked & mashed to make syrups. Later on, sugar cane can produce sugar in an easy to store manner.
+
+### Titanium processing
+
+1. Comes in 2 main minerals: Ilmenite, and Rutile
+2. Crush & wash ore
+3. Mix ore with Chlorine Gas and a carbon source (Coal Coke is ideal). Heat to 1000 decrees Celcius to make Titanium Tetrachloride. Makes impurities like Iron
+4. Distill hot mixture to purify the metal liquid
+5. Mix with Magnesium or Sodium in a vacuum. Result is Titanium Sponge (a very pourus rock structure) and either Magneisum Chloride of Sodium Chloride
+6. Use either Vacuum Arc Remelting or Electron Beam Melting to melt Titanium Sponge into a solid titanium material
+7. Forming of pure titanium can be done similarly to blacksmithing; heating the material up before shaping it
+8. Popular alloy: Titanium Aluminum Vanadium; strong, lightweight and corrosion resistant
+
 ### Vacuum tube production
 
 1.  The wire setup is created and a glass 'dome' aka tube is made. Crafting these parts is straight-forward
 2.  A glass pipe is inserted into the tube and the tube is sealed, still full of air with the tube sticking out
-3.  The pipe is put onto a vacuum system to suck out as much air as possible
+3.  The pipe is put onto a vacuum system. It is flooded with pure oxygen, then vacuumed to suck out as much air as possible
 4.  While sealed, the pipe is heated and that seals the tube
 5.  An iodizer inside the tube (such as clean copper) is then heated by way of induction. Oxidization collects the remaining gas atoms inside the tube, achieving a complete vacuum
 
 -   We don't have to know fully how the vacuum system works
+
+### Train car types
+
+-   Standard boxcar. Can be used to hold any large items, stacked to the ceiling. Loading & unloading will be easier using boxes or crates
+-   End-door boxcar. Similar to standard boxcar, but has doors on the end instead. This makes it easier to fill the car with rail pallets.
+-   Flatbed car. Can be used to carry any number of unusual items, but will be exposed to the weather
+-   Gaseous tank car. Carries gasses of any kind, kept under pressure. We will have many grades of gaseous tank cars, to carry
+-   Sealed fluid tank car. Carries liquids of any kind, not under pressure.
+-   Fast-dump fluid tank car. Carries liquids, but is set up to dump fluids much more easily
+-   Auto-dump gravel car. Carries gravel type items like ore, coal, or bulk corn. Has several drain chutes at the bottom to allow dumping to a system below the tracks
+-   Fast-dump gravel car. An open-top container car, also used for gravel type items. Removing its contents requires parking the car in a special rotator machine that rotates the entire car 360 degrees, dumping all the contents in one go.
+-   Logger car. Has vertical bars to allow easy transportation of logs. Logs can be between 5 and 20 chunks long
+-   Linked-pair car. Primarily used for carrying long railroad lines. It is really two rail cars, one start and one end. When carrying rails, these will be spread very far apart, holding the rail cargo between them, making them as long as 5 normal rail cars. When not carrying anything, they will travel next to each other and be the size of a regular car; they will not be able to travel spread out and empty, as there is no linking mechanism while loaded. These cars can be used to carry many other very-long objects, such as pipes, specialty tanks, and even some machines
+-   Battery car. Stores energy for transfer between locations. Can also be used to power an electric train. Many types of this will exist, as players advance with battery tech.
+-   Zoo car. Used for carrying animals of various types. Can contain food and water for them as they travel
+-   Passenger car. Used to carry people; generally workers, that will be packed into seats. Luxury passenger cars can be made as well.
+-   Ice car. Before refrigeration is available, this can be used to carry ice, or cold items carried with ice. Requires a lot of insulation to build. These will leak water along their path, or later models will include a tank to hold the drained water, to be dumped at their stops.
+-   Refrigerated car. Used to carry items (usually food) in temperature controlled environments. Will require a refrigeration machine and have a fuel tank that needs to stay filled. Running out of fuel will result in loss of temperature control and can spoil the items it carries.
+-   Gun car. Equipped with guns and carries ammo. Can be used to fend off attackers and nearby enemies, either when the train is stopped or while moving.
+-   Crane car. A very large crane that can be used to unload equipment of the two cars neighboring it. This can be placed next to a linked-pair car to unload large structures
+-   Forage car. Clears away vegetation that is close to the railroad tracks, to prevent foilage from overwhelming the tracks. When loaded on a train, forces the train to travel slowly.
+-   Cannon car. Has a tank cannon mounted, and can fire shells at targets. Can be used while moving, but has greater accuracy (and range) when parked. Can fire in all directions, lifting the cannon above the train in order to fire forward or backward.
+-   Artillery car. Carries an artillery cannon and ammo for it. The train must be parked before firing, but can hit targets at great distance
+-   Power car. Runs a generator of some kind, providing electrical power to the rest of the train. This will be especially useful for luxury passenger cars.
+-   Radar car. Runs a large radar that can detect aircraft. The radar can also be used to map areas surrounding your rail line as you travel.
+-   Crafting car. Has space to run various machines on board to craft items while the train is in motion.
+-   Communications car. Uses radio to send and receive messages between other sources (communications cars, bases, etc).
+-   Kitchen car. Paired with luxury passenger cars, allows onboard workers to craft food to serve passengers.
+-   Restroom car. Paired with luxury passenger cars (or any car, really), provides a place for passengers to relieve themselves
+-   Missile car. Contains a battery of missiles to be used defensively, or offensively, while traveling.
+-   Anti-air car. Equipped with anti-air guns, to provide defenses against enemy aircraft.
+-   Pump car. When mounted next to a fluid car, can be used to load or unload fluids from that fluid car, without needing power from the local grid. However, this will require a power car or something to run the pump.
+-   Flamethrower car. When mounted next to a fluid car carrying fuel, can use that fuel to shoot fire out the sides of a train. Can be a crude way of clearing vegetation at speed, but can also set forest fires to run rampant beginning from the train's path.
+-   Megaphone car. Has large speakers to broadcast messages (or just play music) to communities the train passes, and at places the train stops at.
 
 ### Foliage regrowth
 
@@ -77,7 +126,7 @@ This one is a little different, as it's not directly controlled by the player
 ### Ice skates
 
 -   Ice skates can be a simple way to travel quickly over frozen lakes - much faster than walking through snow on the banks
--   Ice skates can be made primitively using bones... they probably won't last long though. Iron ones should be easy to produce as well
+-   Ice skates can be made primitively using bones... they probably won't last long though. Iron ones should be easy to produce as well, once iron is available. Steel skates will last even longer
 -   Additional ice skate based equipment could be made as well, such as carts, to ferry resources over long distances on frozen lakes
 -   We should give suggestions to users to produce ice skates for these roles
 

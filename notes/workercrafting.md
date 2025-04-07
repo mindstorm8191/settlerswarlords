@@ -1,5 +1,9 @@
 # Settlers & Warlords Worker Crafting Strategy
 
+### Update
+
+These notes no longer apply to this game. While I did manage to get this process to work, it was not a useful game mechanic and was later removed. Players will now manage getting prerequisite items manually.
+
 Workers in this game will be able to automatically craft many items, even if the prerequisite items don't exist yet. For example, if they are trying to craft a flint spear, for example, this tool needs a long stick and some twine before it can be crafted.
 
 Their first task will be to go find a long stick. If one doesn't exist, they will go make one at the Lumberjack's Post. If the Lumberjack's Post doesn't have a Flint Stabber (or better tool) available, they will first go to the Flint Tool Maker and create one. Now that they have one, they can go cut a Long Stick, then take it to the Flint Tool Maker. This same process will happen with collecting the Twine. They can then go craft the Flint Spear (and use it for whatever task they needed it for).

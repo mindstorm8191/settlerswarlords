@@ -142,7 +142,15 @@
                         case 'bottomdirt': array_push($flatMap, ['t'=>1, 'f'=>2, 'h'=>100]); break;
                         case 'rock':       array_push($flatMap, ['t'=>2, 'f'=>2, 'h'=>100]); break;
                         case 'treebranches': array_push($flatMap, ['t'=>3, 'f'=>3, 'h'=>100]); break;
-                        case 'leaffloor':    array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100]); break;
+                        case 'leaffloor':
+                            // There's a 50/50 chance that any tile will also contain one rotten log
+                            if(rand(0,2)>1) {
+                                array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100, 'i'=>[['name'=>'Rotten Log', 'amt'=>1]]]);
+                            }else{
+                                array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100]);
+                            }
+                            
+                        break;
                         case 'treetrunk':
                                 // Tree trunks are going to hold the logs and sticks. We will attach all the tree related parts to the trunks. The surrounding
                                 // forest floor will hold fallen sticks and logs
@@ -159,8 +167,8 @@
                                         'f'=>$biome[$z*$chunkWidth+$x],
                                         'h'=>100,
                                         'i'=>[
-                                            ['name'=>'long stick', 'amt'=>$treePlacements[$treeSlot]['stickspertrunk']],
-                                            ['name'=>'log', 'amt'=>$treePlacements[$treeSlot]['logspertrunk']]
+                                            ['name'=>'Attached Long Stick', 'amt'=>$treePlacements[$treeSlot]['stickspertrunk']],
+                                            ['name'=>'Log', 'amt'=>$treePlacements[$treeSlot]['logspertrunk']]
                                         ]
                                     ]);
                                 }
@@ -169,11 +177,11 @@
                             // Depending on the biome chosen, we may have additional items to place here
                             $p = $biome[$z*$chunkWidth+$x];
                             switch($p) {
-                                case 6: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'wheat seeds', 'amt'=>7], ['name'=>'wheat grass', 'amt'=>10]]]); break;
-                                case 7: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'oat seeds', 'amt'=>8], ['name'=>'oat grass', 'amt'=>5]]]); break;
-                                case 8: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'rye seeds', 'amt'=>5], ['name'=>'rye grass', 'amt'=>6]]]); break;
-                                case 9: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'barley seeds', 'amt'=>6], ['name'=>'barley grass', 'amt'=>7]]]); break;
-                                case 10: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'millet seeds', 'amt'=>7], ['name'=>'millet grass', 'amt'=>9]]]); break;
+                                case 6: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'Wheat Seeds', 'amt'=>7], ['name'=>'Wheat Grass', 'amt'=>10]]]); break;
+                                case 7: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'Oat Seeds', 'amt'=>8], ['name'=>'Oat Grass', 'amt'=>5]]]); break;
+                                case 8: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'Rye Seeds', 'amt'=>5], ['name'=>'Rye Grass', 'amt'=>6]]]); break;
+                                case 9: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'Barley Seeds', 'amt'=>6], ['name'=>'Barley Grass', 'amt'=>7]]]); break;
+                                case 10: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100, 'i'=>[['name'=>'Millet Seeds', 'amt'=>7], ['name'=>'Millet Grass', 'amt'=>9]]]); break;
                                 default: array_push($flatMap, ['t'=>0, 'f'=>$p, 'h'=>100]); break;
                             }
                         break;

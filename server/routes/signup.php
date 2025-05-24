@@ -61,6 +61,7 @@
               ], 'server/routes/signup.php->add new player');
     $playerid = mysqli_insert_id($db);
     $playername = $con['username'];
+    $unlockeditems = [];
 
     // Also, we will need to add workers around where the player is situated. For now, we will simply place down 4 surrounding the player
     createWorker($playerid, $location[0]-1, $location[1], $location[2]);
@@ -165,7 +166,7 @@
 
         // Also save this worker to the database. Workers used to be attached to specific map zones. But with chunks we can't really do that, so we're going to
         // use a worker table for that.
-        DanDBList("INSERT INTO sw_worker (playerid, spot, carrying, travelPath) VALUES (?,?,'[]', '');", 'is', [$ownerid, json_encode([$x,$y,$z], 1)],
+        DanDBList("INSERT INTO sw_worker (playerid, spot, carrying, travelPath, job) VALUES (?,?,'[]', '', 'none');", 'is', [$ownerid, json_encode([$x,$y,$z], 1)],
                   'server/routes/signup.php->createWorker()->save');
         return mysqli_insert_id($db);
     }

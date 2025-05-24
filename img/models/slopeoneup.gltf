@@ -1,0 +1,162 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.0.5",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0,
+                1,
+                2
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "name" : "Light",
+            "rotation" : [
+                0.16907575726509094,
+                0.7558803558349609,
+                -0.27217137813568115,
+                0.570947527885437
+            ],
+            "translation" : [
+                4.076245307922363,
+                5.903861999511719,
+                -1.0054539442062378
+            ]
+        },
+        {
+            "name" : "Camera",
+            "rotation" : [
+                0.483536034822464,
+                0.33687159419059753,
+                -0.20870360732078552,
+                0.7804827094078064
+            ],
+            "translation" : [
+                7.358891487121582,
+                4.958309173583984,
+                6.925790786743164
+            ]
+        },
+        {
+            "mesh" : 0,
+            "name" : "Ground"
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "PlaneMaterial",
+            "pbrMetallicRoughness" : {
+                "baseColorTexture" : {
+                    "index" : 0,
+                    "texCoord" : 0
+                },
+                "metallicFactor" : 0,
+                "roughnessFactor" : 0.5
+            }
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Plane",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "textures" : [
+        {
+            "source" : 0
+        }
+    ],
+    "images" : [
+        {
+            "bufferView" : 4,
+            "mimeType" : "image/png",
+            "name" : "dirt"
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 12,
+            "max" : [
+                1,
+                0.75,
+                1
+            ],
+            "min" : [
+                -1,
+                0,
+                -1
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 12,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 12,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 12,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 144,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 144,
+            "byteOffset" : 144
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 96,
+            "byteOffset" : 288
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 24,
+            "byteOffset" : 384
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 1219,
+            "byteOffset" : 408
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 1628,
+            "uri" : "data:application/octet-stream;base64,AACAPwAAAAAAAIA/AACAPwAAAAAAAIC/AAAAAAAAAAAAAIC/AACAvwAAAAAAAIA/AAAAAAAAAAAAAIC/AACAvwAAAAAAAIC/AAAAAAAAQD8AAIA/AAAAAAAAAAAAAIC/AACAvwAAAAAAAIA/AAAAAAAAQD8AAIA/AACAPwAAAAAAAIA/AAAAAAAAAAAAAIC/AAAAAAAAgD8AAACAAAAAAAAAgD8AAACAAAAAAAAAgD8AAACAAAAAgAAAgD8AAACAAAAAgAAAgD8AAACAAAAAgAAAgD8AAACAQx8Tv68pRD9DH5O+Qx8Tv68pRD9DH5O+Qx8Tv68pRD9DH5O+Qx8TP68pRD9DH5O+Qx8TP68pRD9DH5O+Qx8TP68pRD9DH5O+8pXOPWiLfz/XIm0/eL1sP4g4aT/+//8+6JXOPQAs6TqRUWc//v//PtcibT84FJo9kc/JOP7//z6RUWc//v//PuiVzj0ALOk6kc/JOP7//z5mv7w9svl/P5FRZz/+//8+AAABAAIAAwAEAAUABgAHAAgACQAKAAsAiVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAEM0lEQVRoQ62ZQW4cRxAEKT5EJ9999kekv/gJ/pGf4btO/oiEXCgWsbnVPb2UAhh2dVVWVg92Z0iAn/758tf3t5/8+cfnt/++/f8Uw5T73WQGZNZqZuff8yNJGwREnQ9TDk5rK13mcrE36cvlfPb3T6SLYcqZyXDyAGrWUZ/m7GrNp3///vp9GrDjlYPs/Fb19j/xfs8mybBqMBg4T59zxFmdh+SmecF5x/bpmfdPZGfcXGlf8QL3EO98Wn/7RMKq4SPsvDIUHO8OPNH621urmZpXQ5NfDZtq7iU+0UzgH814IxMrw90g48N23B7UJ+/UXM+V/cONWEC8gnrW1UGMPdFb53iqQ2o9L/uHG2mBadNop0HBPuhyOc+eHCva4NwKag9/orxCD2tSX9UatPYkDic+90/EjYm9D72PeQ+YhrevyT5XH9zsfJy73QhmkNj7rr/C1McBmIM/FzXwgYM11LZfrekGfAjXWzv1GnyCPUx77zzHtxa4KTWMOj/B4ECvYzysc444OA/2C5dvLQY3yXng1Ns19xDDNKOZNHgsH3bwMDPl08dlso+eHvbEIfvOUwNqwXH40Ot3GuBDGPJddx6sI7/rJQ7jjXRjQ3OYdFf9Ac2JdqL7Hp6RMBkn55U6ByEP7u/ekJjeSXsCffQ8PCOTkYd56JRzP36pew3uJYemoR4cAz1Pby2bh8nc+ABXvV0PzmXt2B7tZ243smuw8USbT73kPKf9kndv72F1jtuNrBo82NhsZTwdhD2+9HYMydmfvomnhz1MpsTUpiG9Z3XN6+4GjDVdg8u/taBvBHyAkLq1XQ94tGf3nXolf39GcgF7N1JPzlfjXOL2DWhcWxFNrmlWIP8+ibIn5/gUhgf3Jl7lgbrp+qTZ/mZnJQddO6GHty+exM00z7nxYZ+MkpuMjPddW/WTI97NmDzh5Ye98WHAOWK8iFd+AW3Y6cyH//r1QWEaenXocKIxk378ak2kmUPHxDFXc3LASYN3rzB53t5aLZzYHaj72adn8mbmqg+YuZsNH/pqmQy/GrTSOM9NnBw6tOfTVwvDMMW9xsy6kP2Ua3yQxN5PemNtePpqtSCkTt4rfe6xF96T54R7DXn8Jn7L6zfsDhtN16ec2fm6l/j2iaxYmXgN0bXPpAvZ52rv1u3omwhPn8g0xDBwp1lx5d20nr3zxE8PezdCYpqsMdYDfcHDJ+0V9E/zj38hhhicHsKHp89MhwH3GvJZW/Pwf/aJNOzqYB1DIPlTH+iDhskD3f2/ukmQNBzCTFoPWMWBvslzYpU3mfHw1eqhIUZTPjkfyjFYExLj1Z5o0WffmrDyu9/I1BQYsINe6+ijlnXyYo8WfXD/VHc8/kK0QWCYc+ZX66ZnnzK+tTDyAXKxbzz4SkO9dau+Fa2/fSIkfaDGjdxU652zZ/tPvSvOtG9vPwDIza/gYQZonwAAAABJRU5ErkJgggA="
+        }
+    ]
+}

@@ -25,7 +25,7 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 
 ### Mining
 
-1.  How do you mind without a pickaxe? The secret is Thermal Shock.
+1.  How do you mine without a pickaxe? The secret is Thermal Shock.
 2.  Players will clear out an area of rock they wish to mine into.
 3.  They'll then set up a fire, and let it run for a while, allowing the Rock to get really hot.
 4.  Once the Rock is hot enough, they'll douse the for with lots of water (let's say 5 buckets).
@@ -64,6 +64,14 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 
 -   We don't have to know fully how the vacuum system works
 
+### Locomotive types
+
+-   Steam engines. These will come in various sizes, relying on solid fuels to run. They will also come in various speeds and torque ratings. Historically, steam engines did not have a transmission. They were built to run at specific torque and speed levels. To change this would require re-designing the entire locomotive.
+-   Diesel engines. These will carry much heavier loads and use a transmission, but only one engine can be used per train.
+-   Diesel-electric engines. These can be linked together, and are more fuel efficient.
+-   Nuclear. These use nuclear fission to run. Their fuel lasts a very long time.
+-   Battery. These charge at stations. Early battery trains have limited distance, but later ones fix this issue.
+
 ### Train car types
 
 -   Standard boxcar. Can be used to hold any large items, stacked to the ceiling. Loading & unloading will be easier using boxes or crates
@@ -96,7 +104,47 @@ I plan to include a lot of processes to produce certain goods, but not all of th
 -   Anti-air car. Equipped with anti-air guns, to provide defenses against enemy aircraft.
 -   Pump car. When mounted next to a fluid car, can be used to load or unload fluids from that fluid car, without needing power from the local grid. However, this will require a power car or something to run the pump.
 -   Flamethrower car. When mounted next to a fluid car carrying fuel, can use that fuel to shoot fire out the sides of a train. Can be a crude way of clearing vegetation at speed, but can also set forest fires to run rampant beginning from the train's path.
--   Megaphone car. Has large speakers to broadcast messages (or just play music) to communities the train passes, and at places the train stops at.
+-   Megaphone car. Has large speakers to broadcast messages (or just play music) to communities the train passes, and at places the train stops at. Can be used to spread propaganda in areas controlled by enemy factions
+
+### Mining
+
+Mining materials of all kinds should be a challenge for players. Factorio made this part trivial (it more glossed over this part); but Minecraft was much too involved, while also not worrying about cave-ins or lights failing.
+
+It may be difficult to work out a balance for this game. My best bet may be to allow players to mark areas for mining, and let the workers place structures as needed. Strip mining will be more effective in the long run; players will be able to extract 100% of the ore from a vein, but will generate a huge amount of rock byproduct, and need tons of energy. I would also like to require fluids for unlocking ores, in the same way that Py's mod does.
+
+-   Aluminum needs Coal Gas
+-   Borax needs Syngas
+-   Lead needs Acetylene
+-   Gold needs Cyanide
+-   Nickel needs Syngas
+-   Niobium needs Refined Syngas
+-   Tin needs Steam
+-   Titanium needs Acetylene
+-   Zinc needs Aromatics
+
+### Vein mining materials needed
+
+This assumes that workers will dig holes deep into the ground, and then dig tunnels outward from there.
+
+-   Methods to generate light
+    -   Torches. This will be the only option for early tech. It'll be very vulnerable due to going out from lack of oxygen, can catch flammable surfaces on fire, or trigger explosions if exposed to flammable gasses. Not ideal for deep mining!
+    -   Oil lamps. When materials allow, these basic lamps work longer than torches and can't catch things on fire. But they are still prone to triggering explosions if exposed to flammable gasses.
+    -   Miner's lamp. These use specific gaseous fuels in an enclosed space, preventing ignition of flammable gasses. They can still go out; re-lighting these within flammable gasses will still trigger an explosion. Miners will take these to a Lighting Station if they're available.
+    -   Battery lamp. These use a small battery to provide light. Very reliable! We'll offer multiple types, each lasting longer.
+    -   Fixed electrical lights. Where wires can be ran, lights can be mounted to use them. These can cover very large areas
+-   Food & Water, to allow miners to stay in a mine longer.
+-   Structural materials. Miners will place structure posts every 4 tiles to prevent cave-ins. These will come in the form of wood, iron and steel. Man-hole locations will be
+-   Lighting station - Used to re-light miner's lamps. An upgraded version will include a gas detector, to ensure nothing will ignite in the area. Basic models will just have to be placed where no gasses can generate.
+-   Communications lines. These can be laid across large sections of the mine to allow workers to communicate. They are also used with elevators to signal when the elevator can be raised or lowered.
+-   Rail lines. These allow mine carts to travel effortlessly through the tunnels. They can be pushed either by workers or work animals (such as a horse). Mine tunnels may need to be made taller to support larger animals
+-   Power lines. Players can run power lines through the mines, providing easy lighting for areas, and power for machines where needed. Mine paths will be lengthy, and thus require higher voltage cables with transformers, some of which may be subject to catching fire.
+-   Rafter stairs. Can be set up in vertical locations to let workers easily reach high and low places. These can be stacked as high as needed, but must still be touching some wall for stability.
+-   Elevator shafts. Elevator systems will come in many load limits. This is the easiest way to move materials - and workers - vertically through the mine. These will require electricity, or some power system to power them. Elevators can be prone to failure, especially when over filled.
+-   Water pipes. This can provide water to deep parts of a mine, to put out fires.
+-   Ventillation pipes. This provides fresh air flow to deep in the mines, pushing flammable gasses out and bringing in breathable air. Later systems can recover the flammable gasses for storage.
+-   Pickaxes and drills. Lets workers dig. Pickaxes will come in bronze, iron and various qualities of steel. Drills will come in many sizes, from hand held plug-in units to vehicles built only for digging.
+-   Conveyor belts. These will be used to extract materials, carrying them over long distances instead of using carts. These integrate easily with mining vehicles.
+-   Fire-proof suites. These firemen outfits can be used when fighting mine fires.
 
 ### Foliage regrowth
 

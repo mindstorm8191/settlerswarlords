@@ -6,7 +6,7 @@
 import React from "react";
 import * as Three from "three";
 import { Canvas, useThree, useFrame, useLoader } from "@react-three/fiber";
-//import { useGLTF } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import { TextureLoader } from "three/src/loaders/TextureLoader";
 
 import { DAX } from "./libs/DanAjax.js";
@@ -46,7 +46,7 @@ function OneBlock(props) {
     const texture = useLoader(TextureLoader, textureURL +"localtiles/"+ props.tex);
 
     return (
-        <mesh position={props.position} onClick={props.onClick} >
+        <mesh position={props.position} onClick={props.onClick} scale={props.scale} >
             <boxGeometry args={[1,1,1]} />
             <React.Suspense fallback={<meshPhongMaterial color={"orange"} />}>
                 <meshStandardMaterial map={texture} />
@@ -105,6 +105,14 @@ function GameDisplay(props) {
         return <Tiletexture key={tile.id} tilePic={tile.img} />;
     });
     */
+
+    //const { nodes, materials } = useGLTF(textureURL +"models/slopeoneup.gltf");
+    const slope1up = useGLTF(textureURL +"models/slopeoneup.gltf");
+    const slopeTextures = useLoader(TextureLoader, [
+        textureURL +"localtiles/dirt.png"
+    ]);
+    //const slope1nodes = nodes;
+    //const slope1materials = materials;
 
     function CameraDolly(props) {
         // React-Three hooks can only be used inside a <Canvas />.
@@ -169,6 +177,90 @@ function GameDisplay(props) {
 
                 {/* Render the map. We will mainly focus on ground tiles here, but some may contain blocks on top as well */}
                 {props.showTiles.map((tile, key) => {
+                    // How tiles are shown will also depend on the slope value of this tile.
+                    if(typeof(tile.slope)!=='undefined' && tile.slope===1) {
+                        // Search all neighboring tiles for up-slopes as well. Depending on how things match, the displayed graphics will be changed.
+                        // This is a LOT more complicated than it first appears. There are countless ways that this can be rendered, since any situation may
+                        // end up being different
+                        // Instead, we will generate a string of values, that describe what is in each surrounding tile; a hash system, of sorts.
+                        // With a hash generated, we will then try to match the hash with a graphic that will support that hash; rotation will be part of that hash
+                        let dHash = '';  // includes diagonals
+                        let cHash = '';  // cardinal directions only
+                        for(let x=-1; x<=1; x++) {
+                            for(let z=-1; z<=1; z++) {
+                                if(x===0 && z===0) continue;
+                                let neighbor = game.tiles[tile.x+x][tile.y][tile.z+z];
+                                if(typeof(neighbor)==='undefined') {  // Account for missing edge tiles
+                                    dHash = dHash + '.';  // We will assume neighbor tiles are flat, until they are loaded
+                                    if(x===0 || z==0) cHash = cHash + '.';
+                                    continue;
+                                }
+                                if(typeof(neighbor.slope)==='undefined' || neighbor.slope===0) {
+                                    dHash = dHash + '.';
+                                    if(x===0 || z===0) cHash = cHash +'.';
+                                    continue;
+                                }
+                                if(neighbor.slope===1) {
+                                    // It's an up-slope!
+                                    dHash = dHash + 'u';
+                                    if(x===0 || z===0) cHash = cHash + 'u';
+                                }
+                                if(neighbor.slope===-1) {
+                                    // It's a down-slope!
+                                    dHash = dHash + 'd';
+                                    if(x===0 || z===0) cHash = cHash + 'd';
+                                }
+                                if(neighbor.tile!==0) { // aka not air
+                                    dHash = dHash + 'f';
+                                    if(x===0 || z===0) cHash = cHash + 'f';
+                                }
+                                if(neighbor.floor===0) { // aka ground is open to air
+                                    dHash = dHash + 'o';
+                                    if(x===0 || z===0) cHash = cHash + 'o';
+                                }
+                            }
+                        }
+                        console.log(dHash +' & '+ cHash);
+                        return (
+                            <React.Suspense fallback={
+                                <mesh position={[tile.x, 0, tile.z]}/>
+                            }>
+                                <mesh
+                                    position={[tile.x, 0, tile.z]}
+                                    scale={[.5,.5,.5]}
+                                    geometry={slope1up.nodes.Ground.geometry}
+                                    material={slope1up.materials.PlaneMaterial}
+                                >
+                                    <meshStandardMaterial map={slopeTextures[0]} />
+                                </mesh>
+                            </React.Suspense>
+                        );
+                        /*return (
+                            <>
+                                <OneTile
+                                    key={key}
+                                    position={[tile.x,0,tile.z]}
+                                    tex={minimapTiles[Math.abs(tile.floor)].img}
+                                    onClick={(e)=>{
+                                        console.log('Baap!');
+                                        if(game.mapInteracter!==null) {
+                                            game.mapInteracter(e,tile);
+                                            return;
+                                        }
+                                        if(buildSelected !== null) {
+                                            let newBuild = buildSelected.create(tile);
+                                            game.structures.push(newBuild);
+                                            setBuildSelected(null);
+                                            setTileSelected(tile);
+                                        }else{
+                                            setTileSelected(tile);
+                                        }
+                                    }}
+                                />
+                                <OneBlock key={key+1} position={[tile.x,0,tile.z]} tex={minimapTiles[1].img} scale={[0.5,0.5,0.5]} />
+                            </>
+                        );*/
+                    }
                     if(tile.show!==-1 && minimapTiles[tile.show].category==='tree') {
                         return (
                             <>
@@ -177,6 +269,11 @@ function GameDisplay(props) {
                                     position={[tile.x, 0, tile.z]}
                                     tex={minimapTiles[Math.abs(tile.floor)].img}
                                     onClick={(e) => {
+                                        console.log('Beep!');
+                                        if(game.mapInteracter!==null) {
+                                            game.mapInteracter(e, tile);
+                                            return;
+                                        }
                                         // Note that the onClick event must work on the mesh. The OneTile component has to pass it to its mesh
                                         if (buildSelected !== null) {
                                             let newBuild = buildSelected.create(tile);
@@ -200,6 +297,11 @@ function GameDisplay(props) {
                             position={[tile.x, 0, tile.z]}
                             tex={minimapTiles[Math.abs(tile.floor)].img}
                             onClick={(e) => {
+                                console.log('Boop!');
+                                if(game.mapInteracter!==null) {
+                                    game.mapInteracter(e, tile);
+                                    return;
+                                }
                                 // Note that the onClick event must work on the mesh. The OneTile component has to pass it to its mesh
                                 if (buildSelected !== null) {
                                     let newBuild = buildSelected.create(tile);
@@ -233,10 +335,14 @@ function GameDisplay(props) {
                         let walkLag = 100;  // If we don't find the correct tile, set walkLag to really high
                         if(w.stepProgress>0) {
                             let tile = game.tiles[w.spot[0]][w.spot[1]][w.spot[2]];
-                            let facts = minimapTiles.find(u=>u.id===tile.floor);
-                            if(typeof(facts)!=='undefined') {
-                                walkLag = facts.walkLag;
+                            let facts = 0;
+                            if(typeof(tile)!=='undefined') {
+                                facts = minimapTiles.find(u=>u.id===tile.floor);
+                                if(typeof(facts)!=='undefined') {
+                                    walkLag = facts.walkLag;
+                                }
                             }
+                            
                             // Extract the directional value from their current direction
                             let direction = parseInt(w.path[0]);
                             xOff = ((direction % 3) - 1) * w.stepProgress;
@@ -285,6 +391,7 @@ function GameDisplay(props) {
                         <div
                             style={{ border: "2px solid " + (st === buildSelected ? "red" : "black"), margin: 1, cursor: "pointer" }}
                             onClick={() => {
+                                game.mapInteracter = null;
                                 if (st === buildSelected) {
                                     setBuildSelected(null);
                                 } else {

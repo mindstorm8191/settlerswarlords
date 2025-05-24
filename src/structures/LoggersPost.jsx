@@ -71,8 +71,6 @@ export default function LoggersPost() {
                                         }
                                         // Now, see if there is an items list here
                                         if(typeof(game.tiles[z][y][x].items)==='undefined') {
-                                            //console.log('['+ x +','+ y +','+ z +'], no items');
-                                            passCount++;
                                             continue;
                                         } 
                                         //if(passCount===0) console.log('Sample list: ', )
@@ -83,7 +81,6 @@ export default function LoggersPost() {
                                     }
                                 }
                             }
-                            console.log('Checked '+ passCount +' tiles without items list. Searched from ['+ b.position[0] +','+ b.position[1] +','+ b.position[2] +']');
                             return false;
                         },
                         workLocation: (tile,position)=>{
@@ -119,6 +116,7 @@ export default function LoggersPost() {
 
                                 b.workerAssigned.job = null;
                                 b.workerAssigned = null;
+                                return;
                             }
 
                             if(b.workerAssigned.waitingForPath===true) return; // We are still waiting for a valid path

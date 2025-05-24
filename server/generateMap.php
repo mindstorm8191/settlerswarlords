@@ -129,6 +129,13 @@
             }
         }
         //reporterror('server/generateMap.php->loadChunk()->after trees addition', 'Added '. $hitCount .' tiles for trees');
+
+        // All tiles will have the following fields
+        // t=tile. What type of block this is. For spaces that can be travelled, this is usually Air
+        // f=floor. What type of flooring this is. This is sometimes the material type of the tile below it, but can be other things, like plants
+        // h=health. How much 'damage' must be done to this tile to remove it. I don't know if we'll keep this.
+        // i=items list. What objects exist in this tile. This defaults to empty, and does not exist in every tile
+        // s=slope. 0 if no slope, 1 if any kind of slope. The displayed slope type will depend on the slope / solid state of neighbors. This defaults to 0, and does not exist in every tile.
         
         // Convert the map to a flat array, to store it in the database. We can compute each tiles' location based on its array position
         $flatMap = [];

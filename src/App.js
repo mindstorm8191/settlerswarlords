@@ -4,17 +4,10 @@
 
 /* Curent task list
     1) Keep a mindset: How am I ever going to see if it works, if I never try it?
+    2) DirtManager: Give marked tiles some kind of highlight. Display this only while the building is selected
+    3) DirtManager: Update tile picker to exclude tiles already sloped, or on the list to be sloped
+    4) Figure out how to show a progress bar on each of the buildings
     
-    1) We don't have any easy way to attach the structure which a worker is working at, to a structure being loaded from the server. Especially if that structure is not
-       currently loaded.
-       a)   We need to load map chunks based on where a worker is located, after the player is fully loaded.
-       b)   In order to correctly load a structure that a worker is working at, we will need to include the world coordinates of that structure, with the worker. We will need
-            to load that map chunk with the worker, before starting to make the worker move around
-    2) Create proper handling for when jobs can't be completed somewhere. If no work can be done, the workers need to put that on hold until later. Maybe buildings should tick
-       every turn to determine that
-    3) Figure out how to show a progress bar on each of the buildings
-    4) Show some kind of icon over the 
-
     Things to do before multiplayer
     1) Modify structures to hold an owner ID. This will need to be saved to the database for all structure types.
 
@@ -22,21 +15,22 @@
     1) Modify tiles to not pick up a structure ID for saving. We don't need it right now
     2) On save on the server, modify stucture locations to be relative to the map chunk they're in. Right now their locations are global; it is possible to have a structure saved
        in one chunk but appear in another. We should fix that... it's just not that important right now.
+    Drone Zone track: Refraction by Steve Good
 */
 
 // Lines count
-// src/app.js                           src/minimapTiles.jsx                      src/structures/WaterSource.jsx              server/routes/autologin.php            server/biomeBlock.php                server/libs/DanGlobal.php         notes/workercrafting.md
-//     src/app.css                          src/worker.jsx                            src/structures/ClayFormer.jsx              server/config.php                      server/routes/worldmap.php           server/minimap.php                notes/futureprocesses.md
-//        src/libs/DanAjax.js                   src/itemstats.js                          src/structures/FarmersPost.jsx           server/common.php                        server/routes/getblog.php           resetgame.php                      notes/influences
-//           src/libs/DanCarousel.jsx              src/structures/LeanTo.jsx                  src/structures/HayDryer.jsx              server/libs/jsarray.php                 server/routes/loadmap.php           README.md                           notes/monetizationstrategies.md
-//               src/libs/ShowBlog.jsx                 src/structures/ForagePost.jsx              src/structures/OpenDryer.jsx             server/events.php                      server/routes/log.php               notes/techtree.md                   notes/researchprocess.md
-//                  src/libs/DanLog.js                     src/structures/ItemMover.jsx               src/structures/HuntersPost.jsx           server/getInput.php                    server/routes/login.php            notes/automationtree.md             notes/tasklist.md
-//                     src/Account.jsx                         src/structures/RockKnapper.jsx             src/structures/ButcherShop.jsx          server/finishLogin.php                 server/routes/logout.php           notes/wartree.md
-//                         src/libs/DanInput.jsx                   src/structures/LoggersPost.jsx             src/structures/CampFire.jsx            server/generateMap.php                 server/routes/save.php             notes/worldgen.md
-//                            src/libs/DanCommon.js                    src/structures/RopeMaker.jsx               src/structures/SewingShop.jsx          server/globals.php                    server/routes/savetiles.php         notes/worldhistory.md
-//                               src/libs/ErrorOverlay.jsx                src/structures/DirtManager.jsx              src/GameDisplay.jsx                    server/libs/weightedRandom.php       server/routes/sendunits.php         notes/magicsystem.md
-//                                  src/game.jsx                              src/structures/DirtSource.jsx               src/WorldMap.jsx                       server/libs/clustermap.php           server/routes/signup.php           notes/undergroundbiomes.md
-// 314+63+48+113+96+38+231+65+94+68+398+368+223+   142+    247+308+335+98+157+                                        437+    33+8+307+230+    35+26+387+512+127+534+83+    40+47+    43+31+          166+37+   22+60+60+27+32+204+13+11+28+15+115+190+25+17+84
+// src/app.js                           src/minimapTiles.jsx                       src/structures/DirtSource.jsx               src/WorldMap.jsx                       server/libs/clustermap.php          server/libs/DanGlobal.php         notes/undergroundbiomes.md
+//     src/app.css                          src/worker.jsx                             src/structures/WaterSource.jsx              server/routes/autologin.php            server/biomeBlock.php              server/routes/worldmap.php        notes/workercrafting.md
+//        src/libs/DanAjax.js                   src/gamemap.jsx                            src/structures/ClayFormer.jsx              server/config.php                      server/routes/getblog.php          server/minimap.php                notes/futureprocesses.md
+//           src/libs/DanCarousel.jsx               src/itemstats.js                           src/structures/FarmersPost.jsx           server/libs/common.php                  server/routes/loadmap.php          resetgame.php                      notes/influences.md
+//               src/libs/ShowBlog.jsx                 src/structures/LeanTo.jsx                   src/structures/HayDryer.jsx              server/libs/jsarray.php                server/routes/log.php              README.md                           notes/monetizationstrategies.md
+//                  src/libs/DanLog.js                     src/structures/ForagePost.jsx               src/structures/OpenDryer.jsx             server/events.php                     server/routes/login.php            notes/techtree.md                   notes/researchprocess.md
+//                     src/Account.jsx                         src/structures/ItemMover.jsx                src/structures/HuntersPost.jsx           server/getInput.php                  server/routes/logout.php           notes/automationtree.md             notes/tasklist.md
+//                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx              src/structures/ButcherShop.jsx          server/finishLogin.php               server/routes/save.php             notes/wartree.md
+//                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx              src/structures/CampFire.jsx            server/generateMap.php                server/routes/savetiles.php       notes/worldgen.md
+//                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx                src/structures/SewingShop.jsx          server/globals.php                   server/routes/sendunits.php        notes/worldhistory.md
+//                                  src/game.jsx                               src/structures/DirtManager.jsx              src/GameDisplay.jsx                    server/libs/weightedRandom.php      server/routes/signup.php           notes/magicsystem.md
+// 336+63+49+113+96+38+231+65+94+68+472+368+285+202+   143+    259+318+342+103+265+                                        453+    34+8+318+230+    35+28+387+512+127+538+83+40+47+   44+31+238+      173+37+      23+60+60+27+32+204+13+11+28+15+135+190+25+17+82
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -55,6 +49,7 @@
 // 12/02/24: 5548 lines
 // 12/17/24: 6095 lines
 // 3/23/25: 7392 lines
+// 4/16/25: 8195 lines
 
 // Oils, like for waxing things https://www.reddit.com/r/JapaneseHistory/comments/15gbdmo/how_did_ancient_people_make_mineral_oil/
 // Berry types and where they grow in the US https://imgur.com/gallery/WL98e2U/comment/2438593319
@@ -111,7 +106,11 @@ function App() {
         if (typeof localStorage.getItem("userid") === "object") return; // Nothing is currently in localStorage; do nothing here
         fetch(
             serverURL + "/routes/autologin.php",
-            DAX.serverMessage({ userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") }, false)
+            DAX.serverMessage(
+                { userid: localStorage.getItem("userid"), ajaxcode: localStorage.getItem("ajaxcode") },
+                false,
+                "App.js/App()->onLoad"
+            )
         )
             .then((res) => DAX.manageResponseConversion(res))
             .catch((err) => console.log(err))
@@ -147,6 +146,7 @@ function App() {
             y: pack.location[1],
             z: pack.location[2],
         });
+        //console.log(pack.unlockeditems);
 
         // Our map chunks are sent in a compacted way, only providing its object type, not its location. We can determine its location based on where
         // it is in this flat array. This will be limitedly helpful, and not ideal for combining with other chunks.
@@ -182,7 +182,7 @@ function App() {
         // Worker content is passed directly from the server database to game.setup().
         // Player location is passed as the object received. It is a 3-slot array
 
-        game.setup(pack.localContent, pack.userid, setPlayerData, pack.location, pack.username, pack.workers);
+        game.setup(pack.localContent, pack.userid, setPlayerData, pack.location, pack.username, pack.workers, pack.unlockeditems);
         game.start();
 
         setPage("Game");
@@ -224,7 +224,8 @@ function App() {
                     show: t.t,
                     floor: t.f,
                     health: t.h,
-                    items: t.i,
+                    items: t.i, // only some tiles will have an items list. We can always attach one if needed
+                    slope: t.s, // most tiles won't have a slope, but that's fine here
                 };
             });
         });

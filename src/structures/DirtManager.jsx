@@ -62,6 +62,11 @@
     |__|__|__|__|__|__|__|__|__|
     
     Workers will try to fill the closest tiles they can. They will not be able to add to a sloped tile until all neighboring tiles are also sloped
+
+    Tile slope types
+    Flat
+    Sloped
+    Filled
 */
 
 import React from "react";
@@ -85,7 +90,7 @@ export default function DirtManager() {
             let b = {
                 name: 'Dirt Manager',
                 descr: `Nature puts dirt where it works best; usually for draining rainwater. That isn't always ideal for your needs, such as growing crops or making factories.
-                        Now that you have shovels, we can fix that`,
+                        Now that you have shovels, you can fix that`,
                 image: 'dirtmanager.png',
                 position: [tile.x, tile.y, tile.z],
                 size: [1,1,1],
@@ -103,23 +108,122 @@ export default function DirtManager() {
                         canAssign: ()=>true, // This can be assigned at any time
                         canWork: ()=> {
                             // Returns true if there is work that workers can do
-                            
-                            // For now, we can't work until there are pickup and dropoff locations. Come back to this later
-                            return false;
+
+                            return (b.pickupList.length>0 && b.dropoffList.length>0);
                         },
                         workLocation: (tile,position) => {
                             // returns true if the given tile is suitable for work.
-                            // Come back to this later, too
-                            return false;
+
+                            // We have a single worker assigned to this structure, and they can be reached by b.workerAssigned. We only need to determine if they are already carrying
+                            // a unit of dirt.
+                            if(typeof(b.workerAssigned)==='undefined') return false;
+                            if(b.workerAssigned.carrying.some(i=>i.name==='Dirt Ball')) {
+                                // This worker already has dirt. So, we need a drop-off location
+                                return b.dropoffList.some(spot=>position[0]===spot[0] && position[1]===spot[1] && position[2]===spot[2]);
+                            }else{
+                                // This worker has no dirt. Find a tile to collect dirt from
+                                return b.pickupList.some(spot=>position[0]===spot[0] && position[1]===spot[1] && position[2]===spot[2]);
+                            }
                         },
                         doWork: ()=>{
                             // Lets workers perform actions at the given tile
-                            // Come back to this later as well
+                            
+                            // Determine if this worker is at a pickup location or dropoff location
+                            if(b.workerAssigned.carrying.some(i=>i.name==='Dirt Ball')) {
+                                // Verify this is a drop-off location
+                                if(!b.dropoffList.some(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2])) {
+                                    console.log('Error in DirtManager->doWork(): Worker location for dropoff doesnt match dropoffList');
+                                    return;
+                                }
+
+                                b.workProgress++;
+                                if(b.workProgress<b.recipe.workerTime) return;
+
+                                b.workProgress = 0;
+                                let mytile = game.tiles[b.workerAssigned.spot[0]][b.workerAssigned.spot[1]][b.workerAssigned.spot[2]];
+                                if(typeof(mytile)==='undefined') {
+                                    console.log('Error in DirtManager->doWork: Did not find tile where player is at (for dropoff)');
+                                    return;
+                                }
+                                if(typeof(mytile.items)==='undefined') mytile.items = [];
+                                let slot = b.workerAssigned.carrying.findIndex(i=>i.name==='Dirt Ball');
+                                mytile.items.push(b.workerAssigned.carrying.splice(slot,1)[0]);
+                                if(mytile.items.filter(i=>i.name==='Dirt Ball').length<5) {
+                                    // We don't need to continue below. But we do need to determine if this worker can continue working here
+                                    if(!b.recipe.canWork()) {
+                                        b.workerAssigned.job = null;
+                                        b.workerAssigned = null;
+                                    }
+                                    return;
+                                }
+
+                                // We are ready to convert this tile to an up-slope.
+                                // Under normal circumstances, this will become a bump-up tile
+                                // Remove the 5 dirt balls from this tile
+                                let toRemove = 5;
+                                mytile.items = mytile.items.filter(i=>{
+                                    if(i.name==='Dirt Ball' && toRemove>0) {
+                                        toRemove--;
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                                // Add the slope to the tile here
+                                mytile.slope = 1;
+
+                                // We also need to add a slope value to the tile above this one
+
+                                // Remove this tile from the DropOff List
+                                let targetSlot = b.dropoffList.findIndex(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2]);
+                                b.dropoffList.splice(targetSlot,1);
+
+                                // With that done, determine if we can stop working here
+                                if(!b.recipe.canWork()) {
+                                    b.workerAssigned.job = null;
+                                    b.workerAssigned = null;
+                                }
+                            }else{
+                                // Verify this pickup location
+                                if(!b.pickupList.some(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2])) {
+                                    console.log('Error in DirtManager->doWork(): Worker location for pickup doesnt match pickupList');
+                                    return;
+                                }
+
+                                b.workProgress++;
+                                if(b.workProgress<b.recipe.workerTime) return;
+                                b.workProgress = 0;
+
+                                let mytile = game.tiles[b.workerAssigned.spot[0]][b.workerAssigned.spot[1]][b.workerAssigned.spot[2]];
+                                if(typeof(mytile)==='undefined') {
+                                    console.log('Error in DirtManager->doWork(): Did not find tile where player is at (for pickup)');
+                                    return;
+                                }
+                                if(typeof(mytile.items)==='undefined') mytile.items = [];
+                                mytile.items.push({name:'Removed Dirt'}); // We don't need to include Removed Dirt in the Unlocked Items list
+                                b.workerAssigned.carrying.push(game.createItem('Dirt Ball', {}));
+
+                                // If there are 5 Removed Dirts here, we can turn it into a down-slope
+                                if(mytile.items.filter(i=>i.name==='Removed Dirt').length<5) return;
+
+                                // We are ready to convert this to a down-slope
+                                let toRemove = 5;
+                                mytile.items = mytile.items.filter(i=>{
+                                    if(i.name==='Removed Dirt') {
+                                        toRemove--;
+                                        return false;
+                                    }
+                                    return true;
+                                });
+                                mytile.slope = -1;
+                                // Remove this tile from the PickUp List
+                                let targetSlot = b.pickupList.findIndex(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2]);
+                                b.pickupList.splice(targetSlot, 1);
+                            }
                         }
                     }
                 ],
                 Render: ()=>{
-                    const texture = useLoader(TextureLoader, textureURL +"structures/itemhauler.png");
+                    const texture = useLoader(TextureLoader, textureURL +"structures/dirtmanager.png");
                     return (
                         <mesh position={[b.position[0], .1, b.position[2]]} rotation={[-Math.PI/2,0,0]}>
                             <planeGeometry args={[1,1]} />
@@ -134,18 +238,57 @@ export default function DirtManager() {
                     switch(interactionState) {
                         case 'none': return (
                             <div>
-                                Pickup: 0 unfilled <span className="fakelink" style={{marginBottom:10}}>Pick Pickup Sites</span><br />
-                                Dropoff: 0 unfilled <span className="fakelink">Pick Dropoff Sites</span>
+                                Pickup: {b.pickupList.length} unfilled
+                                <span className="fakelink" style={{marginBottom:10, marginLeft:5}}
+                                    onClick={()=>{
+                                        setInteractionState('pickup');
+                                        game.mapInteracter = (event, tile) => {
+                                            //console.log(tile);
+                                            b.pickupList.push([tile.x,tile.y,tile.z]);
+                                            //game.mapInteracter = null;
+                                            //setInteractionState('none')
+                                        };
+                                    }}
+                                >
+                                    Pick Dig Sites
+                                </span><br />
+                                Dropoff: {b.dropoffList.length} unfilled
+                                <span className="fakelink" style={{marginBottom:10, marginLeft:5}}
+                                    onClick={()=>{
+                                        setInteractionState('dropoff');
+                                        game.mapInteracter = (event,tile) => {
+                                            b.dropoffList.push([tile.x,tile.y,tile.z]);
+                                        };
+                                    }}
+                                >
+                                    Pick Dump Sites
+                                </span>
                             </div>
                         );
                         case 'pickup': return (
                             <div>
-                                Select map tiles to remove dirt from, then click <span className="fakelink">Done</span>
+                                Select map tiles to remove dirt from, then click
+                                <span className="fakelink" style={{marginLeft:5}}
+                                    onClick={()=> {
+                                        setInteractionState('none');
+                                        game.mapInteracter = null;
+                                    }}
+                                >
+                                    Done
+                                </span><br />
+                                Count: {b.pickupList.length} tiles
                             </div>
                         );
                         case 'dropoff': return (
                             <div>
-                                Select map tiles to add dirt to, then click <span className="fakelink">Done</span>
+                                Select map tiles to add dirt to, then click
+                                <span className="fakelink" style={{marginLeft:5}}
+                                    onClick={()=>{
+                                        setInteractionState('none');
+                                        game.mapInteracter = null;
+                                    }}
+                                >Done</span><br />
+                                Count: {b.dropoffList.length} tiles
                             </div>
                         );
                         default: return <div>Error: interactionState of {interactionState} is not valid.</div>
@@ -156,6 +299,7 @@ export default function DirtManager() {
                     console.log('Dont forget the save method for Dirt Manager!');
                 }
             };
+            b.recipe = b.recipes[0];
             tile.structure = b.id;
             tile.modified = 1;
             return b;

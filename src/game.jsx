@@ -13,6 +13,7 @@ import {serverURL, chunkSize } from "./App.js";
 import { DAX } from "./libs/DanAjax.js";
 import {minimapTiles} from "./minimapTiles.js";
 import { createWorker } from "./worker.jsx";
+import { gamemap } from "./gamemap.jsx";
 
 import LeanTo from "./structures/LeanTo.jsx";
 import ItemMover from "./structures/ItemMover.jsx";
@@ -26,11 +27,6 @@ export const game = {
     runState: 0, // This gets set to 1 when the game is running
     tickTime: 0, // holds the last tick time
     timeout: null, // Holds the object received from setTimeout(), which is called in game.start()
-    tiles: [],
-    chunksToLoad: [], // List of all chunks that need to be loaded. We will load 10 chunks at a time, in order to prevent overloading the server. This list also prevents
-        // existing chunks on the list from being loaded again. Before loading each chunk, we also need to verify if it has been loaded already.
-    chunksLoaded: [], // List of all loaded chunks. Data will only be the x,y,z coordinates of each chunk
-    fetchingTiles: false,
     scrollXFunc: null, // Handle to the function that manages scrolling
     scrollX: 0,
     playerDirections: {
@@ -59,9 +55,10 @@ export const game = {
         game.lastStructureId++;
         return game.lastStructureId;
     },
+    mapInteracter: null, // This is set by a currently selected structure, to contain a function. It defines what happens when a user clicks on the map
     unlockedItems: [],  // Keeps track of items the player has crafted, which triggers when new structures are made available
 
-    setup: (localChunk, playerId, playerFunc, location, userName, workers) => {
+    setup: (localChunk, playerId, playerFunc, location, userName, workers, unlockedItems) => {
         // Handles setting up various fields for the player's location to be updated
         console.log(workers);
 
@@ -83,14 +80,19 @@ export const game = {
             for(let y=-1; y<=1; y++) {
                 for(let z=-2; z<=2; z++) {
                     if(x===0 && y===0 && z===0) continue;
-                    game.chunksToLoad.push({x:centerx+x, y:centery+y, z:centerz+z});
+                    game.queueChunkLoad([centerx+x,centery+y,centerz+z], 'src/game.jsx->setup()->build map list');
                 }
             }
         }
 
         game.workers = workers.map(w => createWorker(w));
+
+        // Load each unlocked item into the correct list. As each item is sent to game.checkUnlocks(), it add its to the unlocks list, and also unlocks any buildings that require it
+        for(let i=0; i<unlockedItems.length; i++) {
+            game.checkUnlocks(unlockedItems[i]);
+        }
         
-        console.log(game.chunksToLoad.length);
+        console.log('We start with '+ game.chunksToLoad.length +' chunks to load.');
 
         window.game = game;
     },
@@ -126,18 +128,18 @@ export const game = {
         let modifiedList = [];
         for(let i=0; i<game.chunksLoaded.length; i++) {
             //console.log('['+ (game.chunksLoaded[i].x*chunkSize) +','+ (game.chunksLoaded[i].y*chunkSize) +','+ (game.chunksLoaded[i].z*chunkSize) +']');
-            for(let x=game.chunksLoaded[i].x*chunkSize; x<(game.chunksLoaded[i].x+1)*chunkSize; x++) {
-                for(let y=game.chunksLoaded[i].y*chunkSize; y<(game.chunksLoaded[i].y+1)*chunkSize; y++) {
-                    for(let z=game.chunksLoaded[i].z*chunkSize; z<(game.chunksLoaded[i].z+1)*chunkSize; z++) {
+            for(let x=game.chunksLoaded[i][0]*chunkSize; x<(game.chunksLoaded[i][0]+1)*chunkSize; x++) {
+                for(let y=game.chunksLoaded[i][1]*chunkSize; y<(game.chunksLoaded[i][1]+1)*chunkSize; y++) {
+                    for(let z=game.chunksLoaded[i][2]*chunkSize; z<(game.chunksLoaded[i][2]+1)*chunkSize; z++) {
                         if(game.tiles[x][y][z].modified===1) modifiedList.push(
                             // As we save this back to the server, we should convert this to the short-hand variables
                             //{x:x, y:y, z:z, ...game.tiles[x][y][z]}
                             {   x:x, y:y, z:z,
-                                h:game.tiles[x][y][z].health,
-                                t:game.tiles[x][y][z].show,
-                                f:game.tiles[x][y][z].floor,
-                                i:game.tiles[x][y][z].items,
-                                s:game.tiles[x][y][z].structure
+                                h: game.tiles[x][y][z].health,
+                                t: game.tiles[x][y][z].show,
+                                f: game.tiles[x][y][z].floor,
+                                i: game.tiles[x][y][z].items,
+                                s: game.tiles[x][y][z].structure
                             }
                         );
                     }
@@ -201,12 +203,13 @@ export const game = {
                     }
                     return out;
                 })
-            }, true)
+            }, true, 'src/game.jsx->save()')
         )
             .then(res=>DAX.manageResponseConversion(res))
             .catch(err =>console.log(err))
             .then(data => {
                 console.log('Complete!', data);
+                if(data.result!=='success') console.log(game.workers);
             });
     },
 
@@ -237,130 +240,6 @@ export const game = {
         }
     },
 
-    addTiles: newChunkList => {
-        // Handles loading new map tiles into the game's tiles structure. New tiles received from the server will be in a linear format and need to be
-        // converted. The existing tiles map also needs to accept individual tiles, not chunks
-        // No return value. the game map will be modified
-
-        newChunkList.forEach((chunk) => {
-            // Each of these will be in its own JSON, so we will have to convert it here
-            let chunkData = JSON.parse(chunk.content);
-            chunkData.forEach((t, i) => {
-                // i here will keep track of the index as we progress
-                let x = i % chunkSize;
-                let y = Math.floor(i / chunkSize) % chunkSize;
-                let z = Math.floor(i / (chunkSize * chunkSize));
-                // create new array indices in the tiles array if it doesn't exist yet
-                if(typeof(game.tiles[chunk.chunkx * chunkSize + x]) === 'undefined') {
-                    game.tiles[chunk.chunkx * chunkSize + x] = [];
-                }
-                if(typeof(game.tiles[chunk.chunkx * chunkSize +x][chunk.chunky * chunkSize + y]) === 'undefined') {
-                    game.tiles[chunk.chunkx * chunkSize + x][chunk.chunky * chunkSize + y] = [];
-                }
-                // This field will always be new
-                game.tiles[chunk.chunkx * chunkSize +x][chunk.chunky * chunkSize +y][chunk.chunkz * chunkSize +z] = {
-                    show: t.t,
-                    floor: t.f,
-                    health: t.h,
-                    items: t.i,
-                    modified: 0
-                };
-            });
-
-            // We also need to process any structures that might be in this area
-            if(chunk.structures!=='' && typeof(chunk.structures)!=='undefined') {
-                console.log('Flat structure data: '+ chunk.structures);
-                let structureList = JSON.parse(chunk.structures);
-                //console.log(structureList);
-                structureList.forEach(st => {
-                    // Find the correct structure type, based on a matching name
-                    let structureType = game.structureTypes.find(sType=>sType.name===st.kind);
-                    if(typeof(structureType)!=='object') {
-                        console.log('Error: Could not find Structure Type of '+ st.kind);
-                        return;
-                    }
-                    // load the correct tile based on the structure's position
-                    let mytile = game.tiles[st.position[0]][st.position[1]][st.position[2]];
-                    if(typeof(mytile)==='undefined') {
-                        console.log('Error: Could not load structure, tile not found at:', st.position);
-                        return;
-                    }
-                    console.log(st.position, mytile);
-                    // This should be enough to generate the structure. Then modify the internal variables
-                    let newStruct = structureType.create(mytile);
-                    console.log('New structure location: ', newStruct.position, mytile)
-                    if(typeof(newStruct.position[0])==='undefined') {
-                        newStruct.position = st.position;
-                    }
-                    if(st.recipe!==-1) newStruct.recipe = newStruct.recipes[st.recipe];
-                    newStruct.workProgress = st.workProgress;
-                    // Also add workers, if they are assigned to this structure
-                    if(st.worker!==-1) {
-                        // Unfortunately, workers are not always loaded when tiles are created
-                        if(game.workers.length===0) {
-                            // For now, we will need to mark this structure's worker with an ID. As workers are loaded, we will need to convert the ID of the structure
-                            // to the worker's handle.
-                            newStruct.worker = st.worker;
-                        }else{
-                            let w = game.workers.find(u=>u.id===st.worker);
-                            console.log(game.workers, st.worker);
-                            w.job = newStruct;
-                            newStruct.worker = w;  
-                        }
-                    }
-                    game.structures.push(newStruct);
-                    
-                    if(typeof(newStruct.onLoad)!=='undefined') newStruct.onLoad(st);
-                    // That is... hopefully everything we need to load existing structures
-                    console.log('Completed structure load:', newStruct);
-                });
-            }
-
-
-            game.chunksLoaded.push({x:chunk.chunkx, y:chunk.chunky, z:chunk.chunkz});
-            // As chunks are loaded, find each chunk in the chunksToLoad list and remove it.
-            let chunkSlot = game.chunksToLoad.findIndex(ch=>{
-                return ch.x===chunk.chunkx && ch.y===chunk.chunky && ch.z===chunk.chunkz;
-            });
-            if(chunkSlot!==-1) game.chunksToLoad.splice(chunkSlot,1);
-        });
-        console.log(game.chunksToLoad.length +' chunks left to load');
-        //console.log('Now with '+ game.chunksLoaded.length +' chunks');
-    },
-
-    fetchTiles2: () => {
-        // Handles loading all tiles that are in game.chunksToLoad.
-        // Note that this will only start a new fetch when the previous fetch has been completed.
-        // It will also remove a chunk from the list if it has already been loaded.
-
-        if(game.fetchingTiles===true) return;
-        if(game.chunksToLoad.length===0) return;
-
-        // Start by picking out 10 tiles from the chunksToLoad list. We will eliminate any chunks that have already been loaded as we do this
-        for(let i=0; i<game.chunksToLoad; i++) {
-            if(game.chunksLoaded.some(c=>c.x===game.chunksToLoad[i].x && c.y===game.chunksToLoad[i].y && c.z===game.chunksToLoad[i].z)) {
-                // This chunk has already been loaded
-                game.chunksToLoad.splice(i,1);
-                i--; // reduce i, to accomodate for this removed tile
-            }
-            if(i>=10) break; // exit this loop if we have checked 10 chunks
-        }
-        let chunksToFetch = (game.chunksToLoad.length>10?game.chunksToLoad.splice(0,10):game.chunksToLoad);
-        game.fetchingTiles = true;
-        fetch(serverURL +"/routes/loadmap.php", DAX.serverMessage({chunkList: chunksToFetch.map(c=>([c.x,c.y,c.z]))}, true))
-            .then(res => DAX.manageResponseConversion(res))
-            .catch(err => console.log(err))
-            .then(data => {
-                if(data.result !== 'success') {
-                    console.log("There was an error loading map chunks", data);
-                    return;
-                }
-                //console.log('We got '+ data.chunks.length +' from the server');
-                game.addTiles(data.chunks);
-                game.fetchingTiles = false;
-            });
-    },
-
     loadAroundPlayer: ()=>{
         // Searches around the player, and adds tiles to the chunksToLoad list, to keep content around the player loaded
 
@@ -372,58 +251,6 @@ export const game = {
                 for(let z=-range; z<=range; z++) {
                     
                 }
-            }
-        }
-    },
-
-    fetchTiles: (surrounding) => {
-        // Manages collecting tiles from the server
-        //   surrounding - array with 3 slots, containing X, Y & Z positions
-        // No return value. The tile map will be updated when this completes.
-
-        // Eventually, we're going to need a way to prevent the player from scrolling right off the map; in that, as we are waiting for map portions to load,
-        // they have to wait until new tiles are received before going that direction
-
-        // This function can be called directly from tick(), and repeatedly. It will manage how often requests are sent to the server
-        if(game.fetchingTiles===false) {
-            // See what map chunks are missing around the player, currently
-            // This would normally be a challenging thing to do, since tiles are not stored according to chunk coordinates.
-            // However, they are always loaded in chunks. So if we check any tile within a chunk, we can decide if that chunk has been loaded
-            let chunksNeeded = [];
-            let range = 1;
-            // Player coordinates are stored as a 3-slot array of floats... which makes it hard to pick array elements. Let's fix that
-            let intSpot = surrounding.map(u=>Math.floor(u));
-            for(let x=-range; x<=range; x++) {
-                for(let y=-1; y<=1; y++) {
-                    for(let z=-range; z<=range; z++) {
-                        // Check each slot of the array here, using Javascript tricks; if one condition fails, it'll skip checking the rest
-                        if(
-                            typeof(game.tiles[intSpot[0] + (x*chunkSize)]) === 'undefined' ||
-                            typeof(game.tiles[intSpot[0] + (x*chunkSize)][intSpot[1] +(y*chunkSize)]) === 'undefined' ||
-                            typeof(game.tiles[intSpot[0] + (x*chunkSize)][intSpot[1] +(y*chunkSize)][intSpot[2] +(z*chunkSize)]) === 'undefined'
-                        ) {
-                            chunksNeeded.push([Math.floor(intSpot[0]/chunkSize) +x, Math.floor(intSpot[1]/chunkSize) +y, Math.floor(intSpot[2]/chunkSize) +z]);
-                        }
-                    }
-                }
-            }
-            if(chunksNeeded.length>0) {
-                console.log(chunksNeeded.length +' chunks left to load, '+ typeof(chunksNeeded.length));
-                game.fetchingTiles = true;
-                //console.log('We have '+ chunksNeeded.length +' chunks to load');
-                if(chunksNeeded.length > 10) chunksNeeded.splice(10, chunksNeeded.length-10); // Limit our fetch to 10 chunks. We can load more on the nex pass
-                fetch(serverURL +"/routes/loadmap.php", DAX.serverMessage({chunkList: chunksNeeded}, true))
-                    .then(res => DAX.manageResponseConversion(res))
-                    .catch(err => console.log(err))
-                    .then(data => {
-                        if(data.result !== 'success') {
-                            console.log("There was an error loading map chunks", data);
-                            return;
-                        }
-                        //console.log('We got '+ data.chunks.length +' from the server');
-                        game.addTiles(data.chunks);
-                        game.fetchingTiles = false;
-                    });
             }
         }
     },
@@ -580,9 +407,10 @@ export const game = {
                            typeof(game.tiles[filledTiles[0].x+dx][filledTiles[0].y+dy])==='undefined' ||
                            typeof(game.tiles[filledTiles[0].x+dx][filledTiles[0].y+dy][filledTiles[0].z+dz])==='undefined') {
                             // This tile has not been loaded. Fetch this chunk from the database here
+                            console.log('Need new chunk to get ['+ (filledTiles[0].x+dx) +','+ filledTiles[1].y+dy +','+ filledTiles[2].z+dz +']');
                             let response = await fetch(serverURL +"/routes/loadmap.php", DAX.serverMessage({
                                 chunkList: [[Math.floor((filledTiles[0].x+dx)/chunkSize), Math.floor((filledTiles[0].y+dy)/chunkSize), Math.floor((filledTiles[0].z+dz)/chunkSize)]]
-                            }, true));
+                            }, true, 'src/game.jsx->pathTo()->get nearby chunk'));
                             let data = await DAX.manageResponseConversion(response);
                             if(data.result!=='success') {
                                 console.log('Error in .pathTo(): fetching more tiles resulted in error', data);
@@ -638,7 +466,9 @@ export const game = {
             // Don't forget to tag this tile as completed
             filledTiles[0].completed = true;
         }
-    }
+    },
+
+    ...gamemap
 };
 
 

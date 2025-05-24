@@ -37,6 +37,7 @@
     // We should be ready to finish the login process, but first, set the needed variables for the script
     $playerid = $player['id'];
     $playername = $player['name'];
+    $unlockeditems = json_decode($player['unlockedItems']);
     $location = json_decode($player['location']);
     
     require_once("../finishLogin.php");

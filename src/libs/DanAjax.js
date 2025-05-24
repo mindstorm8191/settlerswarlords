@@ -3,17 +3,18 @@
 // For the project Settlers & Warlords
 
 export const DAX = {
-    serverMessage: (content, includeUserData) => {
+    serverMessage: (content, includeUserData, fromSpot) => {
         // Handles building a message that is sent to the server.  This cleans up the repetitiveness of the code here, whenever
         // fetch calls are made
         // content - any other data to send to the server with this request
+        // fromSpot - where this function was called from
         // includeUserData - Set to true if userdata should be provided with the message, or false if not.
 
         //let packout = { action: command, ...content };
         if (includeUserData) {
             content.userid = localStorage.getItem("userid");
             content.ajaxcode = localStorage.getItem("ajaxcode");
-            console.log("Userid info included. value is" + includeUserData + ". Sending " + JSON.stringify(content));
+            console.log("From " + fromSpot + ": Userid info included. value is" + includeUserData + ". Sending " + JSON.stringify(content));
         }
         return {
             method: "post",

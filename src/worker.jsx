@@ -23,14 +23,38 @@ import { chunkSize } from "./App.js";
 export function createWorker(pkg) {
     // Creates a new worker object based on data received from the server. (At this time it's only a location... we'll get more, though)
     let w = {
-        id: game.getNextWorkerId(),
+        id: pkg.id,
         spot: JSON.parse(pkg.spot),
-        path: (typeof(pkg.travelpath)==='undefined'?'':pkg.travelpath),
+        path: (typeof(pkg.travelPath)==='undefined'?'':pkg.travelPath),
         waitingForPath: false,
         stepProgress: pkg.stepProgress,
         job: null,
         carrying: (typeof(pkg.carrying)==='undefined'?[]:JSON.parse(pkg.carrying)), // list of items this worker is carrying. This is usually a short list
         tick: ()=>{
+            // Before trying to manage worker operations, check that a structure assigned to this worker is loaded
+            if(typeof(w.job)==='object' && w.job!==null) {
+                // We either have an actual structure, or a waiting-for-structure-to-be-loaded object
+                if(typeof(w.job.name)==='undefined') {
+                    console.log("This worker's structure has not been loaded yet!");
+                    // Let's see if we can find this structure now
+                    let st = game.structures.find(s=>s.id===w.job.id);
+                    if(typeof(st)!=='undefined') {
+                        w.job = st;
+                        st.workerAssigned = w;
+                        console.log('Linked this worker with the correct structure!');
+                    }
+                    return;
+                }
+            }
+
+            // We also need to ensure that the worker's current location has been loaded in
+            if(typeof(game.tiles[w.spot[0]])==='undefined' ||
+               typeof(game.tiles[w.spot[0]][w.spot[1]])==='undefined' ||
+               typeof(game.tiles[w.spot[0]][w.spot[1]][w.spot[2]])==='undefined') {
+                // We can only wait until this tile has been loaded
+                return;
+            }
+
             // Manages individual worker operations
             if(w.job===null) {
                 // This worker is idle. Let's find a job to give them
@@ -235,12 +259,26 @@ export function createWorker(pkg) {
     // On load, We need to ensure that the game will load the tile that the worker is currently located in.
     // Under normal circumstances, we are operating before any tile (besides the player's tile) is loaded.
     let spot = JSON.parse(pkg.spot);
-    let chunkx = Math.floor(spot[0]/chunkSize);
-    let chunky = Math.floor(spot[1]/chunkSize);
-    let chunkz = Math.floor(spot[2]/chunkSize);
-    if(!game.chunksToLoad.some(ch=>ch.x===chunkx && ch.y===chunky && ch.z===chunkz)) {
-        game.chunksToLoad.push({x:chunkx, y:chunky, z:chunkz});
-        console.log(game.chunksToLoad[game.chunksToLoad.length-1]);
+    game.queueChunkLoad([Math.floor(spot[0]/chunkSize), Math.floor(spot[1]/chunkSize), Math.floor(spot[2]/chunkSize)], 'src/worker.jsx->ensure worker tile loaded');
+    
+    // Sometimes tiles (and structures) get loaded before workers. Other times, workers get loaded before tiles (and structures). Either way, we need to check now
+    // if we can apply the worker to its assigned structure
+    let job = JSON.parse(pkg.job);
+    if(job!=='none') {
+        // This worker has a job. Has the structure with that ID been loaded yet?
+        //let job = JSON.parse(pkg.job);
+        let stru = game.structures.find(st => st.id===job.id);
+        if(typeof(stru)!=='undefined') {
+            console.log('Worker id='+ w.id +' structure already loaded & linked');
+            w.job = stru;
+            stru.workerAssigned = w;
+        }else{
+            // if we didn't find the structure, then it's not loaded yet. We will need to hold on to the structure ID until it is.
+            // In the meantime, we can request that the correct map chunk be loaded
+            game.queueChunkLoad([Math.floor(job.x/chunkSize), Math.floor(job.y/chunkSize), Math.floor(job.z/chunkSize)], 'src/worker.jsx->ensure structure tile loaded');
+            console.log('Worker id='+ w.id +' structure not loaded');
+            w.job = job;
+        } 
     }
 
     return w;

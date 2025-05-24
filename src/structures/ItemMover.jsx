@@ -82,7 +82,7 @@ export default function ItemMover() {
                                         if(game.tiles[x][y][z].items.some(i=> {
                                             return b.itemsList.some(j=>j.name===i.name);
                                         })) {
-                                            console.log('We found something to get!');
+                                            //console.log('We found something to get!');
                                             return true;
                                         }
                                     }
@@ -121,8 +121,8 @@ export default function ItemMover() {
                             //console.log('ItemMover->doWork(): worker ['+ b.workerAssigned.spot[0] +','+ b.workerAssigned.spot[1] +','+ b.workerAssigned.spot[2] +'], tile=['+ targetTile[0] +','+ targetTile[1] +','+ targetTile[2] +']');
                             if(b.workerAssigned.spot[0]===targetTile[0] && b.workerAssigned.spot[1]===targetTile[1] && b.workerAssigned.spot[2]===targetTile[2]) {
                                 // This is the drop-off location
-                                console.log('ItemMover at unload site');
-                                console.log(b.workerAssigned.carrying);
+                                //console.log('ItemMover at unload site');
+                                //console.log(b.workerAssigned.carrying);
                                 let mytile = game.tiles[targetTile[0]][targetTile[1]][targetTile[2]];
                                 if(typeof(mytile.items)==='undefined') mytile.items = [];
                                 for(let i = b.workerAssigned.carrying.length-1; i>=0; i--) {
@@ -234,6 +234,11 @@ export default function ItemMover() {
                 save: () => {
                     // Save relevant data of this structure to the server
                     return {rotation: b.rotation, itemsList: b.itemsList};
+                },
+                onLoad: (pkg) => {
+                    b.rotation = pkg.rotation;
+                    b.itemsList = pkg.itemsList;
+                    console.log(b.itemsList);
                 },
                 adjustByFacing: () => {
                     switch(b.rotation) {

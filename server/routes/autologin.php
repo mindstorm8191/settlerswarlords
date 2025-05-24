@@ -26,9 +26,10 @@
 
     // Now, set up to use the login script again
     $playerid = $player['id'];
+    $ajaxcode = $player['ajaxcode'];
     $playername = $player['name'];
     $location = json_decode($player['location'], 1);
-    $ajaxcode = $player['ajaxcode'];
+    $unlockeditems = json_decode($player['unlockedItems'], 1);
     require_once("../finishLogin.php");
 ?>
     

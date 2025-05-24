@@ -37,7 +37,9 @@
         // Also validate the items list
         // We will have several places where items lists will be generated. It will be a good idea to use a function for this job
         // Items will have many possible fields; not all will be used, though.
-        verifyItems($w['carrying']);
+        reporterror('server/routes/save.php->validate workers->carrying', json_encode($w['carrying']));
+        verifyItems($w['carrying'], 'server/routes/save.php->verify workers');
+        return true;
     });
 
     // Also validate structures... this will be based on each individual structure
@@ -58,6 +60,7 @@
                 verifyInput($s, [
                     ['name'=>'id', 'required'=>true, 'format'=>'int'],
                     ['name'=>'kind', 'required'=>true, 'format'=>'stringnotempty'],
+                    ['name'=>'position', 'required'=>true, 'format'=>'arrayOfInts'],
                     ['name'=>'recipe', 'required'=>true, 'format'=>'int'],
                     ['name'=>'worker', 'required'=>true, 'format'=>'int'],
                     ['name'=>'workProgress', 'required'=>true, 'format'=>'int'],
@@ -75,10 +78,12 @@
 
                     // I am... not so sure how to do this effectively. I'll get back to it later.
                 });
+            break;
             case 'Lean To':
                 verifyInput($s, [
                     ['name'=>'id', 'required'=>true, 'format'=>'int'],
                     ['name'=>'kind', 'required'=>true, 'format'=>'stringnotempty'],
+                    ['name'=>'position', 'required'=>true, 'format'=>'arrayOfInts'],
                     ['name'=>'recipe', 'required'=>true, 'format'=>'int'],
                     ['name'=>'worker', 'required'=>true, 'format'=>'int'],
                     ['name'=>'workProgress', 'required'=>true, 'format'=>'int'],
@@ -88,6 +93,7 @@
             default:
                 reporterror('server/routes/save.php->structure detail', 'Error: structure type of '. danescape($s['kind']) .' not handled, it was not validated');
         }
+        return true;
     });
 
     // Finally, with validation finished, next is the verify the user
@@ -104,10 +110,13 @@
               'server/routes/save.php->update player stats');
     
     // Next is workers. These each have their own records
+    reporterror('server/routes/save.php->save workers', 'We have '. sizeof($con['workers']) .' workers to save');
     JSEvery($con['workers'], function ($w) use ($player) {
+        //reporterror('server/routes/save.php->save workers', 'Saving worker with id='. $w['id']);
         DanDBList("UPDATE sw_worker SET spot=?, travelPath=?, stepProgress=?, carrying=?, job=? WHERE id=? AND playerid=?;", 'ssissii',
-                  [json_encode($w['spot']), $w['path'], $w['stepProgress'], json_encode($w['carrying']), json_encode('job'), $w['id'], $player['id']],
+                  [json_encode($w['spot']), $w['path'], $w['stepProgress'], json_encode($w['carrying']), json_encode($w['job']), $w['id'], $player['id']],
                   'server/routes/save.php->update each worker');
+        return true;
     });
 
     // Now for the complicated part: map chunks. Not only do we need to organize the tiles for saving, but we also need to find all structures for each chunk, and add them
@@ -212,13 +221,18 @@
 
     die(json_encode(['result'=>'success']));
 
-    function verifyItems($itemsList) {
+    function verifyItems($itemsList, $source) {
+        if(!isset($itemsList)) {
+            reporterror($source .'->verifyItems()', 'Error: itemsList is not valid');
+            return;
+        }
         JSEvery($itemsList, function($i) {
-            verifyInput($itemsList, [
+            verifyInput($i, [
                 ['name'=>'name', 'required'=>true, 'format'=>'stringnotempty'],
                 ['name'=>'endurance', 'required'=>false, 'format'=>'float'],
                 ['name'=>'efficiency', 'required'=>false, 'format'=>'float']
-            ]);
+            ], 'server/routes/save.php->verifyItems()');
+            return true;
         });
     }
 ?>

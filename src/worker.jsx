@@ -22,6 +22,7 @@ import { chunkSize } from "./App.js";
 
 export function createWorker(pkg) {
     // Creates a new worker object based on data received from the server. (At this time it's only a location... we'll get more, though)
+    console.log(pkg.carrying);
     let w = {
         id: pkg.id,
         spot: JSON.parse(pkg.spot),
@@ -29,7 +30,7 @@ export function createWorker(pkg) {
         waitingForPath: false,
         stepProgress: pkg.stepProgress,
         job: null,
-        carrying: (typeof(pkg.carrying)==='undefined'?[]:JSON.parse(pkg.carrying)), // list of items this worker is carrying. This is usually a short list
+        carrying: (pkg.carrying==='[]'?[]:JSON.parse(pkg.carrying)), // list of items this worker is carrying. This is usually a short list
         tick: ()=>{
             // Before trying to manage worker operations, check that a structure assigned to this worker is loaded
             if(typeof(w.job)==='object' && w.job!==null) {
@@ -263,10 +264,10 @@ export function createWorker(pkg) {
     
     // Sometimes tiles (and structures) get loaded before workers. Other times, workers get loaded before tiles (and structures). Either way, we need to check now
     // if we can apply the worker to its assigned structure
-    let job = JSON.parse(pkg.job);
-    if(job!=='none') {
+    //let job = JSON.parse(pkg.job);
+    if(pkg.job!=='none') {
         // This worker has a job. Has the structure with that ID been loaded yet?
-        //let job = JSON.parse(pkg.job);
+        let job = JSON.parse(pkg.job);
         let stru = game.structures.find(st => st.id===job.id);
         if(typeof(stru)!=='undefined') {
             console.log('Worker id='+ w.id +' structure already loaded & linked');

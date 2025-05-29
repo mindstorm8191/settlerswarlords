@@ -50,7 +50,7 @@
         
         // what we generate will be based on the chunk's vertical location. Later, we will have to factor in a world height map... but that's difficult. For
         // now we'll use a totally flat map
-        if($chunky<0) {
+        if($chunky>0) {
             $fullMap = forrange(0,$chunkWidth-1,1, function($z) {
                 global $chunkWidth;
                 return forrange(0,$chunkWidth-1,1, function($y) use ($z) {
@@ -60,7 +60,7 @@
                     }, 'server/generateMap.php->loadChunk()->high x');
                 }, 'server/generateMap.php->loadChunk()->high y');
             }, 'server/generateMap.php->loadChunk()->high z');
-        }else if($chunky>0) {
+        }else if($chunky<0) {
             $fullMap = forrange(0,$chunkWidth-1,1, function($z) {
                 global $chunkWidth;
                 return forrange(0,$chunkWidth-1,1, function($y) use ($z) {
@@ -76,9 +76,9 @@
                 return forrange(0,$chunkWidth-1,1, function($y) use ($z) {
                     global $chunkWidth;
                     return forrange(0,$chunkWidth-1,1, function($x) use ($y,$z) {
-                        if($y<4) return 'air';
-                        if($y>4) return 'dirt';
-                        if($y==7) return 'bottomdirt';
+                        if($y>4) return 'air';
+                        if($y<4) return 'dirt';
+                        if($y==0) return 'bottomdirt';
                         return 'grassydirt';  // This will be our 'biome-dependent' tile type
                     }, 'server/generateMap.php->loadChunk()->mid x');
                 }, 'server/generateMap.php->loadChunk()->mid y');
@@ -113,8 +113,8 @@
                                 $fullMap[$z][$y][$x] = 'leaffloor';
                             }
                             // y-negative is always up
-                            $fullMap[$z][$y-1][$x] = 'treebranches';
-                            $fullMap[$z][$y-2][$x] = 'treebranches';
+                            $fullMap[$z][$y+1][$x] = 'treebranches';
+                            $fullMap[$z][$y+2][$x] = 'treebranches';
                             $hitCount++;
                         }
                         // While here, let's manage grasslands, too. We want every few tiles to contain a vegetable instead

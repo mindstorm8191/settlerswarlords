@@ -4,8 +4,11 @@
 
 /* Curent task list
     1) Keep a mindset: How am I ever going to see if it works, if I never try it?
+    2) Finish getting the view screen to change layers
     2) DirtManager: Give marked tiles some kind of highlight. Display this only while the building is selected
     3) DirtManager: Update tile picker to exclude tiles already sloped, or on the list to be sloped
+    4) Set up a means for the player character to automatically go up or down slopes. This will only happen when they are standing in a slope tile, and the next one
+        forward is an air or filled tile
     4) Figure out how to show a progress bar on each of the buildings
     
     Things to do before multiplayer

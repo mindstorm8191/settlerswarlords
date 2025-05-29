@@ -318,7 +318,6 @@ export default function LoggersPost() {
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }
-                            
                     }
                 ],
                 Render: () => {

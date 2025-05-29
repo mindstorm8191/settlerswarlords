@@ -34,6 +34,7 @@ export const game = {
     },
     playerUpdateFunc: null,
     playerPos: [],
+    displayLayer: 0,
     userName: '',
     workers: [],
     lastWorkerId: 0,
@@ -56,6 +57,7 @@ export const game = {
         return game.lastStructureId;
     },
     mapInteracter: null, // This is set by a currently selected structure, to contain a function. It defines what happens when a user clicks on the map
+    tileRenderAddon: null, // This is another function set by a currently selected structure. It will add content to tiles displayed based on what the function specifies
     unlockedItems: [],  // Keeps track of items the player has crafted, which triggers when new structures are made available
 
     setup: (localChunk, playerId, playerFunc, location, userName, workers, unlockedItems) => {
@@ -88,8 +90,11 @@ export const game = {
         game.workers = workers.map(w => createWorker(w));
 
         // Load each unlocked item into the correct list. As each item is sent to game.checkUnlocks(), it add its to the unlocks list, and also unlocks any buildings that require it
-        for(let i=0; i<unlockedItems.length; i++) {
-            game.checkUnlocks(unlockedItems[i]);
+        //console.log(unlockedItems);
+        if(unlockedItems!==null) {
+            for(let i=0; i<unlockedItems.length; i++) {
+                game.checkUnlocks(unlockedItems[i]);
+            }
         }
         
         console.log('We start with '+ game.chunksToLoad.length +' chunks to load.');
@@ -216,6 +221,14 @@ export const game = {
     createItem: (name, stats) => {
         // Creates a new item and returns it. If this item is new, its name will be added to game.unlockedItems, and then any structures waiting for that item will
         // become unlocked.
+
+        // At some point, we need to start organizing items into 5 classifications:
+        // solid - a whole object. Many can be stacked into a pile
+        // rubble - similar to dust, this can only be stored as a pile
+        // liquid - must be contained in liquid holding containers
+        // gas - must be contained in fully enclosed tanks of some kind. Releasing will vent it to atmosphere
+        // void - Not actual items, such as removed stick or removed dirt. These are flags to keep the game running more easily
+
         let item = {name: name,...stats};
         game.checkUnlocks(name);
         return item;

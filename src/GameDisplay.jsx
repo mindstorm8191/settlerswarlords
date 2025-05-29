@@ -13,6 +13,7 @@ import { DAX } from "./libs/DanAjax.js";
 import { serverURL, imageURL, textureURL, chunkSize } from "./App.js";
 import { game } from "./game.jsx";
 import { minimapTiles } from "./minimapTiles.js";
+import { BasicTile } from "./OneTile.jsx";
 
 
 function OneTile(props) {
@@ -71,6 +72,9 @@ export function ShowGame(props) {
     // player - details about the player, including their location. This will be used to determine camera position
 
     /* Game is now responsible for storing all map tiles, and as such, also responsible for loading new tile content */
+    const [layerShown, setLayerShown] = React.useState(0);
+
+    //console.log(props.player.x+game.displayLayer);
 
     // Before we can show a map, we need to pick out the tiles needed to be displayed
     let showTiles = [];
@@ -78,14 +82,14 @@ export function ShowGame(props) {
         for (let z = Math.floor(props.player.z) - 10; z <= Math.floor(props.player.z) + 10; z++) {
             if (
                 typeof game.tiles[x] !== "undefined" &&
-                typeof game.tiles[x][props.player.y] !== "undefined" &&
-                typeof game.tiles[x][props.player.y][z] !== "undefined"
+                typeof game.tiles[x][Math.floor(props.player.y+game.displayLayer)] !== "undefined" &&
+                typeof game.tiles[x][Math.floor(props.player.y+game.displayLayer)][z] !== "undefined"
             ) {
-                showTiles.push({ ...game.tiles[x][props.player.y][z], x: x, y: props.player.y, z: z });
+                showTiles.push({ ...game.tiles[x][Math.floor(props.player.y+game.displayLayer)][z], x: x, y: props.player.y, z: z });
             }
         }
     }
-    return <GameDisplay showTiles={showTiles} player={props.player} />;
+    return <GameDisplay showTiles={showTiles} player={props.player} layerShown={layerShown} setLayerShown={setLayerShown} />;
 }
 
 function GameDisplay(props) {
@@ -99,6 +103,7 @@ function GameDisplay(props) {
     const [lightMode, setLightMode] = React.useState("day");
     const [buildSelected, setBuildSelected] = React.useState(null);
     const [tileSelected, setTileSelected] = React.useState(null);
+    //const [layerShown, setLayerShown] = React.useState(0); // Adjustments here will be based on the player's current Y position
 
     /* This is part of Option One to display map tiles
     const tileSet = minimapTiles.map((tile) => {
@@ -177,140 +182,24 @@ function GameDisplay(props) {
 
                 {/* Render the map. We will mainly focus on ground tiles here, but some may contain blocks on top as well */}
                 {props.showTiles.map((tile, key) => {
-                    // How tiles are shown will also depend on the slope value of this tile.
-                    if(typeof(tile.slope)!=='undefined' && tile.slope===1) {
-                        // Search all neighboring tiles for up-slopes as well. Depending on how things match, the displayed graphics will be changed.
-                        // This is a LOT more complicated than it first appears. There are countless ways that this can be rendered, since any situation may
-                        // end up being different
-                        // Instead, we will generate a string of values, that describe what is in each surrounding tile; a hash system, of sorts.
-                        // With a hash generated, we will then try to match the hash with a graphic that will support that hash; rotation will be part of that hash
-                        let dHash = '';  // includes diagonals
-                        let cHash = '';  // cardinal directions only
-                        for(let x=-1; x<=1; x++) {
-                            for(let z=-1; z<=1; z++) {
-                                if(x===0 && z===0) continue;
-                                let neighbor = game.tiles[tile.x+x][tile.y][tile.z+z];
-                                if(typeof(neighbor)==='undefined') {  // Account for missing edge tiles
-                                    dHash = dHash + '.';  // We will assume neighbor tiles are flat, until they are loaded
-                                    if(x===0 || z==0) cHash = cHash + '.';
-                                    continue;
-                                }
-                                if(typeof(neighbor.slope)==='undefined' || neighbor.slope===0) {
-                                    dHash = dHash + '.';
-                                    if(x===0 || z===0) cHash = cHash +'.';
-                                    continue;
-                                }
-                                if(neighbor.slope===1) {
-                                    // It's an up-slope!
-                                    dHash = dHash + 'u';
-                                    if(x===0 || z===0) cHash = cHash + 'u';
-                                }
-                                if(neighbor.slope===-1) {
-                                    // It's a down-slope!
-                                    dHash = dHash + 'd';
-                                    if(x===0 || z===0) cHash = cHash + 'd';
-                                }
-                                if(neighbor.tile!==0) { // aka not air
-                                    dHash = dHash + 'f';
-                                    if(x===0 || z===0) cHash = cHash + 'f';
-                                }
-                                if(neighbor.floor===0) { // aka ground is open to air
-                                    dHash = dHash + 'o';
-                                    if(x===0 || z===0) cHash = cHash + 'o';
-                                }
-                            }
-                        }
-                        console.log(dHash +' & '+ cHash);
-                        return (
-                            <React.Suspense fallback={
-                                <mesh position={[tile.x, 0, tile.z]}/>
-                            }>
-                                <mesh
-                                    position={[tile.x, 0, tile.z]}
-                                    scale={[.5,.5,.5]}
-                                    geometry={slope1up.nodes.Ground.geometry}
-                                    material={slope1up.materials.PlaneMaterial}
-                                >
-                                    <meshStandardMaterial map={slopeTextures[0]} />
-                                </mesh>
-                            </React.Suspense>
-                        );
-                        /*return (
-                            <>
-                                <OneTile
-                                    key={key}
-                                    position={[tile.x,0,tile.z]}
-                                    tex={minimapTiles[Math.abs(tile.floor)].img}
-                                    onClick={(e)=>{
-                                        console.log('Baap!');
-                                        if(game.mapInteracter!==null) {
-                                            game.mapInteracter(e,tile);
-                                            return;
-                                        }
-                                        if(buildSelected !== null) {
-                                            let newBuild = buildSelected.create(tile);
-                                            game.structures.push(newBuild);
-                                            setBuildSelected(null);
-                                            setTileSelected(tile);
-                                        }else{
-                                            setTileSelected(tile);
-                                        }
-                                    }}
-                                />
-                                <OneBlock key={key+1} position={[tile.x,0,tile.z]} tex={minimapTiles[1].img} scale={[0.5,0.5,0.5]} />
-                            </>
-                        );*/
-                    }
-                    if(tile.show!==-1 && minimapTiles[tile.show].category==='tree') {
-                        return (
-                            <>
-                                <OneTile
-                                    key={key}
-                                    position={[tile.x, 0, tile.z]}
-                                    tex={minimapTiles[Math.abs(tile.floor)].img}
-                                    onClick={(e) => {
-                                        console.log('Beep!');
-                                        if(game.mapInteracter!==null) {
-                                            game.mapInteracter(e, tile);
-                                            return;
-                                        }
-                                        // Note that the onClick event must work on the mesh. The OneTile component has to pass it to its mesh
-                                        if (buildSelected !== null) {
-                                            let newBuild = buildSelected.create(tile);
-                                            // To do: check for error state and show error to user
-                                            game.structures.push(newBuild);
-                                            // That... might be all we actually have to do here
-                                            setBuildSelected(null);
-                                            setTileSelected(tile);
-                                        } else {
-                                            setTileSelected(tile);
-                                        }
-                                    }}
-                                />
-                                <OneBlock key={key+1} position={[tile.x,0,tile.z]} tex={minimapTiles[tile.show].img} /> 
-                            </>
-                        );    
-                    }
+                    // All this has now been delegated to the OneTile file
                     return (
-                        <OneTile
+                        <BasicTile
+                            tile={tile}
                             key={key}
-                            position={[tile.x, 0, tile.z]}
-                            tex={minimapTiles[Math.abs(tile.floor)].img}
-                            onClick={(e) => {
-                                console.log('Boop!');
+                            onClick={(e)=>{
                                 if(game.mapInteracter!==null) {
-                                    game.mapInteracter(e, tile);
+                                    game.mapInteracter(e,tile);
                                     return;
                                 }
-                                // Note that the onClick event must work on the mesh. The OneTile component has to pass it to its mesh
-                                if (buildSelected !== null) {
+                                if(buildSelected !== null) {
                                     let newBuild = buildSelected.create(tile);
-                                    // To do: check for error state and show error to user
+                                    // To Do: Check for error state and show error to user
                                     game.structures.push(newBuild);
-                                    // That... might be all we actually have to do here
+                                    // That... might be all we have to do really do here
                                     setBuildSelected(null);
                                     setTileSelected(tile);
-                                } else {
+                                }else{
                                     setTileSelected(tile);
                                 }
                             }}
@@ -404,10 +293,35 @@ function GameDisplay(props) {
                     );
                 })}
             </div>
+            {/* We also need buttons to control the viewed Y layer */}
+            <div style={{position:'absolute', bottom:0, left:0, backgroundColor:'white', padding:5}} >
+                <img
+                    src={imageURL +'levelup.png'}
+                    onClick={()=>{
+                        props.setLayerShown(props.layerShown+1);
+                        game.displayLayer++;
+                    }}
+                /><br />
+                <img
+                    src={imageURL +'levelplayer.png'}
+                    onClick={()=>{
+                        props.setLayerShown(0);
+                        game.displayLayer = 0;
+                    }}
+                /><br />
+                <img
+                    src={imageURL +"leveldown.png"}
+                    onClick={()=>{
+                        props.setLayerShown(props.layerShown-1);
+                        game.displayLayer--;
+                    }}
+                />
+            </div>
             {/* Include a Save button */}
             <div onClick={()=>game.save()} className="fakelink" style={{position:'absolute', top:0, left:100, backgroundColor:'white', padding:5}}>
                 Save
             </div>
+            
         </div>
     );
 }

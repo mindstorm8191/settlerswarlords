@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Generation Time: Aug 31, 2024 at 12:37 AM
+-- Generation Time: May 28, 2025 at 02:36 AM
 -- Server version: 8.0.21
 -- PHP Version: 7.3.21
 
@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS `sw_error` (
   `codelocation` text NOT NULL COMMENT 'where the error occurred at',
   `content` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=39658 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
+) ENGINE=InnoDB AUTO_INCREMENT=40474 DEFAULT CHARSET=ascii COMMENT='used for error tracking';
 
 -- --------------------------------------------------------
 
@@ -158,7 +158,8 @@ CREATE TABLE IF NOT EXISTS `sw_mapchunk` (
   `chunky` int NOT NULL,
   `chunkz` int NOT NULL,
   `pollution` int NOT NULL DEFAULT '0' COMMENT 'Level of pollution. Integer values only.',
-  `content` text NOT NULL
+  `content` text NOT NULL,
+  `structures` text NOT NULL COMMENT 'JSON holding list of all structures in this chunk'
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -180,9 +181,13 @@ CREATE TABLE IF NOT EXISTS `sw_player` (
   `location` text CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL COMMENT 'Current world coordinates of this player',
   `userType` int NOT NULL DEFAULT '0' COMMENT 'Type of user. 0=player, 1=mod',
   `tutorialState` int NOT NULL DEFAULT '0' COMMENT 'What state the in-game tutorial is in',
+  `lastStructureId` int NOT NULL DEFAULT '0' COMMENT 'Last ID used by this player for a structure',
+  `workers` text NOT NULL COMMENT 'JSON of all workers this player controls',
+  `lastWorkerId` int NOT NULL COMMENT 'last used worker ID',
+  `unlockedItems` text NOT NULL COMMENT 'list of item types unlocked',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=411 DEFAULT CHARSET=ascii COMMENT='all users';
+) ENGINE=InnoDB AUTO_INCREMENT=447 DEFAULT CHARSET=ascii COMMENT='all users';
 
 -- --------------------------------------------------------
 
@@ -232,8 +237,12 @@ CREATE TABLE IF NOT EXISTS `sw_worker` (
   `name` varchar(50) NOT NULL COMMENT 'Name of this worker. They should be unique, but...',
   `spot` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'JSON of a 3D location',
   `health` int NOT NULL DEFAULT '100',
+  `carrying` text NOT NULL COMMENT 'JSON list of items this worker is carrying',
+  `travelPath` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT 'string of direction characters. 0-9 for flat directions, U and D for vertical',
+  `stepProgress` float NOT NULL DEFAULT '0' COMMENT 'number of ticks used to travel to the next tile',
+  `job` text NOT NULL COMMENT 'JSON: structureID, X Y & Z world coords of structure',
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=357 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each worker in the game that players control';
+) ENGINE=MyISAM AUTO_INCREMENT=501 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='Each worker in the game that players control';
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

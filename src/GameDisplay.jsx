@@ -223,10 +223,12 @@ function GameDisplay(props) {
                         let yOff = 0;
                         let walkLag = 100;  // If we don't find the correct tile, set walkLag to really high
                         if(w.stepProgress>0) {
-                            let tile = game.tiles[w.spot[0]][w.spot[1]][w.spot[2]];
-                            let facts = 0;
-                            if(typeof(tile)!=='undefined') {
-                                facts = minimapTiles.find(u=>u.id===tile.floor);
+                            // We need to 'carefully' read the game.tiles array. The tile that the worker is in might not be loaded yet
+                            if(!(typeof(game.tiles[w.spot[0]])==='undefined' ||
+                               typeof(game.tiles[w.spot[0]][w.spot[1]])==='undefined' ||
+                               typeof(game.tiles[w.spot[0]][w.spot[1]][w.spot[2]])==='undefined')) {
+                                let tile = game.tiles[w.spot[0]][w.spot[1]][w.spot[2]];
+                                let facts = minimapTiles.find(u=>u.id===tile.floor);
                                 if(typeof(facts)!=='undefined') {
                                     walkLag = facts.walkLag;
                                 }

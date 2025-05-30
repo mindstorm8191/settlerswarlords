@@ -4,7 +4,7 @@
 
 /* Curent task list
     1) Keep a mindset: How am I ever going to see if it works, if I never try it?
-    2) Finish getting the view screen to change layers
+    2) Workers are no longer having their jobs cancelled when there is no work left to do. We need to fix this
     2) DirtManager: Give marked tiles some kind of highlight. Display this only while the building is selected
     3) DirtManager: Update tile picker to exclude tiles already sloped, or on the list to be sloped
     4) Set up a means for the player character to automatically go up or down slopes. This will only happen when they are standing in a slope tile, and the next one
@@ -22,18 +22,18 @@
 */
 
 // Lines count
-// src/app.js                           src/minimapTiles.jsx                       src/structures/DirtSource.jsx               src/WorldMap.jsx                       server/libs/clustermap.php          server/libs/DanGlobal.php         notes/undergroundbiomes.md
-//     src/app.css                          src/worker.jsx                             src/structures/WaterSource.jsx              server/routes/autologin.php            server/biomeBlock.php              server/routes/worldmap.php        notes/workercrafting.md
-//        src/libs/DanAjax.js                   src/gamemap.jsx                            src/structures/ClayFormer.jsx              server/config.php                      server/routes/getblog.php          server/minimap.php                notes/futureprocesses.md
-//           src/libs/DanCarousel.jsx               src/itemstats.js                           src/structures/FarmersPost.jsx           server/libs/common.php                  server/routes/loadmap.php          resetgame.php                      notes/influences.md
-//               src/libs/ShowBlog.jsx                 src/structures/LeanTo.jsx                   src/structures/HayDryer.jsx              server/libs/jsarray.php                server/routes/log.php              README.md                           notes/monetizationstrategies.md
-//                  src/libs/DanLog.js                     src/structures/ForagePost.jsx               src/structures/OpenDryer.jsx             server/events.php                     server/routes/login.php            notes/techtree.md                   notes/researchprocess.md
-//                     src/Account.jsx                         src/structures/ItemMover.jsx                src/structures/HuntersPost.jsx           server/getInput.php                  server/routes/logout.php           notes/automationtree.md             notes/tasklist.md
-//                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx              src/structures/ButcherShop.jsx          server/finishLogin.php               server/routes/save.php             notes/wartree.md
-//                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx              src/structures/CampFire.jsx            server/generateMap.php                server/routes/savetiles.php       notes/worldgen.md
-//                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx                src/structures/SewingShop.jsx          server/globals.php                   server/routes/sendunits.php        notes/worldhistory.md
-//                                  src/game.jsx                               src/structures/DirtManager.jsx              src/GameDisplay.jsx                    server/libs/weightedRandom.php      server/routes/signup.php           notes/magicsystem.md
-// 336+63+49+113+96+38+231+65+94+68+472+368+285+202+   143+    259+318+342+103+265+                                        453+    34+8+318+230+    35+28+387+512+127+538+83+40+47+   44+31+238+      173+37+      23+60+60+27+32+204+13+11+28+15+135+190+25+17+82
+// src/app.js                           src/minimapTiles.jsx                       src/GameHelper.jsx                         src/GameDisplay.jsx                    server/globals.php                   server/routes/sendunits.php        notes/worldhistory.md
+//     src/app.css                          src/worker.jsx                            src/structures/DirtSource.jsx               src/oneTile.jsx                        server/libs/weightedRandom.php      server/routes/signup.php           notes/magicsystem.md
+//        src/libs/DanAjax.js                   src/gamemap.jsx                           src/structures/WaterSource.jsx              src/WorldMap.jsx                       server/libs/clustermap.php          server/libs/DanGlobal.php         notes/undergroundbiomes.md
+//           src/libs/DanCarousel.jsx               src/itemstats.js                          src/structures/ClayFormer.jsx               src/routes/autologin.php               server/biomeBlock.php              server/routes/worldmap.php        notes/workercrafting.md
+//               src/libs/ShowBlog.jsx                 src/structures/LeanTo.jsx                  src/structures/FarmersPost.jsx             server/config.php                      server/routes/getblog.php          server/minimap.php                notes/futureprocesses.md
+//                  src/libs/DanLog.js                     src/structures/ForagePost.jsx              src/HayDryer.jsx                         server/libs/common.php                  server/routes/loadmap.php          resetgame.php                      notes/influences.md
+//                     src/Account.jsx                         src/structures/ItemMover.jsx               src/structures/OpenDryer.jsx             server/libs/jsarray.php                server/routes/log.php              README.md                           notes/monetizationstrategies.md
+//                         src/libs/DanInput.jsx                   src/structures/RockKnapper.jsx             src/structures/HuntersPost.jsx           server/events.php                     server/routes/login.php            notes/techtree.md                   notes/researchprocess.md
+//                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx             src/structures/ButcherShop.jsx           server/getInput.php                  server/routes/logout.php           notes/automationtree.md             notes/tasklist.md
+//                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx               src/structures/CampFire.jsx             server/finishLogin.php               server/routes/save.php             notes/wartree.md
+//                                  src/game.jsx                               src/structures/DirtManager.jsx             src/structures/SewingShop.jsx          server/generateMap.php                server/routes/savetiles.php       notes/worldgen.md
+// 333+63+49+113+96+38+231+65+94+68+485+368+286+202+   143+    259+318+341+103+480+29+                                        459+216+    34+8+318+230+    35+28+394+512+127+538+83+40+47+   44+31+238+      173+37+      23+60+60+27+32+204+13+11+28+15+183+190+25+17+82
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -53,6 +53,7 @@
 // 12/17/24: 6095 lines
 // 3/23/25: 7392 lines
 // 4/16/25: 8195 lines
+// 5/28/25: 8726 lines
 
 // Oils, like for waxing things https://www.reddit.com/r/JapaneseHistory/comments/15gbdmo/how_did_ancient_people_make_mineral_oil/
 // Berry types and where they grow in the US https://imgur.com/gallery/WL98e2U/comment/2438593319

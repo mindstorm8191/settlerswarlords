@@ -3,7 +3,7 @@
 Settlers & Warlords is expected to have a complex tech tree, even before being able to access metals. This is a semi description of the path which players will take
 
 1. Build lean-tos for early shelter
-2. Build a forage post to collect local foods. The local environment will have a surplus of foods, but will quickly be drained; from there, food will trickle in from this. Plants will need to be cultivated to provide more food
+2. Build a forage post to collect local foods. (The general plan is that one worker will be constantly working to collect food for the 4 existing workers, but will only be enough for them. Food will be the limiting factor in population growth, even via immigrants. Players will need to get additional food sources going before getting more workers.)
 3. Build a rock knapper building, make flint knives & stabbers; your first tools.
 4. Build a Loggers Post to collect Twine Strips. Twine can be collected from decaying tree bark using a Flint Knife. Freshly cut trees can also produce twine, but the bark must be soaked in water first for several months (30 game-time minutes sounds reasonable).
 5. Twine Strips will unlock a Rope Maker that converts twine into rope. Thicker and longer ropes can be crafted from two of the lower-level types; we will only consider the final used rope as un-editable.

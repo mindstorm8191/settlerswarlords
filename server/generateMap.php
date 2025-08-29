@@ -112,7 +112,7 @@
                             }else{
                                 $fullMap[$z][$y][$x] = 'leaffloor';
                             }
-                            // y-negative is always up
+                            // y-positive is always up
                             $fullMap[$z][$y+1][$x] = 'treebranches';
                             $fullMap[$z][$y+2][$x] = 'treebranches';
                             $hitCount++;
@@ -151,10 +151,12 @@
                         case 'treebranches': array_push($flatMap, ['t'=>3, 'f'=>3, 'h'=>100]); break;
                         case 'leaffloor':
                             // There's a 50/50 chance that any tile will also contain one rotten log
+                            // Note that all leafy floor tiles will also contain tree branches (until cleared). These will take 3x as long to travel through
+                            // Workers will be able to climb up & through tree branches, but take 6x as long as normal walking on the ground
                             if(rand(0,2)>1) {
-                                array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100, 'i'=>[['name'=>'Rotten Log', 'amt'=>1]]]);
+                                array_push($flatMap, ['t'=>3, 'f'=>11, 'h'=>100, 'i'=>[['name'=>'Rotten Log', 'amt'=>1]]]);
                             }else{
-                                array_push($flatMap, ['t'=>0, 'f'=>11, 'h'=>100]);
+                                array_push($flatMap, ['t'=>3, 'f'=>11, 'h'=>100]);
                             }
                             
                         break;

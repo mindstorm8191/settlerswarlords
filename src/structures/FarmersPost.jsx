@@ -8,6 +8,8 @@ import { game } from "../game.jsx";
 // Grass - attached to the ground. Need a Scythe to remove
 // Cut Grass - cut and can be transported
 
+// Remember: Seeds are not guaranteed to sprout. We should have 33% or less chance of any seed becoming a sprout. Sprouts are also not guaranteed to grow into full plants.
+
 export default function FarmersPost() {
     return {
         name: 'Farmers Post',
@@ -42,6 +44,9 @@ export default function FarmersPost() {
                             // This will function the same way as the Forest Post manages collecting Twine: so long as there is grasses around that can be cut,
                             // this can be assigned.
 
+                            // Start with a list of grass types
+                            let grasses = ['Wheat Grass', 'Oat Grass', 'Rye Grass', 'Barley Grass', 'Millet Grass'];
+
                             for(let z=b.position[0]-10; z<=b.position[0]+10; z++) {
                                 for(let y=b.position[1]-1; y<=b.position[1]+1; y++) {
                                     for(let x=b.position[2]-10; x<=b.position[2]+10; x++) {
@@ -51,10 +56,15 @@ export default function FarmersPost() {
                                             typeof(game.tiles[x][y][z])==='undefined'
                                         )   continue;
                                         if(typeof(game.tiles[x][y][z].items)==='undefined') continue;
-                                        
+
+                                        // With the items list, do a double-search between the items list and types of grass
+                                        if(game.tiles[x][y][z].items.some(item=>grasses.some(g=>item.name===g))) {
+                                            return '';
+                                        }
                                     }
                                 }
                             }
+                            return "Can't find grass in surrounding tiles";
                         }
                     }
                 ]

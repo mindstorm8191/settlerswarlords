@@ -49,18 +49,19 @@ export default function RopeMaker() {
                         canWork: ()=>{
                             // Returns true if this can can currently be worked by a worker
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
-                            if(typeof(mytile)==='undefined') return false;
+                            if(typeof(mytile)==='undefined') return 'Cannot find tile holding this structure';
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            return (mytile.items.reduce((carry,item) => {
-                                if(item.name==='Small Rope') carry++;
-                                return carry;
-                            }, 0) < 5) && mytile.items.some(i=>i.name==='Bark Fibers');
+                            if(mytile.items.filter(i=>i.name==='Small Rope')>=5) return 'Output full';
+                            if(!mytile.items.some(i=>i.name==='Bark Fibers')) return 'Missing ingredients';
+                            return '';
                         },
                         workLocation: (tile, position) => {
                             // Returns true if this location is suitable for completing this job
                             return (position[0]===b.position[0] && position[1]===b.position[1] && position[2]===b.position[2]);
                         },
                         doWork: () => {
+                            game.tutorialTask.find(i=>i.name==='Rope2').status=1;
+
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return false;
                             b.workProgress = 0;
@@ -76,7 +77,7 @@ export default function RopeMaker() {
                             mytile.items.push(game.createItem('Small Rope', {}));
                             mytile.modified = 1;
 
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }

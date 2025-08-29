@@ -60,6 +60,91 @@ export const game = {
     tileRenderAddon: null, // This is another function set by a currently selected structure. It will add content to tiles displayed based on what the function specifies
     unlockedItems: [],  // Keeps track of items the player has crafted, which triggers when new structures are made available
 
+    tutorialTask: [
+        {
+            id: 0,
+            name: 'Startup',
+            prereq: [],
+            desc: `Welcome! You are the red worker. Click the screen, then use the WSAD keys to move around.`,
+            itemsToComplete: [],
+            status: 0
+        },
+        {
+            id: 1,
+            name: 'Shelter',
+            prereq: ['Startup'],
+            desc: `First, you need shelter! Click on the lean-to icon on the right, then click a spot on the map to place it. They can only be placed beside tree trunks. You'll
+                   need 4 of these, and more as your population grows.`,
+            itemsToCompelte: [],
+            status: 0
+        },
+        {
+            id: 2,
+            name: 'Food1',
+            prereq: ['Shelter'],
+            desc: `Now, you need to begin gathering food. Place a Forage Post and assign it to gather food.`,
+            itemsToComplete: [],
+            status: 0
+        },
+        {
+            id: 3,
+            name: 'Water1',
+            prereq: ['Shelter'],
+            desc: `Workers also need to drink. Place a Water Source in a stream (sitting water won't work), and select Drinking Source. Workers will stop work to go drink as needed.`,
+            itemsToComplete: [],
+            status: 0
+        },
+        {
+            id: 4,
+            name: 'Tools1',
+            prereq: ['Shelter'],  // Note: This needs to be updated once we have a Forage Post and Water Source structures
+            desc: `Next: tools. Place a 2 Rock Knappers on some barren rocks. Have one make Flint Knives, the other make Flint Stabbers. Your workers will start this once they
+                   finish the Lean-Tos.`,
+            itemsToComplete: ['Flint Knife', 'Flint Stabber'],  // Either one being crafted will mark this tutorial as complete. But it'll be up to the user to mark it as such.
+            status: 0
+        },
+        {
+            id: 5,
+            name: 'Rope1',
+            prereq: ['Tools1'],
+            desc: `Next, gather supplies for making Ropes. Place a Loggers Post and assign it 'Get Fibers from Aged Wood'. A worker will automatically find a Flint Knife to use for
+                   this job. You'll need a second Loggers Post for collecting Long Sticks.`,
+            itemsToComplete: ['Bark Fibers'],
+            status: 0
+        },
+        {
+            id: 6,
+            name: 'Rope2',
+            prereq: ['Rope1'],
+            desc: `Now to make Ropes. Place a Rope Maker down and set it to make some. Unlike tools, you'll need to direct items to the Rope Maker. Place an Item Mover next to the
+                   Rope Maker, and set the icon's arrow facing the Rope Maker. Click 'Add Items' and type Bark Fibers - a list will populate filtered results as you type; and
+                   click it. Once a worker is free, they'll begin moving Bark Fibers to the Rope Maker.`,
+            itemsToComplete: ['Small Rope'],
+            status: 0
+        },
+        {
+            id: 7,
+            name: 'Tools2',
+            prereq: ['Rope2'],
+            desc: `Rope unlocks new tool crafting. Place additional Rock Knappers and start crafting each of the new tools. You'll need an Item Mover to import the ingredients
+                   to each - it can be done with the same Item Mover. Note that several tools require Short Sticks, made from Long Sticks at the Loggers Post.`,
+            itemsToCompete: ['Flint Shovel', 'Flint Hatchet', 'Flint Spear', 'Flint Scythe'],
+            status: 0
+        },
+        {   
+            id: 8,
+            name: 'MovingDirt1',
+            prereq: ['Tools2'],
+            desc: `Shovels let you start terraforming the planet... as long as its only dirt. The Dirt Manager allows you to dig, but any dirt needs a new place to go. You can
+                   also build using dirt, but you must choose a dirt source. Start with selecting a Remove site, and then a Dump site. A worker will being moving dirt from one
+                   location to the next.`,
+            itemsToComplete: ['Dirt Ball'],
+            status: 0
+        }
+        
+    ],
+    tutorialComplete: [], // List of names - not index values - of the tutorial tasks that the user has completed
+
     setup: (localChunk, playerId, playerFunc, location, userName, workers, unlockedItems) => {
         // Handles setting up various fields for the player's location to be updated
         console.log(workers);

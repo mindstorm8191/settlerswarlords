@@ -103,6 +103,8 @@ function GameDisplay(props) {
     const [lightMode, setLightMode] = React.useState("day");
     const [buildSelected, setBuildSelected] = React.useState(null);
     const [tileSelected, setTileSelected] = React.useState(null);
+    const [showTutorial, setShowTutorial] = React.useState(0);
+    const [tutorialSelected, setTutorialSelected] = React.useState(-1); // -1 represents no tutorial mode selected
     //const [layerShown, setLayerShown] = React.useState(0); // Adjustments here will be based on the player's current Y position
 
     /* This is part of Option One to display map tiles
@@ -138,15 +140,19 @@ function GameDisplay(props) {
             onKeyDown={(event)=>{
                 if(event.key==='w' || event.key==='ArrowUp') {
                     game.playerDirections.down = -1;
+                    game.tutorialTask.find(i=>i.name==='Startup').status = 1;
                 }
                 if(event.key==='s' || event.key==='ArrowDown') {
                     game.playerDirections.down = 1;
+                    game.tutorialTask.find(i=>i.name==='Startup').status = 1;
                 }
                 if(event.key==='a' || event.key==='ArrowLeft') {
                     game.playerDirections.right = -1;
+                    game.tutorialTask.find(i=>i.name==='Startup').status = 1;
                 }
                 if(event.key==='d' || event.key==='ArrowRight') {
                     game.playerDirections.right = 1;
+                    game.tutorialTask.find(i=>i.name==='Startup').status = 1;
                 }
                 //console.log(event.key +' down');
             }}
@@ -319,9 +325,47 @@ function GameDisplay(props) {
                     }}
                 />
             </div>
-            {/* Include a Save button */}
-            <div onClick={()=>game.save()} className="fakelink" style={{position:'absolute', top:0, left:100, backgroundColor:'white', padding:5}}>
-                Save
+            {/* Show a tutorial button*/}
+            <div style={{position:'absolute', top:0, left:100, maxWidth:500, backgroundColor:'white', padding:5}}>
+                {showTutorial===0?(
+                    <>
+                        <img className="fakelink" src={imageURL +"TutorialButton.png"} onClick={()=>setShowTutorial(1)} />
+                        {/* Include a Save button. We don't keep this in the final game, but right now it is important to control how the game saves, until it is reliable */}
+                        <div className="fakelink" onClick={()=>game.save()}>Save</div>
+                    </>
+                ):
+                    tutorialSelected===-1?(
+                        <>
+                            <img src={imageURL +"exit.png"} className="fakelink" onClick={()=>setShowTutorial(0)} />
+                            {game.tutorialTask.filter(task => {
+                                // First, see if we have already completed & closed this task
+                                if(game.tutorialComplete.some(done=>done===task.name)) return false;
+
+                                // Next, see if we have unlocked this task
+                                if(task.prereq.length===0) return true;
+                                return game.tutorialComplete.some(done=>done===task.prereq[0]);
+                                //if(game.tutorialComplete.some(done=>done===task.prereq[0]))
+                            }).map((task,key)=>(
+                                <div key={key} className="fakelink" onClick={()=>setTutorialSelected(task.id)}>
+                                    {task.name}
+                                </div>
+                            ))
+                        }</>
+                    ):(
+                        <>
+                            <img src={imageURL +'exit.png'} className="fakelink" onClick={()=>setTutorialSelected(-1)} />
+                            {game.tutorialTask[tutorialSelected].desc}
+                            {game.tutorialTask[tutorialSelected].status===1?(
+                                <span className="fakelink" onClick={()=>{
+                                    game.tutorialComplete.push(game.tutorialTask[tutorialSelected].name);
+                                    setTutorialSelected(-1);
+                                }}>Complete</span>
+                            ):('')}
+                        </>
+                    )
+                }
+                
+                
             </div>
             
         </div>
@@ -358,6 +402,7 @@ function RightPanel(props) {
     });
     if (typeof building !== "undefined") {
         const SidePanel = building.RightPanel;
+        const canWork = (building.recipe===null? '':building.recipe.canWork());
         return (
             <div style={{ position: "absolute", top: 0, right: 0, width: 300, backgroundColor: "white", padding: 5, maxWidth: 300 }}>
                 <div style={{ fontWeight: "bold" }}>{building.name}</div>
@@ -387,7 +432,12 @@ function RightPanel(props) {
                     </>
                 ):(
                     <div>
-                        Progress: {Math.floor(building.workProgress*100.0/building.recipe.workerTime)}%
+                        <span style={{fontWeight:'bold', marginRight:10}}>Task: {building.recipe===null?('None'):(building.recipe.name)}</span>
+                        {canWork===''?(
+                            <>Progress: {Math.floor(building.workProgress*100.0/building.recipe.workerTime)}%</>
+                        ):(
+                            <>Can't work: {canWork}</>
+                        )}                        
                         {/* I think we can also show a common scroll bar of progress percent here */}
                         <div className="fakelink" onClick={()=>{
                             building.recipe = null;

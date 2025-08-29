@@ -61,7 +61,7 @@ export default function ItemMover() {
                                 // have a sufficient supply of. We will need to do the same in workLocation().
                                 // The value of 5 is arbitrary right now. Later recipes may need more. This gives us no way to account for that. We will need to examine
                                 // the recipe of the structure at the target tile, if there is one, and set values based on that. It could get into some difficult work, there.
-                                return false;
+                                return 'Target tile full';
                             }
                             
                             // Search the 11x3x11 area for any target items to place here.
@@ -83,20 +83,24 @@ export default function ItemMover() {
                                             return b.itemsList.some(j=>j.name===i.name);
                                         })) {
                                             //console.log('We found something to get!');
-                                            return true;
+                                            return '';
                                         }
                                     }
                                 }
                             }
                             
                             // We got no hits from anything
-                            return false;
+                            return 'Cannot find items to move nearby';
                         },
                         workLocation: (tile,position) => {
                             // This is called when a worker is determining where to be to complete this job.
                             // For this job, we need to first go to where the item should be located
 
                             let targetTile = b.adjustByFacing();
+                            if(b.workerAssigned===null) {
+                                console.log('Warning: ItemMover.workLocation called without having a worker assigned');
+                                return;
+                            }
 
                             // This is called both before a worker picks up an item, and when they reach the drop-off location
                             // See if they are carrying an item that should be dropped off by this machine
@@ -131,7 +135,7 @@ export default function ItemMover() {
                                         b.workerAssigned.carrying.splice(i,1);
                                     }
                                 }
-                                if(b.recipe.canWork()) return;
+                                if(b.recipe.canWork()==='') return;
                                 b.workerAssigned.job = null;
                                 b.workerAssigned = null;
                                 return;

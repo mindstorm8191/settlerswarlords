@@ -48,11 +48,13 @@ export default function LeanTo() {
                         name:'Build', // because somebody has to go bring the materials here and put it all together
                         workerTime:20*20,  // 20 seconds
                         toolsNeeded: [],
-                        canAssign: ()=>false,
+                        canAssign: ()=>false,  // This is set when the building is placed down; players cannot set it
                         canWork: ()=>{
                             // Returns true if a worker can be assigned this task at this time.
                             // This is separate from canAssign, as that determines if the player can assign this task to the structure
-                            return (b.state==='not built');
+                            //return (b.state==='not built');
+                            if(b.state==='not built') return '';
+                            return 'No work needed';
                         },
                         workLocation: (tile, position) => {
                             // Returns true if this location is suitable for completing this job
@@ -68,16 +70,8 @@ export default function LeanTo() {
                                 b.workerAssigned.job = null;
                                 b.workerAssigned = null;
                                 b.recipe = null;
-                                return true;
                             }
-                            return false;
                         },
-                        /*onComplete: (location)=>{
-                            b.state = 'in use';
-                            b.workerAssigned.job = null;
-                            b.workerAssigned = null;
-                            b.recipe = null;
-                        }*/
                     }
                 ],
                 update: ()=>{},
@@ -137,6 +131,8 @@ export default function LeanTo() {
             b.recipe = b.recipes[0];
             tile.structure = b.id;
             tile.modified = 1;
+            // On creation, we can trigger this task as completed. We don't have to wait for it to finish being built.
+            game.tutorialTask.find(i=>i.name==='Shelter').status=1;
             return b;
         }
     }

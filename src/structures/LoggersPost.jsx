@@ -38,9 +38,11 @@ export default function LoggersPost() {
                 workerAssigned: null,
                 recipe: null,
                 canGetItems: false,
+                branchesClearList: [], // List of world coordinates where the player wants to remove branches from. They will require a Flint Stabber to do this work.
+                // Each completed action will leave behind 1 long stick
                 recipes: [
                     {
-                        name: 'Get Twine from Aged Wood',
+                        name: 'Get Fibers from Aged Wood',
                         workerTime: 20*10, // 10 seconds
                         toolsNeeded: ['Flint Knife'], // Each job will need only one tool; we can choose any tool of what is available
                         canAssign: ()=>true,
@@ -76,12 +78,12 @@ export default function LoggersPost() {
                                         //if(passCount===0) console.log('Sample list: ', )
                                         if(game.tiles[z][y][x].items.some(i=>i.name==='Rotten Log')) {
                                             console.log('Found Rotten Log at ['+ x +','+ y +','+ z +']');
-                                            return true;
+                                            return '';
                                         }
                                     }
                                 }
                             }
-                            return false;
+                            return "Can't find Rotten Logs near this structure";
                         },
                         workLocation: (tile,position)=>{
                             // Returns true if a worker can perform this work at the given location
@@ -112,7 +114,7 @@ export default function LoggersPost() {
                                     }
                                 }
                                 mytile.modified = 1;
-                                if(b.recipe.canWork()) return;
+                                if(b.recipe.canWork()==='') return;
 
                                 b.workerAssigned.job = null;
                                 b.workerAssigned = null;
@@ -120,6 +122,7 @@ export default function LoggersPost() {
                             }
 
                             if(b.workerAssigned.waitingForPath===true) return; // We are still waiting for a valid path
+                            game.tutorialTask.find(i=>i.name==='Rope1').status=1;
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return false;
 
@@ -127,7 +130,7 @@ export default function LoggersPost() {
                             b.workProgress = 0;
                             let mytile = game.tiles[b.workerAssigned.spot[0]][b.workerAssigned.spot[1]][b.workerAssigned.spot[2]];
                             if(typeof(mytile.items)==='undefined') {
-                                console.log('Error: Completed Get Twine from Aged Wood at tile without items list; wheres the Rotten Log?');
+                                console.log('Error: Completed Get Fibers from Aged Wood at tile without items list; wheres the Rotten Log?');
                                 return;
                             }
                             console.log('There are '+ mytile.items.length +' things here [');
@@ -166,29 +169,56 @@ export default function LoggersPost() {
                         onComplete: (location)=>{
                             // The location that this job is done at should be at the user's location... so where-ever b.workerAssigned.spot is at
                             console.log('What is calling Get Bark Fibers->onComplete()?');
-                            return;
-                            if(b.workerAssigned===null) {
-                                console.log('Error: Get Twine from Aged Wood completed without a worker assigned. No item added');
-                                return;
+                        }
+                    },{
+                        name: 'Clear Branches',
+                        workerTime: 20*8, // 8 secnods
+                        toolsNeeded: ['Flint Stabber'],
+                        canAssign: ()=>true,
+                        canWork: ()=>{
+                            // Since this task is based on selected tiles, this part wont' work
+                            // Search around this building for tile type of branches
+                            /*for(let x=b.position[0]-10; x<b.position[0]+10; x++) {
+                                for(let y=b.position[1]-5; y<b.position[1]+5; y++) {
+                                    for(let z=b.position[2]-10; z<b.position[2]+10; z++) {
+                                        if(typeof(game.tiles[x])==='undefined' ||
+                                           typeof(game.tiles[x][y])==='undefined' ||
+                                           typeof(game.tiles[x][y][z])==='undefined'
+                                        ) continue; // Tile is not loaded. Skip for now; don't worry about loading more tiles
+                                        if(game.tiles[x][y][z].show===5) return '';
+                                    }
+                                }
                             }
-                            let tile = game.tiles[b.workerAssigned.spot[0]][b.workerAssigned.spot[1]][b.workerAssigned.spot[2]];
-                            if(typeof(tile.items)==='undefined') {
-                                console.log("Error: Completed Get Twine from Aged Wood at tile without items list; where's the Rotten Log?");
-                                return;
-                            }
-                            let slot = tile.items.findIndex(item => item.name === "Rotten Log");
-                            if(slot===-1) {
-                                console.log("Error: Completed Get Twine from Aged Wood where there is no Rotten Log");
-                                return;
-                            }
-                            tile.items.splice(slot,1);
-                            tile.items.push(
-                                game.createItem("Debarked Rotten Log", {}),
-                                game.createItem("Bark Fibers", {}),
-                                game.createItem("Bark Fibers", {}),
-                                game.createItem("Bark Fibers", {})
-                            );
+                            return "Can't find nearby tile with branches to cut";*/
+
+                            // Instead, see if we have tiles marked in the clear list.
+                            if(b.branchesClearList.length>0) return '';
+                            return 'No selected tiles to clear';
+                        },
+                        workLocation: (tile, position) =>{
+                            // Returns true if a worker can perform work at this tile location
                             
+                            // Since this is dependent on user-selected tiles, see if this location is in the list
+                            if(b.branchesClearList.some(spot=>position[0]===spot[0] && position[1]===spot[1] && position[2]===spot[2])) return true;
+                            return false;
+                        },
+                        doWork: ()=>{
+                            // For this job, we will work off site, but only do work there
+                            b.workProgress++;
+                            if(b.workProgress<b.recipe.workerTime) return;
+                            b.workProgress = 0;
+
+                            // Now, place a stick on the ground here
+                            let mytile = game.tiles[b.workerAssigned.spot[0]][b.workerAssigned.spot[1]][b.workerAssigned.spot[2]];
+                            if(typeof(mytile.items)==='undefined') mytile.items = [];
+                            mytile.show = 0;
+                            let slot = b.branchesClearList.findIndex(spot=>b.workerAssigned.spot[0]===spot[0] && b.workerAssigned.spot[1]===spot[1] && b.workerAssigned.spot[2]===spot[2]);
+                            b.branchesClearList.splice(slot,1);
+                            mytile.items.push(game.createItem('Long Stick', {}));
+                            mytile.modified = 1;
+                            if(b.recipe.canWork()==='') return;
+                            b.workerAssigned.job = null;
+                            b.workerAssigned = null;
                         }
                     },{
                         name: 'Cut Long Stick',
@@ -210,11 +240,11 @@ export default function LoggersPost() {
                                         ) continue; // Skip for now; don't worry about loading more tiles
 
                                         if(typeof(game.tiles[x][y][z].items)==='undefined') continue; // Also skip tiles without items
-                                        if(game.tiles[x][y][z].items.some(i=>i.name==='Attached Long Stick')) return true;
+                                        if(game.tiles[x][y][z].items.some(i=>i.name==='Attached Long Stick')) return '';
                                     }
                                 }
                             }
-                            return false;
+                            return "Can't find nearby tile with sticks to cut";
                         },
                         workLocation: (tile,position) => {
                             // Returns true if a worker can perform work at this tile location
@@ -243,7 +273,7 @@ export default function LoggersPost() {
                                 b.workerAssigned.carrying = pack.keep;
 
                                 // with this done, find more work to do
-                                if(b.recipe.canWork()) return;
+                                if(b.recipe.canWork()==='') return;
 
                                 b.workerAssigned.job = null;
                                 b.workerAssigned = null;
@@ -294,8 +324,11 @@ export default function LoggersPost() {
                             // Returns true if work can be done here.  We only need to determine if there is a Long Stick on this tile
                             let tile=game.tiles[b.position[0]][b.position[1]][b.position[2]];
                             if(typeof(tile.items)==='undefined') tile.items = [];
-                            return (tile.items.some(i=>i.name==='Long Stick') &&
-                                    tile.items.filter(i=>i.name==='Short Stick').length<5);
+                            if(!tile.items.some(i=>i.name==='Long Stick')) return 'Missing ingredients';
+                            if(tile.items.filter(i=>i.name==='Short Stick').length>=5) return 'Output full';
+                            return '';
+                            //return (tile.items.some(i=>i.name==='Long Stick') &&
+                              //      tile.items.filter(i=>i.name==='Short Stick').length<5);
                         },
                         workLocation: (tile,position) => (b.position[0]===position[0] && b.position[1]===position[1] && b.position[2]===position[2]),
                         doWork: ()=> {
@@ -314,7 +347,7 @@ export default function LoggersPost() {
                                 game.createItem('Short Stick', {})
                             );
                             mytile.modified = 1;
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }
@@ -322,16 +355,62 @@ export default function LoggersPost() {
                 ],
                 Render: () => {
                     const texture = useLoader(TextureLoader, textureURL +"structures/loggerspost.png");
+                    // For the job of clearing branches, we will need to include additional graphics
+                    const markerTex = useLoader(TextureLoader, textureURL +"branchremove.png");
                     return (
-                        <mesh position={[b.position[0], .1, b.position[2]]} rotation={[-Math.PI/2,0,0]}>
-                            <planeGeometry args={[1,1]} />
-                            <React.Suspense fallback={<meshPhongMaterial color={"orange"} />}>
-                                <meshStandardMaterial map={texture} />
-                            </React.Suspense>
-                        </mesh>
+                        <>
+                            <mesh position={[b.position[0], .1, b.position[2]]} rotation={[-Math.PI/2,0,0]}>
+                                <planeGeometry args={[1,1]} />
+                                <React.Suspense fallback={<meshPhongMaterial color={"orange"} />}>
+                                    <meshStandardMaterial map={texture} />
+                                </React.Suspense>
+                            </mesh>
+                            {b.branchesClearList.map(spot=>(
+                                <mesh position={[spot[0], spot[1], spot[2]]} rotation={[-Math.PI/2,0,0]}>
+                                    <planeGeometry args={[1,1]} />
+                                    <React.Suspense fallback={<meshPhongMaterial color={"white"} />}>
+                                        <meshStandardMaterial map={markerTex} />
+                                    </React.Suspense>
+                                </mesh>
+                            ))}
+                        </>
+                    );
+                },
+                RightPanel: () => {
+                    const [interactionState, setInteractionState] = React.useState('none');
+                    if(b.recipe===null) return '';
+                    if(b.recipe.name!=='Clear Branches') return '';
+                    return (
+                        <div>
+                            Branches to clear: {b.branchesClearList.length}
+                            {interactionState==='none'?(
+                                <span className="fakelink" style={{marginLeft:5}}
+                                    onClick={()=>{
+                                        setInteractionState('clearBranches');
+                                        game.mapInteracter = (event,tile) => {
+                                            // First, see if this tile has branches in it
+                                            if(tile.show===3) {  // I'm not sure why this has to be 3, it should be 5
+                                                b.branchesClearList.push([tile.x,tile.y,tile.z]);
+                                            }else{
+                                                console.log('Player did not select a branchs tile (show value='+ tile.show);
+                                            }
+                                        };
+                                    }}
+                                >Add Tiles</span>
+                            ):(
+                                <>
+                                    Click the branche tiles you want to clear, then click
+                                    <span className="fakelink"
+                                        onClick={()=>{
+                                            setInteractionState('none');
+                                            game.mapInteracter = null;
+                                        }}
+                                    >Done</span>
+                                </>
+                            )}
+                        </div>
                     );
                 }
-                // This structure doesn't need a save method
             };
             tile.structure = b.id;
             tile.modified = 1;

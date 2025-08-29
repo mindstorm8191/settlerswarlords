@@ -4,7 +4,7 @@
 
 /* Curent task list
     1) Keep a mindset: How am I ever going to see if it works, if I never try it?
-    2) Workers are no longer having their jobs cancelled when there is no work left to do. We need to fix this
+    3) Have all structures display an explanation as to why it isn't running
     2) DirtManager: Give marked tiles some kind of highlight. Display this only while the building is selected
     3) DirtManager: Update tile picker to exclude tiles already sloped, or on the list to be sloped
     4) Set up a means for the player character to automatically go up or down slopes. This will only happen when they are standing in a slope tile, and the next one
@@ -19,6 +19,13 @@
     2) On save on the server, modify stucture locations to be relative to the map chunk they're in. Right now their locations are global; it is possible to have a structure saved
        in one chunk but appear in another. We should fix that... it's just not that important right now.
     Drone Zone track: Refraction by Steve Good
+
+    Current source code problems
+    1) Loading is currently broken; something about toolsNeeded being undefined when the map isn't fully loaded yet. A rewrite would allow me to incorporate incremental map loading
+       better
+    2) Worker pathfinding is not working around solid objects. I am unsure how to manage in-tile objects while also dealing with floor status effects
+    3) Terrain edits are still rather unstable. I need to figure out how to start generating terrains with height variations; I still don't know how
+    4) Something is up with tile indexing; the block type of branches is showing up as 3 on the client side, but it supposed to be 5 everywhere else.
 */
 
 // Lines count
@@ -33,7 +40,7 @@
 //                            src/libs/DanCommon.js                    src/structures/LoggersPost.jsx             src/structures/ButcherShop.jsx           server/getInput.php                  server/routes/logout.php           notes/automationtree.md             notes/tasklist.md
 //                               src/libs/ErrorOverlay.jsx                 src/structures/RopeMaker.jsx               src/structures/CampFire.jsx             server/finishLogin.php               server/routes/save.php             notes/wartree.md
 //                                  src/game.jsx                               src/structures/DirtManager.jsx             src/structures/SewingShop.jsx          server/generateMap.php                server/routes/savetiles.php       notes/worldgen.md
-// 333+63+49+113+96+38+231+65+94+68+485+368+286+202+   143+    259+318+341+103+480+29+                                        459+216+    34+8+318+230+    35+28+394+512+127+538+83+40+47+   44+31+238+      173+37+      23+60+60+27+32+204+13+11+28+15+183+190+25+17+82
+// 341+63+49+113+96+38+231+65+94+68+570+436+287+202+   139+    263+340+420+104+532+29+                                        511+216+    34+8+318+230+    35+28+396+512+127+538+83+40+47+   44+31+238+      173+37+      23+60+60+27+32+204+13+11+28+15+183+190+25+17+82
 // 3/16/23: 3397 lines
 // 3/23/23: 3998 lines
 // 3/30/23: 4030 lines
@@ -54,6 +61,7 @@
 // 3/23/25: 7392 lines
 // 4/16/25: 8195 lines
 // 5/28/25: 8726 lines
+// 8/29/25: 9096 lines
 
 // Oils, like for waxing things https://www.reddit.com/r/JapaneseHistory/comments/15gbdmo/how_did_ancient_people_make_mineral_oil/
 // Berry types and where they grow in the US https://imgur.com/gallery/WL98e2U/comment/2438593319

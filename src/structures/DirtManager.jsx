@@ -2,6 +2,11 @@
     Allows players to specify where to pick up dirt and where to place it.
     For the game Settlers & Warlords
 
+    ToDo
+    1) Set up checks to determine if a worker has any more work to do
+    2) Set up visual markers to show what tiles have been marked for building (or dumping) and which tiles have been marked for digging (or removal).
+    3) Set up checks to ensure players don't have workers dumping dirt on slopes that dirt is being removed from
+
     Managing tile movement will happen 10 shovel-fulls at a time. We will also have to accomodate sloped tiles, now. Sloped tiles will always use 5 scoops of dirt; full tiles will
     need 10. Sloped tiles can turned into full tiles with an additional 5 scoops.
 
@@ -127,7 +132,8 @@ export default function DirtManager() {
                         canWork: ()=> {
                             // Returns true if there is work that workers can do
 
-                            return (b.removeList.length>0 && b.dumpList.length>0)||(b.buildList.length>0 && b.sourceList.length>0);
+                            if((b.removeList.length>0 && b.dumpList.length>0)||(b.buildList.length>0 && b.sourceList.length>0)) return '';
+                            return 'Must select tiles to remove dirt from, and add dirt to.';
                         },
                         workLocation: (tile,position) => {
                             // returns true if the given tile is suitable for work.
@@ -256,6 +262,9 @@ export default function DirtManager() {
                                     let slot = b.sourceList.findIndex(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2]);
                                     b.sourceList.splice(slot, 1);
                                 }
+                                if(b.recipe.canWork()==='') return;
+                                b.workerAssigned.job = null;
+                                b.workerAssigned = null;
                                 return;
                             }
 
@@ -344,19 +353,62 @@ export default function DirtManager() {
                                 let slot = b.buildList.findIndex(spot=>spot[0]===b.workerAssigned.spot[0] && spot[1]===b.workerAssigned.spot[1] && spot[2]===b.workerAssigned.spot[2]);
                                 b.buildList.splice(slot,1);
                             }
+                            if(b.recipe.canWork()==='') return;
+                            b.workerAssigned.job = null;
+                            b.workerAssigned = null;
                             return;
                         }
                     }
                 ],
                 Render: ()=>{
-                    const texture = useLoader(TextureLoader, textureURL +"structures/dirtmanager.png");
+                    const structureTex = useLoader(TextureLoader, textureURL +"structures/dirtmanager.png");
+                    // In order for us to display the other tiles where actions are supposed to happen, we need to include it somewhere. Here seems like a good place to do so
+                    const raiseTex = useLoader(TextureLoader, textureURL +"dirtraise.png");
+                    const lowerTex = useLoader(TextureLoader, textureURL +"dirtlower.png");
+                    const sourceTex = useLoader(TextureLoader, textureURL +"dirtsource.png");
+                    const dumpTex = useLoader(TextureLoader, textureURL +"dirtdump.png");
                     return (
-                        <mesh position={[b.position[0], .1, b.position[2]]} rotation={[-Math.PI/2,0,0]}>
-                            <planeGeometry args={[1,1]} />
-                            <React.Suspense fallback={<meshPhongMaterial color={"brown"} />}>
-                                <meshStandardMaterial map={texture} />
-                            </React.Suspense>
-                        </mesh>
+                        <>
+                            <mesh position={[b.position[0], .1, b.position[2]]} rotation={[-Math.PI/2,0,0]}>
+                                <planeGeometry args={[1,1]} />
+                                <React.Suspense fallback={<meshPhongMaterial color={"brown"} />}>
+                                    <meshStandardMaterial map={structureTex} />
+                                </React.Suspense>
+                            </mesh>
+                            {/* Each of these is only a positional array */}
+                            {b.buildList.map(spot=>(
+                                <mesh position={[spot[0], spot[1], spot[2]]} rotation={[-Math.PI/2,0,0]}>
+                                    <planeGeometry args={[1,1]} />
+                                    <React.Suspense fallback={<meshPhongMaterial color={"white"} />}>
+                                        <meshStandardMaterial map={raiseTex} />
+                                    </React.Suspense>
+                                </mesh>
+                            ))}
+                            {b.removeList.map(spot=>(
+                                <mesh position={[spot[0], spot[1], spot[2]]} rotation={[-Math.PI/2,0,0]}>
+                                    <planeGeometry args={[1,1]} />
+                                    <React.Suspense fallback={<meshPhongMaterial color={"white"} />}>
+                                        <meshStandardMaterial map={lowerTex} />
+                                    </React.Suspense>
+                                </mesh>
+                            ))}
+                            {b.sourceList.map(spot=>(
+                                <mesh position={[spot[0], spot[1], spot[2]]} rotation={[-Math.PI/2,0,0]}>
+                                    <planeGeometry args={[1,1]} />
+                                    <React.Suspense fallback={<meshPhongMaterial color={"white"} />}>
+                                        <meshStandardMaterial map={sourceTex} />
+                                    </React.Suspense>
+                                </mesh>
+                            ))}
+                            {b.dumpList.map(spot=>(
+                                <mesh position={[spot[0], spot[1], spot[2]]} rotation={[-Math.PI/2,0,0]}>
+                                    <planeGeometry args={[1,1]} />
+                                    <React.Suspense fallback={<meshPhongMaterial color={"white"} />}>
+                                        <meshStandardMaterial map={dumpTex} />
+                                    </React.Suspense>
+                                </mesh>
+                            ))}
+                        </>
                     );
                 },
                 RightPanel: ()=> {

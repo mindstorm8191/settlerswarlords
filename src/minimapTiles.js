@@ -4,10 +4,26 @@
 */
 
 export const minimapTiles = [
-    { id: 0, name: "Air", img: "air.png", desc: "Open air. Nice to breathe, but not nice to stand on", category: "gas", walkLag: 50 },
-    { id: 1, name: "Dirt", img: "dirt.png", desc: "Exposed dirt", category: "ground", walkLag: 15 },
-    { id: 2, name: "Rock", img: "rock.png", desc: "Exposed rock", category: "ground", walkLag: 7 },
-    { id: 3, name: "Bent Grass", img: "bentgrass.png", desc: "Bent grass, it grows everywhere", category: "grass", walkLag: 12 },
+    {
+        id: 0,
+        name: "Air",
+        img: "air.png",
+        desc: "Open air. Nice to breathe, but not nice to stand on",
+        category: "gas",
+        walkLag: 50,
+        blockTravel: 1,
+    },
+    { id: 1, name: "Dirt", img: "dirt.png", desc: "Exposed dirt", category: "ground", walkLag: 15, blockTravel: 0 },
+    { id: 2, name: "Rock", img: "rock.png", desc: "Exposed rock", category: "ground", walkLag: 7, blockTravel: 0 },
+    {
+        id: 3,
+        name: "Bent Grass",
+        img: "bentgrass.png",
+        desc: "Bent grass, it grows everywhere",
+        category: "grass",
+        walkLag: 12,
+        blockTravel: 0.1,
+    },
     {
         id: 4,
         name: "Switch Grass",
@@ -15,14 +31,16 @@ export const minimapTiles = [
         desc: "Switchgrass, grows very tall",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 5,
         name: "Tree Branches",
         img: "treebranches.png",
-        desc: "Branches of trees in the air",
+        desc: "Branches of trees, full of leaves",
         category: "grass",
-        walkLag: 12,
+        walkLag: 30,
+        blockTravel: 0.3,
     },
     {
         id: 6,
@@ -31,6 +49,7 @@ export const minimapTiles = [
         desc: "Wheat. Tasteful grains for a variety of uses",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 7,
@@ -39,6 +58,7 @@ export const minimapTiles = [
         desc: "Oat. Hearty grains for many purposes",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 8,
@@ -47,6 +67,7 @@ export const minimapTiles = [
         desc: "Rye. Makes a sour tasting bread",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 9,
@@ -55,6 +76,7 @@ export const minimapTiles = [
         desc: "Barley. A nutty grain",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 10,
@@ -63,6 +85,7 @@ export const minimapTiles = [
         desc: "Millet. It's good for you",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
     {
         id: 11,
@@ -71,6 +94,7 @@ export const minimapTiles = [
         desc: "Leaves fallen from a tree",
         category: "grass",
         walkLag: 14,
+        blockTravel: 0.5,
     },
     {
         id: 12,
@@ -79,6 +103,7 @@ export const minimapTiles = [
         desc: "Maple trees. Its sap is useful for syrups",
         category: "tree",
         walkLag: 10, // walking on top of wood should be fairly fast
+        blockTravel: 0,
     },
     {
         id: 13,
@@ -87,6 +112,7 @@ export const minimapTiles = [
         desc: "Birch trees. Its bark is good for making ropes",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 14,
@@ -95,6 +121,7 @@ export const minimapTiles = [
         desc: "Oak trees. Provides acorns - edible in a pinch",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 15,
@@ -103,6 +130,7 @@ export const minimapTiles = [
         desc: "Mahogany trees. Provides lots of shade",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 16,
@@ -111,6 +139,7 @@ export const minimapTiles = [
         desc: "Pine trees. Green year-round, and provides pinecones",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 17,
@@ -119,6 +148,7 @@ export const minimapTiles = [
         desc: "Cedar trees. Grows tall and straight",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 18,
@@ -127,6 +157,7 @@ export const minimapTiles = [
         desc: "Fir trees. Strong trees that make lots of sticks",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 19,
@@ -135,6 +166,7 @@ export const minimapTiles = [
         desc: "Hemlock trees. Grows tall in tight clusters",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 20,
@@ -143,6 +175,7 @@ export const minimapTiles = [
         desc: "Cherry trees. Makes a tart fruit, good for many dishes",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 21,
@@ -151,6 +184,7 @@ export const minimapTiles = [
         desc: "Apple trees. Delicious fruits that everyone enjoys",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 22,
@@ -159,6 +193,7 @@ export const minimapTiles = [
         desc: "Pear trees. Tasty fruits that excel in colder climates",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 23,
@@ -167,6 +202,7 @@ export const minimapTiles = [
         desc: "Orange trees. Sweet fruits that enjoy warmer climates",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 24,
@@ -175,6 +211,7 @@ export const minimapTiles = [
         desc: "Hawthorn trees. It seems to pulse with extra energy",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 25,
@@ -183,6 +220,7 @@ export const minimapTiles = [
         desc: "Dogwood trees. You wouldn't think this could grow here, but it's determined",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 26,
@@ -191,6 +229,7 @@ export const minimapTiles = [
         desc: "Locust trees. It seems to have an extra glow in the sunlight",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 27,
@@ -199,6 +238,7 @@ export const minimapTiles = [
         desc: "Juniper trees. It seems to come alive at night",
         category: "tree",
         walkLag: 10,
+        blockTravel: 0,
     },
     {
         id: 28,
@@ -207,6 +247,7 @@ export const minimapTiles = [
         desc: "Barren rock. Easy source of stone materials and building on",
         category: "ground",
         walkLag: 7,
+        blockTravel: 0,
     },
     {
         id: 29,
@@ -215,6 +256,7 @@ export const minimapTiles = [
         desc: "Desert sands. Hot, dusty and hard to build on",
         category: "ground",
         walkLag: 17,
+        blockTravel: 0.1,
     },
     {
         id: 30,
@@ -223,10 +265,19 @@ export const minimapTiles = [
         desc: "Sitting water. Lots of life grows in it, but drinking it will make you sick",
         category: "liquid",
         walkLag: 25,
+        blockTravel: 0.5,
     },
-    { id: 31, name: "Lava", img: "lava.png", desc: "Hot lava! Very dangerous, even from a distance", category: "liquid", walkLag: 70 },
-    { id: 32, name: "Ice", img: "ice.png", desc: "Slick ice. Very cold", category: "ground", walkLag: 14 },
-    { id: 33, name: "Snow", img: "snow.png", desc: "Snowed-over ground. Very cold", category: "ground", walkLag: 20 },
+    {
+        id: 31,
+        name: "Lava",
+        img: "lava.png",
+        desc: "Hot lava! Very dangerous, even from a distance",
+        category: "liquid",
+        walkLag: 70,
+        blockTravel: 0.1,
+    },
+    { id: 32, name: "Ice", img: "ice.png", desc: "Slick ice. Very cold", category: "ground", walkLag: 14, blockTravel: 0 },
+    { id: 33, name: "Snow", img: "snow.png", desc: "Snowed-over ground. Very cold", category: "ground", walkLag: 20, blockTravel: 0.5 },
     {
         id: 34,
         name: "Water",
@@ -234,6 +285,7 @@ export const minimapTiles = [
         desc: "Flowing water through a stream",
         category: "liquid",
         walkLag: 25,
+        blockTravel: 0.5,
     },
     {
         id: 35,
@@ -242,6 +294,7 @@ export const minimapTiles = [
         desc: "Wet grounds. Some grass, mostly water",
         categoroy: "ground",
         walkLag: 25,
+        blockTravel: 0.5,
     },
     {
         id: 36,
@@ -250,6 +303,7 @@ export const minimapTiles = [
         desc: "Rugged cliff. Don't get too close to the edge",
         category: "ground",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 37,
@@ -258,6 +312,7 @@ export const minimapTiles = [
         desc: "Creek-wide rubble. Lots of tiny rocks that the water washed in",
         category: "ground",
         walkLag: 17,
+        blockTravel: 0,
     },
     {
         id: 38,
@@ -266,6 +321,7 @@ export const minimapTiles = [
         desc: "Creek bank. The streams are slowly eroding this wall",
         category: "ground",
         walkLag: 16,
+        blockTravel: 0,
     },
     {
         id: 39,
@@ -274,6 +330,7 @@ export const minimapTiles = [
         desc: "Wild carrots. An excellent vegetable",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 40,
@@ -282,6 +339,7 @@ export const minimapTiles = [
         desc: "Wild potatoes. A very filling vegetable",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 41,
@@ -290,6 +348,7 @@ export const minimapTiles = [
         desc: "Wild tomatoes. Useful for many cooking recipes",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 42,
@@ -298,6 +357,7 @@ export const minimapTiles = [
         desc: "Wild turnips. A nutritious vegetable",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 43,
@@ -306,6 +366,7 @@ export const minimapTiles = [
         desc: "Wild peanuts. A tasty snack",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 44,
@@ -314,6 +375,7 @@ export const minimapTiles = [
         desc: "Wild Maize - also known as corn. Has many uses",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 45,
@@ -322,6 +384,7 @@ export const minimapTiles = [
         desc: "Wild beans. A very filling vegetable",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 46,
@@ -330,6 +393,7 @@ export const minimapTiles = [
         desc: "Wild onion. A sharp taste on its own, but great with other foods",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 47,
@@ -338,8 +402,9 @@ export const minimapTiles = [
         desc: "Wild broccoli. A good vegetable",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
-    { id: 48, name: "Pumpkins", img: "wildpumpkin.png", desc: "Wild pumpkin", category: "grass", walkLag: 25 },
+    { id: 48, name: "Pumpkins", img: "wildpumpkin.png", desc: "Wild pumpkin", category: "grass", walkLag: 25, blockTravel: 0 },
     {
         id: 49,
         name: "Mushrooms",
@@ -347,6 +412,7 @@ export const minimapTiles = [
         desc: "Wild mushrooms. Some edible, some deadly",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0,
     },
     {
         id: 50,
@@ -355,8 +421,9 @@ export const minimapTiles = [
         desc: "Short grassy space, well managed",
         category: "grass",
         walkLag: 12,
+        blockTravel: 0.1,
     },
-    { id: 51, name: "Farmland", img: "farmplot.png", desc: "Active farm space", category: "grass", walkLag: 25 },
+    { id: 51, name: "Farmland", img: "farmplot.png", desc: "Active farm space", category: "grass", walkLag: 25, blockTravel: 0 },
     {
         id: 52,
         name: "Gravel",
@@ -364,5 +431,6 @@ export const minimapTiles = [
         desc: "Flat gravel surface. Won't turn into a muddy mess in the rain",
         category: "ground",
         walkLag: 10,
+        blockTravel: 0,
     },
 ];

@@ -46,14 +46,18 @@ export default function RockKnapper() {
                         canWork: ()=> {
                             // Returns true if this task can currently be worked by a worker. This will determine when workers stop working here to find new work
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
-                            if(typeof(mytile)==='undefined') return false;
+                            if(typeof(mytile)==='undefined') return 'Cannot find tile holding this structure';
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            return (mytile.items.reduce((carry,item)=>{
+                            if(mytile.items.reduce((carry,item)=>{
                                 if(item.name==='Flint Knife') {
                                     carry++;
                                 }
                                 return carry;
-                            }, 0)<5);
+                            }, 0)<5) {
+                                return '';
+                            }else{
+                                return 'Output full';
+                            }
                         },
                         workLocation: (tile,position) => {
                             // Returns true if this location is suitable for completing this job
@@ -63,6 +67,10 @@ export default function RockKnapper() {
                         },
                         doWork: () => {
                             // Returns true if the work here is complete
+
+                            // If a worker is performing work here, we can call the tutorial task complete.
+                            game.tutorialTask.find(i=>i.name==='Tools1').status=1;
+
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return false;
 
@@ -74,7 +82,7 @@ export default function RockKnapper() {
                             mytile.modified = 1;
                             b.workProgress = 0;
 
-                            if(b.recipe.canWork()) return; // We can build another here
+                            if(b.recipe.canWork()==='') return; // We can build another here
                             // If we can't, unassign the worker
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
@@ -88,14 +96,15 @@ export default function RockKnapper() {
                         canWork: ()=>{
                             // Returns true if this task can currently be worked by a worker.
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
-                            if(typeof(mytile)==='undefined') return false;
+                            if(typeof(mytile)==='undefined') return 'Cannot find tile holding this structure';
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            return (mytile.items.reduce((carry,item)=>{
+                            if(mytile.items.reduce((carry,item)=>{
                                 if(item.name==='Flint Stabber') {
                                     carry++;
                                 }
                                 return carry;
-                            }, 0)<5);
+                            }, 0)<5) return '';
+                            return 'Output full';
                         },
                         workLocation: (tile,position) => {
                             // Returns true if this location is suitable for completing this job
@@ -105,6 +114,10 @@ export default function RockKnapper() {
                         },
                         doWork: () => {
                             // Returns true if the work here is complete
+                            
+                            // If a worker is performing work here, we can call the tutorial task complete.
+                            game.tutorialTask.find(i=>i.name==='Tools1').status=1;
+                            
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return false;
 
@@ -115,7 +128,7 @@ export default function RockKnapper() {
                             mytile.modified = 1;
                             b.workProgress = 0;
 
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             // Can't keep working here...
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
@@ -134,14 +147,17 @@ export default function RockKnapper() {
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
                             if(typeof(mytile.items)==='undefined') mytile.items=[];
                             // See if we have made more than enough items here
-                            if(mytile.items.filter(i=>i.name==='Flint Shovel').length >= 5) return false;
+                            if(mytile.items.filter(i=>i.name==='Flint Shovel').length >= 5) return 'Output full';
                             // See that we have the ingredients needed
-                            return b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty);
+                            if(!b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty)) return 'Missing ingredients';
+                            return '';
                         },
                         workLocation: (tile,position)=>{
                             return (position[0]===b.position[0] && position[1]===b.position[1] && position[2]===b.position[2]);
                         },
                         doWork: ()=>{
+                            game.tutorialTask.find(i=>i.name==='Tools2').status=1;
+
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return false;
 
@@ -164,7 +180,7 @@ export default function RockKnapper() {
                             mytile.items.push(game.createItem('Flint Shovel', {endurance:20*60*2, efficiency:1})); // 2 minutes of usage
                             mytile.modified = 1;
 
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             // Can't keep working here...
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
@@ -182,11 +198,13 @@ export default function RockKnapper() {
                             // Returns true if a worker can do work here
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            if(mytile.items.filter(i=>i.name==='Flint Hatchet').length>=5) return false;
-                            return b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty);
+                            if(mytile.items.filter(i=>i.name==='Flint Hatchet').length>=5) return 'Output full';
+                            if(!b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty)) return 'Missing ingredients';
+                            return '';
                         },
                         workLocation: (tile,position) => (b.position[0]===position[0] && b.position[1]===position[1] && b.position[2]===position[2]),
                         doWork: ()=>{
+                            game.tutorialTask.find(i=>i.name==='Tools2').status=1;
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return;
                             b.workProgress = 0;
@@ -205,7 +223,7 @@ export default function RockKnapper() {
                             mytile.items.splice(slot,1);
                             mytile.items.push(game.createItem('Flint Hatchet', {endurance:20*60*2, efficiency:1.5})); // 2 minutes of usage
                             mytile.modified = 1;
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }
@@ -218,11 +236,13 @@ export default function RockKnapper() {
                         canWork: ()=>{
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            if(mytile.items.filter(i=>i.name==='Flint Spear').length>=5) return false;
-                            return b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty);
+                            if(mytile.items.filter(i=>i.name==='Flint Spear').length>=5) return 'Output full';
+                            if(!b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty)) return 'Missing ingredients';
+                            return '';
                         },
                         workLocation: (tile,position) => (b.position[0]===position[0] && b.position[1]===position[1] && b.position[2]===position[2]),
                         doWork: ()=>{
+                            game.tutorialTask.find(i=>i.name==='Tools2').status=1;
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return;
                             b.workProgress = 0;
@@ -241,7 +261,7 @@ export default function RockKnapper() {
                             mytile.item.splice(slot,1);
                             mytile.items.push(game.createItem('Flint Spear', {endurance:20*60, efficiency:1})); // 1 minute of usage
                             mytile.modified = 1;
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }
@@ -254,11 +274,13 @@ export default function RockKnapper() {
                         canWork: ()=>{
                             let mytile = game.tiles[b.position[0]][b.position[1]][b.position[2]];
                             if(typeof(mytile.items)==='undefined') mytile.items = [];
-                            if(mytile.items.filter(i=>i.name==='Flint Scythe').length>=5) return false;
-                            return b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty);
+                            if(mytile.items.filter(i=>i.name==='Flint Scythe').length>=5) return 'Output full';
+                            if(b.recipe.itemsNeeded.every(l=>mytile.items.filter(i=>i.name===l.name).length>=l.qty)) return 'Missing ingredients';
+                            return '';
                         },
                         workLocation: (tile,position) => (b.position[0]===position[0] && b.position[1]===position[1] && b.position[2]===position[2]),
                         doWork: ()=>{
+                            game.tutorialTask.find(i=>i.name==='Tools2').status=1;
                             b.workProgress++;
                             if(b.workProgress<b.recipe.workerTime) return;
                             b.workProgress=0;
@@ -289,7 +311,7 @@ export default function RockKnapper() {
                             mytile.items.splice(slot,1);
                             mytile.items.push(game.createItem('Flint Scythe', {endurance:20*60, efficiency:1})); // 1 minute of usage
                             mytile.modified = 1;
-                            if(b.recipe.canWork()) return;
+                            if(b.recipe.canWork()==='') return;
                             b.workerAssigned.job = null;
                             b.workerAssigned = null;
                         }

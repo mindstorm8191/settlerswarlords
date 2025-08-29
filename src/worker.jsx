@@ -62,7 +62,8 @@ export function createWorker(pkg) {
                 for(let i=0; i<game.structures.length; i++) {
                     if(!(game.structures[i].recipe===null)) {   // has a recipe been selected here?
                         if(game.structures[i].workerAssigned===null) {  // is someone else working this recipe?
-                            if(game.structures[i].recipe.canWork()) { // can this job be worked right now?
+                            if(game.structures[i].recipe.canWork()==='') { // can this job be worked right now?
+                                console.log('Assign worker to this job');
                                 // This is a good job to assign
                                 w.path = '';
                                 w.job = game.structures[i];
